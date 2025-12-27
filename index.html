@@ -3,93 +3,300 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FortuneAI 診断</title>
+  <title>FortuneAI式 17タイプ診断</title>
   <style>
     :root{
-      --bg1:#070b1a; --bg2:#0b1231; --acc:#cfa76e; --acc2:#7c4dff; --txt:#eaf0ff;
+      --bg0:#070b1a;
+      --bg1:#0b1231;
       --card: rgba(255,255,255,.06);
-      --line: rgba(255,255,255,.12);
+      --line: rgba(255,255,255,.14);
+      --text:#eaf0ff;
+      --muted: rgba(234,240,255,.78);
+      --gold:#cfa76e;
+      --purple:#7c4dff;
+      --ok:#41d18a;
+      --warn:#ffcc66;
+      --bad:#ff6b6b;
+      --shadow: 0 18px 60px rgba(0,0,0,.38);
+      --r: 18px;
     }
     *{box-sizing:border-box}
+    html, body{height:100%}
     body{
-      margin:0; color:var(--txt); font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-      min-height:100vh;
+      margin:0;
+      color:var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
       background:
-        radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.25), transparent 60%),
-        radial-gradient(900px 500px at 80% 30%, rgba(207,167,110,.20), transparent 60%),
-        linear-gradient(180deg, var(--bg1), var(--bg2));
+        radial-gradient(1200px 650px at 15% 5%, rgba(124,77,255,.26), transparent 62%),
+        radial-gradient(900px 540px at 85% 25%, rgba(207,167,110,.20), transparent 62%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
     }
+    a{color:inherit}
     .wrap{max-width:980px; margin:0 auto; padding:18px 14px 40px;}
-    .hero{
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      background: linear-gradient(180deg, rgba(7,11,26,.92), rgba(11,18,49,.68));
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius: 20px;
+      padding: 14px 14px;
+      box-shadow: var(--shadow);
+    }
+    .topbarRow{
       display:flex; gap:12px; align-items:center; justify-content:space-between;
-      padding:16px; border:1px solid var(--line); background:rgba(255,255,255,.04);
-      border-radius:18px; backdrop-filter: blur(10px);
-      position:sticky; top:0; z-index:5;
+      flex-wrap:wrap;
     }
-    .brand{display:flex; gap:12px; align-items:center;}
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      min-width: 220px;
+    }
     .orb{
-      width:44px; height:44px; border-radius:999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,.05) 45%, rgba(124,77,255,.35) 70%, rgba(207,167,110,.25));
+      width:42px; height:42px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.92), rgba(255,255,255,.06) 45%, rgba(124,77,255,.32) 72%, rgba(207,167,110,.20));
       border:1px solid rgba(255,255,255,.18);
-      box-shadow: 0 0 26px rgba(124,77,255,.28), 0 0 18px rgba(207,167,110,.18);
+      box-shadow: 0 0 24px rgba(124,77,255,.25), 0 0 18px rgba(207,167,110,.18);
+      flex: 0 0 auto;
     }
-    h1{font-size:16px; margin:0; letter-spacing:.06em}
-    .sub{opacity:.85; font-size:12px}
-    .progress{
+    .title{
+      font-size:14px;
+      letter-spacing:.06em;
+      margin:0;
+      line-height:1.2;
+    }
+    .subtitle{
+      font-size:12px;
+      opacity:.86;
+      margin-top:4px;
+      line-height:1.35;
+    }
+
+    .progressWrap{
       display:flex; align-items:center; gap:10px;
-      min-width:220px;
+      min-width: 240px;
+      flex: 1 1 auto;
+      justify-content:flex-end;
     }
     .bar{
-      flex:1; height:10px; border-radius:999px; background:rgba(255,255,255,.10);
-      overflow:hidden; border:1px solid rgba(255,255,255,.12);
+      height:10px;
+      width:min(380px, 56vw);
+      background: rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:999px;
+      overflow:hidden;
     }
     .bar > i{
       display:block; height:100%; width:0%;
-      background: linear-gradient(90deg, rgba(124,77,255,.9), rgba(207,167,110,.9));
+      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
       border-radius:999px;
-      transition: width .35s ease;
+      transition: width .25s ease;
     }
-    .step{font-size:12px; opacity:.9; white-space:nowrap}
+    .stepText{
+      font-size:12px;
+      opacity:.90;
+      white-space:nowrap;
+      min-width: 72px;
+      text-align:right;
+    }
 
     .card{
       margin-top:14px;
-      border:1px solid var(--line); background:var(--card); border-radius:18px;
-      padding:16px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      border:1px solid var(--line);
+      background: var(--card);
+      border-radius: var(--r);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
     }
-    .qtitle{font-size:14px; margin:0 0 10px; letter-spacing:.03em}
-    .qdesc{margin:0 0 14px; opacity:.85; font-size:12px; line-height:1.5}
 
-    .choices{display:grid; grid-template-columns: 1fr; gap:10px;}
-    @media(min-width:700px){
-      .choices{grid-template-columns:1fr 1fr;}
+    .hero{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
     }
-    .btn{
-      position:relative;
-      padding:14px 14px;
+    @media(min-width:820px){
+      .hero{grid-template-columns: 1.2fr .8fr;}
+    }
+
+    .h1{
+      font-size:20px;
+      margin:0 0 8px;
+      letter-spacing:.05em;
+      line-height:1.25;
+    }
+    .lead{
+      margin:0;
+      font-size:13px;
+      opacity:.88;
+      line-height:1.7;
+    }
+    .disclaimer{
+      margin-top:10px;
+      padding: 10px 12px;
       border-radius:14px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
-      color:var(--txt);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.03);
+      font-size:12px;
+      line-height:1.6;
+      color: rgba(234,240,255,.86);
+    }
+    .pillRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(207,167,110,.30);
+      background: rgba(207,167,110,.10);
+      font-size:12px;
+      opacity:.95;
+    }
+    .mini{
+      font-size:12px;
+      opacity:.84;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
+    .btn{
+      appearance:none; border:none;
+      padding: 12px 14px;
+      border-radius: 14px;
       cursor:pointer;
+      color: var(--text);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
       transition: transform .08s ease, border-color .2s ease, background .2s ease;
       user-select:none;
+    }
+    .btn:hover{border-color: rgba(207,167,110,.45);}
+    .btn:active{transform: translateY(1px) scale(.995);}
+    .btn.primary{
+      background: linear-gradient(90deg, rgba(124,77,255,.85), rgba(207,167,110,.85));
+      border-color: rgba(255,255,255,.18);
+    }
+    .btn.danger{
+      background: rgba(255,107,107,.12);
+      border-color: rgba(255,107,107,.40);
+    }
+    .btn.ghost{
+      background: rgba(255,255,255,.03);
+    }
+    .btn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+    }
+    .hint{
+      font-size:12px; opacity:.82; line-height:1.6;
+      margin: 10px 0 0;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media(min-width:820px){
+      .grid{grid-template-columns: 1fr 1fr;}
+    }
+
+    label{display:block; font-size:12px; opacity:.88; margin-bottom:6px;}
+    .field{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+    }
+    .field:focus{
+      border-color: rgba(207,167,110,.50);
+      box-shadow: 0 0 0 3px rgba(207,167,110,.12);
+    }
+    .err{color: var(--bad); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
+    .ok{color: var(--ok); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
+
+    .qHeader{
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .qTitle{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.03em;
+      line-height:1.55;
+    }
+    .tagBadge{
+      font-size:12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      opacity:.90;
+      white-space:nowrap;
+    }
+    .scale{
+      margin-top:12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      padding: 12px;
+    }
+    .scaleLegend{
+      display:flex; justify-content:space-between;
+      font-size:11px;
+      opacity:.82;
+      gap:10px;
+      line-height:1.3;
+      margin-bottom:8px;
+    }
+    .scaleGrid{
+      display:grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 6px;
+    }
+    .radioCard{
+      position:relative;
+      border-radius: 12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
       overflow:hidden;
     }
-    .btn:hover{border-color: rgba(207,167,110,.42);}
-    .btn:active{transform: translateY(1px) scale(.995);}
-    .btn b{display:block; font-size:13px; letter-spacing:.02em}
-    .btn span{display:block; margin-top:6px; font-size:12px; opacity:.82; line-height:1.4}
+    .radioCard input{
+      position:absolute; inset:0;
+      opacity:0; cursor:pointer;
+    }
+    .radioCard label{
+      margin:0;
+      display:flex; align-items:center; justify-content:center;
+      padding: 10px 0;
+      font-size: 12px;
+      opacity:.92;
+      cursor:pointer;
+      user-select:none;
+    }
+    .radioCard:has(input:focus-visible){
+      outline: 3px solid rgba(207,167,110,.25);
+      outline-offset: 2px;
+    }
+    .radioCard:has(input:checked){
+      border-color: rgba(207,167,110,.55);
+      background: linear-gradient(180deg, rgba(207,167,110,.18), rgba(124,77,255,.12));
+    }
+    .radioCard:has(input:checked) label{
+      opacity:1;
+      font-weight:700;
+      letter-spacing:.02em;
+    }
 
-    /* tap effect */
     .spark{
-      position:absolute; inset:auto;
-      width:10px; height:10px; border-radius:999px;
+      position:absolute;
+      width:10px; height:10px;
+      border-radius:999px;
       pointer-events:none;
-      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.2), transparent 70%);
-      transform: translate(-50%,-50%) scale(1);
+      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.18), transparent 70%);
+      transform: translate(-50%,-50%) scale(.4);
       animation: pop .55s ease-out forwards;
       filter: blur(.2px);
     }
@@ -99,306 +306,1439 @@
       100%{opacity:0; transform:translate(-50%,-50%) scale(7);}
     }
 
-    .footer{
-      margin-top:14px; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap;
-      opacity:.88; font-size:12px;
+    .textarea{
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.6;
     }
-    .ghost{
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      color:var(--txt);
-      padding:10px 12px; border-radius:12px; cursor:pointer;
+    .counter{
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-top:8px;
+      font-size:12px;
+      opacity:.85;
     }
 
-    /* result carousel */
-    .result{display:none;}
-    .result.on{display:block;}
+    .resultHeader{
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      flex-wrap:wrap;
+    }
     .badge{
       display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px; border-radius:999px;
+      padding: 8px 10px;
+      border-radius: 999px;
       border:1px solid rgba(207,167,110,.35);
       background: rgba(207,167,110,.10);
       font-size:12px;
+      opacity:.98;
     }
-    .big{
-      margin-top:12px;
-      font-size:18px; line-height:1.35; letter-spacing:.03em;
+    .bigTitle{
+      font-size:18px;
+      margin:10px 0 0;
+      letter-spacing:.03em;
+      line-height:1.35;
     }
-    .grid{
-      margin-top:12px;
-      display:grid; grid-template-columns:1fr; gap:10px;
+    .subNote{
+      margin: 6px 0 0;
+      font-size:12px;
+      opacity:.86;
+      line-height:1.6;
     }
-    @media(min-width:700px){ .grid{grid-template-columns:1fr 1fr 1fr;} }
-    .tile{
-      padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
+    .bars{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
     }
-    .tile h3{margin:0 0 8px; font-size:12px; opacity:.9}
-    .tile p{margin:0; font-size:12px; opacity:.85; line-height:1.55}
-    .hint{margin-top:10px; font-size:12px; opacity:.8}
+    @media(min-width:820px){
+      .bars{grid-template-columns: 1fr 1fr;}
+    }
+    .barBox{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      padding: 12px;
+    }
+    .barTop{
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      font-size:12px;
+      opacity:.90;
+    }
+    .barLine{
+      margin-top:8px;
+      height:10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+    }
+    .barLine > i{
+      display:block; height:100%;
+      width:50%;
+      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
+      border-radius:999px;
+      transition: width .3s ease;
+    }
+    .confidence{
+      margin-top: 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      padding: 12px;
+    }
+    .confRow{
+      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      font-size:12px;
+      opacity:.90;
+    }
+
+    details{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      padding: 12px;
+    }
+    details summary{
+      cursor:pointer;
+      font-size:13px;
+      letter-spacing:.02em;
+      opacity:.95;
+      list-style:none;
+      display:flex; align-items:center; justify-content:space-between;
+      user-select:none;
+    }
+    details summary::-webkit-details-marker{display:none}
+    details summary .chev{
+      width: 10px; height: 10px;
+      border-right:2px solid rgba(234,240,255,.75);
+      border-bottom:2px solid rgba(234,240,255,.75);
+      transform: rotate(-45deg);
+      transition: transform .2s ease;
+      margin-left: 8px;
+      opacity:.9;
+    }
+    details[open] summary .chev{transform: rotate(45deg);}
+    .layerText{
+      margin: 10px 0 0;
+      font-size:12px;
+      line-height:1.7;
+      opacity:.88;
+      white-space: pre-wrap;
+    }
+
+    .jsonBox{
+      margin-top: 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      padding: 12px;
+      overflow:auto;
+      max-height: 320px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 11.5px;
+      line-height:1.55;
+      color: rgba(234,240,255,.92);
+      white-space: pre;
+    }
+
+    .toast{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      font-size: 12px;
+      line-height:1.6;
+      opacity:.92;
+    }
+    .toast.ok{border-color: rgba(65,209,138,.35); background: rgba(65,209,138,.08); color: rgba(234,240,255,.95);}
+    .toast.bad{border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08); color: rgba(234,240,255,.95);}
+    .toast.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08); color: rgba(234,240,255,.95);}
+
+    .sep{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
+    .muted{opacity:.84}
+    .small{font-size:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="hero">
-      <div class="brand">
-        <div class="orb"></div>
+    <div class="topbar">
+      <div class="topbarRow">
+        <div class="brand">
+          <div class="orb" aria-hidden="true"></div>
+          <div>
+            <h1 class="title">FortuneAI式 17タイプ診断</h1>
+            <div class="subtitle">100の質問×9段階で17タイプに分類。占い5種類の象徴レイヤー付き</div>
+          </div>
+        </div>
+        <div class="progressWrap" aria-label="進捗">
+          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <i id="progressBar"></i>
+          </div>
+          <div class="stepText" id="progressText">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: HERO -->
+    <section class="card" id="viewHero">
+      <div class="hero">
         <div>
-          <h1>FortuneAI 診断</h1>
-          <div class="sub">タップで選択 → エフェクト → 結果を豪華表示（デモ）</div>
+          <p class="lead">
+            100問の回答（1〜9）から、E/I・S/N・T/F・J/Pの4軸スコアを算出し、16タイプ＋均衡（BAL）を判定します。<br>
+            さらにタロット・星座モード・五行・手相・姓名判断の「象徴レイヤー」を結果として表示します。
+          </p>
+          <div class="disclaimer">
+            免責：本コンテンツは娯楽・自己理解を目的とした情報提供です。医療・法律・投資等の専門助言ではありません。
+            重要な意思決定は、必要に応じて専門家へご相談ください。
+          </div>
+
+          <div class="pillRow" aria-label="特徴">
+            <div class="pill">✅ 自動保存（localStorage）</div>
+            <div class="pill">✅ 9段階スケール</div>
+            <div class="pill">✅ 17タイプ判定（BALあり）</div>
+            <div class="pill">✅ Make連携payload生成</div>
+          </div>
+
+          <div class="btnRow">
+            <button class="btn primary" id="btnStart">開始</button>
+            <button class="btn ghost" id="btnSample">サンプル回答で自動入力（テスト）</button>
+            <button class="btn danger" id="btnResetFromHero">最初からやり直す（保存を消去）</button>
+          </div>
+          <p class="hint">
+            ヒント：Makeテスト用に「サンプル回答」を入れると、名前/性別/誕生日/回答/悩みが自動で埋まります。
+          </p>
+        </div>
+
+        <div class="card" style="margin:0; box-shadow:none;">
+          <p class="mini"><b>Make連携について</b></p>
+          <p class="mini muted">
+            最終送信（final_submit）時に、以下の形式のJSON payloadを生成します。<br>
+            本番：WEBHOOK_URLを設定するとfetch()でPOST送信。<br>
+            テスト：WEBHOOK_URLが空なら、送信せずJSONプレビュー/コピー/ダウンロードを提供します。
+          </p>
+          <div class="sep"></div>
+          <p class="mini"><b>注意（userId）</b></p>
+          <p class="mini muted">
+            外部ライブラリ禁止のため、LIFF SDKなしでLINEのuserIdは自動取得できません。<br>
+            そのため userId は「手入力」または「URLクエリ（?userId=...）」等で渡してください。
+          </p>
         </div>
       </div>
-      <div class="progress">
-        <div class="bar"><i id="bar"></i></div>
-        <div class="step" id="step">1 / 5</div>
-      </div>
-    </div>
+    </section>
 
-    <div class="card" id="quiz">
-      <p class="qtitle" id="qtitle">Q1. 直感の強さは？</p>
-      <p class="qdesc" id="qdesc">迷ったとき、理屈より「なんとなく」を信じることが多いですか？</p>
-      <div class="choices" id="choices"></div>
+    <!-- VIEW: PROFILE -->
+    <section class="card" id="viewProfile" hidden>
+      <h2 class="h1">プロフィール入力</h2>
+      <p class="lead">送信payloadの profile に直結します。必須項目は未入力のまま進めません。</p>
 
-      <div class="footer">
-        <button class="ghost" id="back">戻る</button>
-        <span>※まずはUI確認用。後で質問/結果は自由に差し替え。</span>
-      </div>
-    </div>
-
-    <div class="card result" id="result">
-      <span class="badge">解析完了：<b id="rtype">オラクル型</b></span>
-      <div class="big" id="rheadline">あなたの直感は「瞬間的に核心へ触れる」タイプ。</div>
-
-      <div class="grid">
-        <div class="tile">
-          <h3>強み</h3>
-          <p id="rstrong">空気の変化に早く気づき、最適解を直感で掴む。</p>
+      <div class="grid" style="margin-top:12px;">
+        <div>
+          <label for="name">表示名（必須）</label>
+          <input class="field" id="name" type="text" inputmode="text" autocomplete="name" placeholder="例：太郎" />
+          <div class="err" id="errName">表示名を入力してください。</div>
         </div>
-        <div class="tile">
-          <h3>弱点</h3>
-          <p id="rweak">情報過多だと迷いが増え、判断が鈍る。</p>
+        <div>
+          <label for="gender">性別（必須）</label>
+          <select class="field" id="gender" aria-label="性別">
+            <option value="">選択してください</option>
+            <option value="male">male（男性）</option>
+            <option value="female">female（女性）</option>
+            <option value="other">other（その他）</option>
+          </select>
+          <div class="err" id="errGender">性別を選択してください。</div>
         </div>
-        <div class="tile">
-          <h3>開運アクション</h3>
-          <p id="raction">3分だけ“無音”の時間を作り、最初に浮かんだ結論をメモ。</p>
+        <div>
+          <label for="birthday">生年月日（必須）</label>
+          <input class="field" id="birthday" type="date" />
+          <div class="err" id="errBirthday">生年月日を入力してください（YYYY-MM-DD）。</div>
+        </div>
+        <div>
+          <label for="userId">userId（任意 / LINE userId等）</label>
+          <input class="field" id="userId" type="text" inputmode="text" autocomplete="off" placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+          <p class="mini muted" style="margin:8px 0 0;">※URLに <code>?userId=...</code> があれば自動で入ります。</p>
         </div>
       </div>
 
-      <div class="hint" id="loopHint">結果は自動でループ表示します（豪華演出の例）。</div>
-
-      <div class="footer">
-        <button class="ghost" id="restart">最初から</button>
-        <button class="ghost" id="copy">結果をコピー</button>
+      <div class="btnRow">
+        <button class="btn ghost" id="btnBackToHero">戻る</button>
+        <button class="btn primary" id="btnToQuestions">回答へ進む</button>
+        <button class="btn ghost" id="btnSampleProfileOnly">サンプルプロフィール入力</button>
       </div>
-    </div>
+
+      <div class="toast warn" id="profileRestoreNote" style="display:none;">
+        保存データを検出しました。プロフィール・回答・進捗を復元しています。
+      </div>
+    </section>
+
+    <!-- VIEW: QUESTIONS -->
+    <section class="card" id="viewQuestions" hidden>
+      <div class="qHeader">
+        <div>
+          <h2 class="h1" style="margin:0;">設問回答</h2>
+          <p class="lead" id="qProgress">1 / 100</p>
+        </div>
+        <div class="tagBadge" id="qTag">[E+]</div>
+      </div>
+
+      <p class="qTitle" id="qText" style="margin-top:10px;">Q1. （設問）</p>
+
+      <div class="scale" id="scaleBox">
+        <div class="scaleLegend">
+          <span>1 = まったくそう思わない</span>
+          <span>9 = 非常にそう思う</span>
+        </div>
+        <div class="scaleGrid" id="scaleGrid" aria-label="9段階評価"></div>
+      </div>
+
+      <div class="btnRow" style="justify-content:space-between;">
+        <button class="btn ghost" id="btnPrevQ">前へ</button>
+        <div class="muted small" id="qGuard">未回答のまま次へ進めません。</div>
+        <button class="btn primary" id="btnNextQ">次へ</button>
+      </div>
+
+      <div class="sep"></div>
+
+      <div class="btnRow">
+        <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
+        <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
+      </div>
+    </section>
+
+    <!-- VIEW: WORRY -->
+    <section class="card" id="viewWorry" hidden>
+      <h2 class="h1">悩み入力</h2>
+      <p class="lead">最終送信payloadの <code>worryText</code> に入ります（最大2000文字）。</p>
+
+      <label for="worryText" style="margin-top:12px;">悩み（最大2000文字）</label>
+      <textarea class="field textarea" id="worryText" maxlength="2000" placeholder="例：仕事の方向性が定まらず不安です。今後の強みの活かし方が知りたい…"></textarea>
+      <div class="counter">
+        <span class="muted">入力内容は自動保存されます。</span>
+        <span id="worryCount">0 / 2000</span>
+      </div>
+
+      <div class="btnRow">
+        <button class="btn ghost" id="btnBackToQuestions">回答へ戻る</button>
+        <button class="btn primary" id="btnShowResult">結果を見る</button>
+      </div>
+    </section>
+
+    <!-- VIEW: RESULT -->
+    <section class="card" id="viewResult" hidden>
+      <div class="resultHeader">
+        <div>
+          <div class="badge">判定タイプ：<b id="typeCode">----</b></div>
+          <h2 class="bigTitle" id="typeTitle">FortuneAI：----</h2>
+          <p class="subNote" id="typeSub">（----）</p>
+        </div>
+        <div class="badge" id="balanceNote" style="display:none;">BAL判定（均衡型）</div>
+      </div>
+
+      <div class="bars" id="axisBars"></div>
+
+      <div class="confidence">
+        <div class="confRow">
+          <span>信頼度（4軸平均）</span>
+          <b id="confOverall">--%</b>
+        </div>
+        <div class="barLine" aria-label="信頼度">
+          <i id="confBar" style="width:0%;"></i>
+        </div>
+        <p class="hint" style="margin:8px 0 0;">
+          信頼度は各軸の絶対値（0〜100）を%に換算し、4軸平均で算出します。
+        </p>
+      </div>
+
+      <div class="sep"></div>
+
+      <h3 class="h1" style="font-size:16px; margin:0;">占い5種類の象徴レイヤー</h3>
+      <p class="lead">※あくまで象徴（比喩）として表示します。実在の占術の断定ではありません。</p>
+
+      <div style="display:grid; gap:10px; margin-top:12px;" id="layers"></div>
+
+      <div class="sep"></div>
+
+      <div class="btnRow">
+        <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
+        <button class="btn ghost" id="btnCopyJson">JSONをコピー</button>
+        <button class="btn ghost" id="btnDownloadJson">JSONをダウンロード</button>
+        <button class="btn danger" id="btnResetFromResult">最初からやり直す（保存を消去）</button>
+      </div>
+
+      <div class="toast" id="submitStatus" style="display:none;"></div>
+
+      <div id="jsonPreviewWrap" style="display:none;">
+        <div class="sep"></div>
+        <p class="lead"><b>JSONプレビュー（テストモード：WEBHOOK_URL未設定）</b></p>
+        <div class="jsonBox" id="jsonPreview"></div>
+      </div>
+    </section>
+
+    <p class="hint" style="text-align:center; margin-top:18px;">
+      © FortuneAI / 本ページは単一ファイル構成（外部ライブラリ不使用）
+    </p>
   </div>
 
-<script>
-  // ===== デモ用データ =====
-  const questions = [
-    {
-      title: "Q1. 直感の強さは？",
-      desc: "迷ったとき、理屈より「なんとなく」を信じることが多いですか？",
-      choices: [
-        {t:"かなり当たる", d:"直感で選んで成功することが多い"},
-        {t:"まあまあ", d:"直感も理屈も半々"},
-        {t:"あまり信じない", d:"根拠がないと動けない"},
-        {t:"日による", d:"状況でブレる"},
-      ]
-    },
-    {
-      title: "Q2. 行動の速さは？",
-      desc: "チャンスが来たら、すぐ動けるタイプですか？",
-      choices: [
-        {t:"即行動", d:"思い立ったらすぐ試す"},
-        {t:"準備してから", d:"最低限の段取りを固める"},
-        {t:"慎重に検討", d:"メリット/デメリットを精査"},
-        {t:"流れに任せる", d:"自然に決まるのを待つ"},
-      ]
-    },
-    {
-      title: "Q3. 対人のエネルギーは？",
-      desc: "人と会った後、元気になる？それとも疲れやすい？",
-      choices: [
-        {t:"元気になる", d:"話すほどエネルギーが湧く"},
-        {t:"半々", d:"相手と場による"},
-        {t:"疲れやすい", d:"一人時間で回復する"},
-        {t:"役割次第", d:"目的があれば平気"},
-      ]
-    },
-    {
-      title: "Q4. 価値観の軸は？",
-      desc: "大事にするのはどれ？",
-      choices: [
-        {t:"自由", d:"縛られずに選びたい"},
-        {t:"安定", d:"再現性と安心が大事"},
-        {t:"成長", d:"難しいほど燃える"},
-        {t:"調和", d:"周りとのバランス優先"},
-      ]
-    },
-    {
-      title: "Q5. 今のテーマは？",
-      desc: "最近いちばん気になるのは？",
-      choices: [
-        {t:"恋愛", d:"関係性を進めたい/整えたい"},
-        {t:"仕事", d:"成果・評価・転機が気になる"},
-        {t:"お金", d:"収入・支出・将来設計"},
-        {t:"自己成長", d:"習慣化・メンタル・健康"},
-      ]
+  <script>
+    /***********************
+     * 設定（ここだけ編集）
+     ***********************/
+    const WEBHOOK_URL = ""; // 本番: Make Webhook URL を設定（例: https://hook.us1.make.com/xxxxx）
+    const STORAGE_KEY = "fortuneai_17type_v1";
+
+    /***********************
+     * 17タイプ称号データ（固定）
+     ***********************/
+    const TYPE_TITLES = {
+      "INTJ":"FortuneAI：黒曜アーキテクト（戦略設計者）",
+      "INTP":"FortuneAI：蒼天アナリスト（原理解剖者）",
+      "ENTJ":"FortuneAI：紅蓮コマンダー（成果指揮者）",
+      "ENTP":"FortuneAI：雷光インベンター（変革発明者）",
+      "INFJ":"FortuneAI：星導シーア（未来洞察者）",
+      "INFP":"FortuneAI：月影バード（理想詩人）",
+      "ENFJ":"FortuneAI：旭日メンター（覚醒導師）",
+      "ENFP":"FortuneAI：虹彩オラクル（可能性点火者）",
+      "ISTJ":"FortuneAI：鉄律マーシャル（秩序監督者）",
+      "ISFJ":"FortuneAI：守灯スチュワード（献身支援者）",
+      "ESTJ":"FortuneAI：白鋼マーシャル（現場統制者）",
+      "ESFJ":"FortuneAI：祝祭ホスト（調和演出者）",
+      "ISTP":"FortuneAI：影刃スミス（実務解体者）",
+      "ISFP":"FortuneAI：花晶アーティザン（美感匠）",
+      "ESTP":"FortuneAI：疾風ストライカー（機会攻略者）",
+      "ESFP":"FortuneAI：陽光パフォーマー（感情起動者）",
+      "BAL":"FortuneAI：均衡アルケミスト（統合適応者）"
+    };
+
+    const TAROT_MAJOR = {
+      "INTJ":"隠者","INTP":"正義","ENTJ":"皇帝","ENTP":"魔術師","INFJ":"女教皇","INFP":"星","ENFJ":"太陽","ENFP":"愚者",
+      "ISTJ":"教皇","ISFJ":"節制","ESTJ":"戦車","ESFJ":"女帝","ISTP":"力","ISFP":"恋人","ESTP":"運命の輪","ESFP":"世界","BAL":"審判"
+    };
+
+    /***********************
+     * 設問データ（100問）
+     * 重要：
+     * - ユーザー文面に「前回提示の100問」を貼り付け…とありますが、このチャットにはその100問が未提供のため、
+     *   ここでは要件に沿う “雛形” の100問（tag分配=各軸25問）を同梱しています。
+     * - もし「厳密なQ1〜Q100テキスト＆タグ」が別途ある場合、このQUESTIONS配列をその内容に置換してください。
+     ***********************/
+    const QUESTIONS = buildDefaultQuestions();
+
+    function buildDefaultQuestions(){
+      // 各軸25問、+/-混在。idは1..100固定、順番固定。
+      // テキストは置換しやすいように短め・日本語UIに統一。
+      const out = [];
+      const mk = (id, text, tag) => ({ id, text, tag });
+
+      // E軸 25問（E+ / E-）
+      const E = [
+        ["初対面の場でも、自然に話しかけるほうだ","[E+]"],
+        ["一人で過ごす時間が長いほど安心する","[E-]"],
+        ["人が集まる場に行くとエネルギーが湧く","[E+]"],
+        ["雑談よりも、必要な会話だけで十分だ","[E-]"],
+        ["相談されると、すぐ反応して場を動かしたくなる","[E+]"],
+        ["予定が詰まると、まず距離を取りたくなる","[E-]"],
+        ["新しいコミュニティに入るのが楽しみだ","[E+]"],
+        ["考えをまとめてからでないと発言しにくい","[E-]"],
+        ["人前で話すことに抵抗が少ない","[E+]"],
+        ["大勢の中にいるより、少人数が落ち着く","[E-]"],
+        ["即興で会話を広げるのが得意だ","[E+]"],
+        ["会話の後は、一人で回復する時間が必要だ","[E-]"],
+        ["周囲のテンションに合わせて盛り上げられる","[E+]"],
+        ["発言前に、頭の中で何度もシミュレーションする","[E-]"],
+        ["場の空気を読んで率先して動く","[E+]"],
+        ["自分の世界に入る時間がないと消耗する","[E-]"],
+        ["他人と一緒に作業する方が捗る","[E+]"],
+        ["連絡は最低限でいいと感じる","[E-]"],
+        ["新しい人脈作りに前向きだ","[E+]"],
+        ["静かな環境の方が集中できる","[E-]"],
+        ["反応が返ってくるやり取りが好きだ","[E+]"],
+        ["自分の内側で結論が出るまで話したくない","[E-]"],
+        ["イベントや集まりを企画するのが好きだ","[E+]"],
+        ["社交の後は疲れがどっと出る","[E-]"],
+        ["人と話すほどアイデアが出る","[E+]"],
+      ];
+
+      // S軸 25問（S+ = S / S- = N）
+      const S = [
+        ["事実や実例をもとに判断することが多い","[S+]"],
+        ["抽象的な可能性を考えるのが好きだ","[S-]"],
+        ["今ある情報を丁寧に確認して進めたい","[S+]"],
+        ["『もし〜なら』の仮説を立てるのが楽しい","[S-]"],
+        ["手順や具体策を固めると安心する","[S+]"],
+        ["細部より全体像や意味を先に掴みたい","[S-]"],
+        ["現実的な制約を踏まえて決める","[S+]"],
+        ["直感的なひらめきで方向性を決めることがある","[S-]"],
+        ["経験に基づく再現性を重視する","[S+]"],
+        ["未来のトレンドや流れを想像しやすい","[S-]"],
+        ["数字や根拠があると納得しやすい","[S+]"],
+        ["曖昧でもビジョンがあれば動ける","[S-]"],
+        ["具体的な改善点を列挙できる","[S+]"],
+        ["象徴や比喩で理解する方がしっくりくる","[S-]"],
+        ["現場感覚や実務の感触を大切にする","[S+]"],
+        ["今は無い可能性にワクワクする","[S-]"],
+        ["計画は現実に落とし込めるかを確認する","[S+]"],
+        ["常識を疑って新しい解釈を探す","[S-]"],
+        ["目の前の課題を一つずつ解くのが得意","[S+]"],
+        ["パターンや共通点を見つけるのが得意","[S-]"],
+        ["具体例があると理解が早い","[S+]"],
+        ["コンセプトや世界観から発想する","[S-]"],
+        ["小さな変化に気づきやすい","[S+]"],
+        ["本質を掴めば細部は後からでいい","[S-]"],
+        ["現実のリスクを先に洗い出す","[S+]"],
+      ];
+
+      // T軸 25問（T+ = T / T- = F）
+      const T = [
+        ["結論は論理の整合性を優先したい","[T+]"],
+        ["相手の気持ちを優先して言い方を選ぶ","[T-]"],
+        ["公平なルールに沿って判断したい","[T+]"],
+        ["衝突を避けるために配慮することが多い","[T-]"],
+        ["感情よりも事実を先に整理する","[T+]"],
+        ["場の雰囲気や人間関係を重視する","[T-]"],
+        ["効率や成果を基準に意思決定する","[T+]"],
+        ["相手が傷つかないことが最重要だ","[T-]"],
+        ["議論で弱点を指摘されても冷静でいられる","[T+]"],
+        ["共感されると安心する","[T-]"],
+        ["原因と結果を分解して考える","[T+]"],
+        ["誰かの努力や背景を汲み取りたい","[T-]"],
+        ["正しい/間違いをはっきりさせたい","[T+]"],
+        ["『正しさ』より『やさしさ』を優先する","[T-]"],
+        ["合理性が低い提案は見直したくなる","[T+]"],
+        ["相手の立場に立つと決めきれないことがある","[T-]"],
+        ["数字で説明できると安心する","[T+]"],
+        ["感情の納得感がないと進めにくい","[T-]"],
+        ["評価基準を明確にしてから動く","[T+]"],
+        ["和を乱さないように調整するのが得意","[T-]"],
+        ["長期的に得かどうかで選ぶ","[T+]"],
+        ["関係性が壊れそうなら方針を変える","[T-]"],
+        ["最適解を探すのが好きだ","[T+]"],
+        ["相手が安心できる説明を心がける","[T-]"],
+        ["結論を急がず気持ちを整える時間も必要","[T-]"], // T-を少し多めにしてバランス
+      ];
+
+      // J軸 25問（J+ = J / J- = P）
+      const J = [
+        ["締切や計画がある方が動きやすい","[J+]"],
+        ["選択肢を残しておきたい","[J-]"],
+        ["ToDoを整理して順番に処理する","[J+]"],
+        ["その場の流れで柔軟に決めたい","[J-]"],
+        ["予定は早めに確定したい","[J+]"],
+        ["直前まで迷って最良を選びたい","[J-]"],
+        ["ルールや手順に沿って進めたい","[J+]"],
+        ["型にハマらず試行錯誤したい","[J-]"],
+        ["部屋やデータは整っている方が落ち着く","[J+]"],
+        ["散らかっていても必要ならすぐ動ける","[J-]"],
+        ["決めたら最後までやり切りたい","[J+]"],
+        ["状況次第で方針を変えるのが自然だ","[J-]"],
+        ["まずゴールと期限を決める","[J+]"],
+        ["やりながら目的が変わることもある","[J-]"],
+        ["手帳やメモで管理する習慣がある","[J+]"],
+        ["計画よりも勢いが大事だと思う","[J-]"],
+        ["『完了』の状態を作るのが好きだ","[J+]"],
+        ["未完成でも進めながら整えたい","[J-]"],
+        ["予想外が起きてもリカバリ計画を立てる","[J+]"],
+        ["選択肢が多いほどワクワクする","[J-]"],
+        ["チェックリストがあると安心する","[J+]"],
+        ["締切がないと面白い方へ寄り道する","[J-]"],
+        ["先に段取りを決めてから動く","[J+]"],
+        ["その時の気分で優先順位が変わる","[J-]"],
+        ["結論を早めに固めてスッキリしたい","[J+]"],
+      ];
+
+      // 合成（順番固定：E25, S25, T25, J25）
+      let id = 1;
+      for (const [t, tag] of E) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
+      for (const [t, tag] of S) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
+      for (const [t, tag] of T) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
+      for (const [t, tag] of J) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
+
+      // 100保証
+      if (out.length !== 100) {
+        throw new Error("QUESTIONS length must be 100. Current=" + out.length);
+      }
+      return out;
     }
-  ];
 
-  const results = [
-    {
-      type:"オラクル型",
-      headline:"あなたの直感は「瞬間的に核心へ触れる」タイプ。",
-      strong:"空気の変化に早く気づき、最適解を直感で掴む。",
-      weak:"情報過多だと迷いが増え、判断が鈍る。",
-      action:"3分だけ“無音”の時間を作り、最初に浮かんだ結論をメモ。"
-    },
-    {
-      type:"ストラテジスト型",
-      headline:"あなたは「設計して勝つ」戦略タイプ。",
-      strong:"目標までの道筋を作るのが得意。再現性が高い。",
-      weak:"完璧主義で着手が遅れることがある。",
-      action:"最初の一手だけ“60点”で良いので今日中に動かす。"
-    },
-    {
-      type:"カタリスト型",
-      headline:"あなたは「場を動かす」起爆剤タイプ。",
-      strong:"行動と熱量で周囲を巻き込む。勢いが武器。",
-      weak:"熱が冷めると継続が課題になりやすい。",
-      action:"毎日同じ時間に“1分だけ”触れる習慣を作る。"
+    /***********************
+     * UI Elements
+     ***********************/
+    const el = {
+      progressBar: document.getElementById("progressBar"),
+      progressText: document.getElementById("progressText"),
+
+      viewHero: document.getElementById("viewHero"),
+      viewProfile: document.getElementById("viewProfile"),
+      viewQuestions: document.getElementById("viewQuestions"),
+      viewWorry: document.getElementById("viewWorry"),
+      viewResult: document.getElementById("viewResult"),
+
+      btnStart: document.getElementById("btnStart"),
+      btnSample: document.getElementById("btnSample"),
+      btnResetFromHero: document.getElementById("btnResetFromHero"),
+
+      btnBackToHero: document.getElementById("btnBackToHero"),
+      btnToQuestions: document.getElementById("btnToQuestions"),
+      btnSampleProfileOnly: document.getElementById("btnSampleProfileOnly"),
+      profileRestoreNote: document.getElementById("profileRestoreNote"),
+
+      name: document.getElementById("name"),
+      gender: document.getElementById("gender"),
+      birthday: document.getElementById("birthday"),
+      userId: document.getElementById("userId"),
+      errName: document.getElementById("errName"),
+      errGender: document.getElementById("errGender"),
+      errBirthday: document.getElementById("errBirthday"),
+
+      qProgress: document.getElementById("qProgress"),
+      qTag: document.getElementById("qTag"),
+      qText: document.getElementById("qText"),
+      scaleGrid: document.getElementById("scaleGrid"),
+      btnPrevQ: document.getElementById("btnPrevQ"),
+      btnNextQ: document.getElementById("btnNextQ"),
+      btnJumpProfile: document.getElementById("btnJumpProfile"),
+      btnResetFromQuestions: document.getElementById("btnResetFromQuestions"),
+      qGuard: document.getElementById("qGuard"),
+
+      worryText: document.getElementById("worryText"),
+      worryCount: document.getElementById("worryCount"),
+      btnBackToQuestions: document.getElementById("btnBackToQuestions"),
+      btnShowResult: document.getElementById("btnShowResult"),
+
+      typeCode: document.getElementById("typeCode"),
+      typeTitle: document.getElementById("typeTitle"),
+      typeSub: document.getElementById("typeSub"),
+      balanceNote: document.getElementById("balanceNote"),
+      axisBars: document.getElementById("axisBars"),
+      confOverall: document.getElementById("confOverall"),
+      confBar: document.getElementById("confBar"),
+      layers: document.getElementById("layers"),
+
+      btnFinalSubmit: document.getElementById("btnFinalSubmit"),
+      btnCopyJson: document.getElementById("btnCopyJson"),
+      btnDownloadJson: document.getElementById("btnDownloadJson"),
+      btnResetFromResult: document.getElementById("btnResetFromResult"),
+      submitStatus: document.getElementById("submitStatus"),
+
+      jsonPreviewWrap: document.getElementById("jsonPreviewWrap"),
+      jsonPreview: document.getElementById("jsonPreview"),
+    };
+
+    /***********************
+     * State
+     ***********************/
+    const state = {
+      view: "hero", // hero|profile|questions|worry|result
+      currentIndex: 0, // 0..99
+      profile: {
+        name: "",
+        gender: "",
+        birthday: "",
+      },
+      userId: "", // payload userId
+      answers: new Array(100).fill(null), // 1..9 or null
+      worryText: "",
+      lastPayload: null, // for preview/copy/download
+    };
+
+    /***********************
+     * Utilities
+     ***********************/
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+    function parseQuery(){
+      const q = new URLSearchParams(location.search);
+      const userId = q.get("userId") || "";
+      return { userId };
     }
-  ];
 
-  // ===== ロジック =====
-  let idx = 0;
-  const answers = [];
-  const $qtitle = document.getElementById("qtitle");
-  const $qdesc  = document.getElementById("qdesc");
-  const $choices= document.getElementById("choices");
-  const $bar    = document.getElementById("bar");
-  const $step   = document.getElementById("step");
-  const $quiz   = document.getElementById("quiz");
-  const $result = document.getElementById("result");
+    function save(){
+      const data = {
+        view: state.view,
+        currentIndex: state.currentIndex,
+        profile: state.profile,
+        userId: state.userId,
+        answers: state.answers,
+        worryText: state.worryText,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
 
-  function render(){
-    const q = questions[idx];
-    $qtitle.textContent = q.title;
-    $qdesc.textContent = q.desc;
-    $choices.innerHTML = "";
-    q.choices.forEach((c, i)=>{
-      const b = document.createElement("div");
-      b.className = "btn";
-      b.innerHTML = `<b>${c.t}</b><span>${c.d}</span>`;
-      b.addEventListener("click", (e)=>choose(i, e));
-      $choices.appendChild(b);
+    function load(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      try{
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== "object") return false;
+        if (!Array.isArray(data.answers) || data.answers.length !== 100) return false;
+
+        state.view = data.view || "hero";
+        state.currentIndex = clamp(Number(data.currentIndex || 0), 0, 99);
+        state.profile = {
+          name: String(data.profile?.name || ""),
+          gender: String(data.profile?.gender || ""),
+          birthday: String(data.profile?.birthday || ""),
+        };
+        state.userId = String(data.userId || "");
+        state.answers = data.answers.map(v => (v===null || v===undefined) ? null : clamp(Number(v), 1, 9));
+        state.worryText = String(data.worryText || "");
+        return true;
+      }catch{
+        return false;
+      }
+    }
+
+    function clearAll(){
+      localStorage.removeItem(STORAGE_KEY);
+      state.view = "hero";
+      state.currentIndex = 0;
+      state.profile = { name:"", gender:"", birthday:"" };
+      state.userId = "";
+      state.answers = new Array(100).fill(null);
+      state.worryText = "";
+      state.lastPayload = null;
+      renderAll();
+    }
+
+    function setView(v){
+      state.view = v;
+      save();
+      renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function setProgress(pct, text){
+      const p = clamp(pct, 0, 100);
+      el.progressBar.style.width = p.toFixed(0) + "%";
+      el.progressText.textContent = text ?? (p.toFixed(0) + "%");
+      const pb = el.progressBar.parentElement;
+      pb.setAttribute("aria-valuenow", String(p));
+    }
+
+    function sparkAt(container, clientX, clientY){
+      const r = container.getBoundingClientRect();
+      const s = document.createElement("i");
+      s.className = "spark";
+      s.style.left = (clientX - r.left) + "px";
+      s.style.top  = (clientY - r.top) + "px";
+      container.appendChild(s);
+      setTimeout(()=>s.remove(), 650);
+    }
+
+    function toast(kind, msg){
+      el.submitStatus.className = "toast " + (kind || "");
+      el.submitStatus.textContent = msg;
+      el.submitStatus.style.display = "block";
+    }
+
+    function hideToast(){
+      el.submitStatus.style.display = "none";
+    }
+
+    function safeJsonStringify(obj){
+      return JSON.stringify(obj, null, 2);
+    }
+
+    async function copyToClipboard(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch{
+        // Fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        let ok = false;
+        try{ ok = document.execCommand("copy"); }catch{ ok = false; }
+        document.body.removeChild(ta);
+        return ok;
+      }
+    }
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    /***********************
+     * Validation
+     ***********************/
+    function validateProfile(){
+      let ok = true;
+      el.errName.style.display = "none";
+      el.errGender.style.display = "none";
+      el.errBirthday.style.display = "none";
+
+      const name = el.name.value.trim();
+      const gender = el.gender.value;
+      const birthday = el.birthday.value;
+
+      if (!name){ el.errName.style.display = "block"; ok = false; }
+      if (!gender){ el.errGender.style.display = "block"; ok = false; }
+      if (!birthday || !/^\d{4}-\d{2}-\d{2}$/.test(birthday)){
+        el.errBirthday.style.display = "block"; ok = false;
+      }
+      return ok;
+    }
+
+    function syncProfileFromInputs(){
+      state.profile.name = el.name.value.trim();
+      state.profile.gender = el.gender.value;
+      state.profile.birthday = el.birthday.value;
+      state.userId = el.userId.value.trim();
+      save();
+    }
+
+    /***********************
+     * Scoring & Typing
+     ***********************/
+    function answerToValue(ans){
+      // 1..9 -> -4..+4
+      return (Number(ans) - 5);
+    }
+
+    function applyTagToAxis(tag, val, scores){
+      // tag format: "[E+]" "[S-]" "[T+]" "[J-]"
+      const m = String(tag).match(/\[([ESTJ])([+-])\]/);
+      if (!m) return;
+      const axis = m[1];
+      const sign = m[2];
+      const v = (sign === "+") ? val : -val;
+
+      if (axis === "E") scores.E += v;
+      if (axis === "S") scores.S += v;
+      if (axis === "T") scores.T += v;
+      if (axis === "J") scores.J += v;
+    }
+
+    function computeScores(){
+      const scores = { E:0, S:0, T:0, J:0 };
+      for (let i=0; i<100; i++){
+        const ans = state.answers[i];
+        if (ans === null) continue;
+        const val = answerToValue(ans);
+        applyTagToAxis(QUESTIONS[i].tag, val, scores);
+      }
+      // Each axis max abs = 100 (25 * 4)
+      scores.E = clamp(scores.E, -100, 100);
+      scores.S = clamp(scores.S, -100, 100);
+      scores.T = clamp(scores.T, -100, 100);
+      scores.J = clamp(scores.J, -100, 100);
+      return scores;
+    }
+
+    function computeType(scores){
+      const absE = Math.abs(scores.E);
+      const absS = Math.abs(scores.S);
+      const absT = Math.abs(scores.T);
+      const absJ = Math.abs(scores.J);
+
+      const isBAL = (absE < 10 && absS < 10 && absT < 10 && absJ < 10);
+      if (isBAL){
+        return { typeCode:"BAL", isBAL:true };
+      }
+
+      const EorI = (scores.E >= 0) ? "E" : "I";
+      const SorN = (scores.S >= 0) ? "S" : "N";
+      const TorF = (scores.T >= 0) ? "T" : "F";
+      const JorP = (scores.J >= 0) ? "J" : "P";
+      return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
+    }
+
+    function axisPercent(score){
+      // E寄り% = ((score + 100) / 200) * 100
+      const p = ((score + 100) / 200) * 100;
+      return clamp(p, 0, 100);
+    }
+
+    function confidence(score){
+      // abs(score)/100 * 100 = abs(score)
+      return clamp(Math.abs(score), 0, 100);
+    }
+
+    function overallConfidence(scores){
+      const ei = confidence(scores.E);
+      const sn = confidence(scores.S);
+      const tf = confidence(scores.T);
+      const jp = confidence(scores.J);
+      return (ei + sn + tf + jp) / 4;
+    }
+
+    /***********************
+     * Symbolic Layers
+     ***********************/
+    function zodiacMode(scores, isBAL){
+      // E優勢→活動宮 / I優勢→不動宮 / BALや拮抗→柔軟宮
+      if (isBAL) return "柔軟宮モード（バランスと適応）";
+      const absE = Math.abs(scores.E);
+      if (absE < 10) return "柔軟宮モード（拮抗・調整）";
+      return (scores.E >= 0) ? "活動宮モード（能動・始動）" : "不動宮モード（持続・安定）";
+    }
+
+    function fiveElements(typeCode){
+      // NT→金 / NF→木 / ST→土 / SF→水 / BAL→火
+      if (typeCode === "BAL") return "火（変容・統合）";
+      const nt = typeCode.includes("N") && typeCode.includes("T");
+      const nf = typeCode.includes("N") && typeCode.includes("F");
+      const st = typeCode.includes("S") && typeCode.includes("T");
+      const sf = typeCode.includes("S") && typeCode.includes("F");
+      if (nt) return "金（構造・分析）";
+      if (nf) return "木（成長・理想）";
+      if (st) return "土（実務・安定）";
+      if (sf) return "水（共感・調和）";
+      return "火（変容・統合）";
+    }
+
+    function palmistryText(typeCode){
+      const map = {
+        "INTJ":"知能線が深く伸びる象徴。集中と戦略で勝ち筋を組み立てる相。",
+        "INTP":"知能線が分岐する象徴。概念の解剖と再構成で本質へ近づく相。",
+        "ENTJ":"運命線が強い象徴。目標を掲げ、現実を動かす推進力の相。",
+        "ENTP":"知能線が軽快に跳ねる象徴。発想転換で停滞を突破する相。",
+        "INFJ":"感情線が静かに整う象徴。洞察と意味づけで未来を照らす相。",
+        "INFP":"感情線が繊細に弧を描く象徴。理想と美意識で世界を編む相。",
+        "ENFJ":"感情線と運命線が結ぶ象徴。人を育て、場を明るく導く相。",
+        "ENFP":"太陽丘が輝く象徴。可能性を点火し、広がりを生む相。",
+        "ISTJ":"生命線が厚い象徴。堅実に積み上げ、秩序で成果を守る相。",
+        "ISFJ":"感情線が柔らかい象徴。支える力で安心の基盤を作る相。",
+        "ESTJ":"運命線が直線的な象徴。現場統制と決断で結果へ寄せる相。",
+        "ESFJ":"感情線が上向く象徴。調和と祝祭で関係性を整える相。",
+        "ISTP":"知能線が鋭い象徴。実務を解体し、最短で直す職人の相。",
+        "ISFP":"感情線が美しく流れる象徴。感性で価値を磨く美感の相。",
+        "ESTP":"生命線が躍動する象徴。機会を掴み、状況を攻略する相。",
+        "ESFP":"太陽線が明るい象徴。感情を起動し、場を温める相。",
+        "BAL":"主要線が均整な象徴。統合適応でどの型にも寄り添える相。"
+      };
+      return map[typeCode] || "象徴テキスト（未定義）";
+    }
+
+    function nameologyText(typeCode){
+      const map = {
+        "INTJ":"文字の“骨格”を整える象徴。名は戦略を呼び、選択を鋭くする。",
+        "INTP":"文字の“意味”を研ぐ象徴。名は理解を深め、探究を進める。",
+        "ENTJ":"文字の“覇気”を立てる象徴。名は主導権を引き寄せる。",
+        "ENTP":"文字の“跳躍”を生む象徴。名は変化と発明を呼び込む。",
+        "INFJ":"文字の“灯”を宿す象徴。名は洞察と直観を澄ませる。",
+        "INFP":"文字の“詩”を帯びる象徴。名は理想と優しさを育てる。",
+        "ENFJ":"文字の“導”を作る象徴。名は人をまとめ、育成を促す。",
+        "ENFP":"文字の“虹”を広げる象徴。名は縁と可能性を増幅する。",
+        "ISTJ":"文字の“柱”を固める象徴。名は秩序と安定を支える。",
+        "ISFJ":"文字の“守”を強める象徴。名は献身と安心感を高める。",
+        "ESTJ":"文字の“律”を示す象徴。名は統制と成果の流れを作る。",
+        "ESFJ":"文字の“祝”を巡らす象徴。名は調和と人気を底上げする。",
+        "ISTP":"文字の“刃”を磨く象徴。名は技術と即応性を研ぎ澄ます。",
+        "ISFP":"文字の“華”を咲かせる象徴。名は美意識と表現を強める。",
+        "ESTP":"文字の“風”を走らせる象徴。名は機会と突破力を呼ぶ。",
+        "ESFP":"文字の“陽”を増やす象徴。名は注目と喜びを引き寄せる。",
+        "BAL":"文字の“調”を整える象徴。名は統合と柔軟な運を育てる。"
+      };
+      return map[typeCode] || "象徴テキスト（未定義）";
+    }
+
+    /***********************
+     * Payload Builder (必須仕様)
+     ***********************/
+    function buildPayload(){
+      const userId = (state.userId || "").trim();
+      const payload = {
+        action: "final_submit",
+        userId: userId || "",
+        step: 999,
+        profile: {
+          gender: state.profile.gender,
+          name: state.profile.name,
+          birthday: state.profile.birthday
+        },
+        answers: state.answers.map(v => Number(v)),
+        worryText: state.worryText || ""
+      };
+      // 型チェック（最低限）
+      if (!Array.isArray(payload.answers) || payload.answers.length !== 100) {
+        throw new Error("answers must be array length 100");
+      }
+      for (const a of payload.answers){
+        if (!Number.isInteger(a) || a < 1 || a > 9) {
+          throw new Error("answers must be integers 1..9");
+        }
+      }
+      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) {
+        throw new Error("profile is incomplete");
+      }
+      if (payload.worryText.length > 2000) {
+        payload.worryText = payload.worryText.slice(0, 2000);
+      }
+      return payload;
+    }
+
+    async function finalSubmit(){
+      hideToast();
+      let payload;
+      try{
+        payload = buildPayload();
+      }catch(e){
+        toast("bad", "送信前チェックに失敗しました： " + (e?.message || e));
+        return;
+      }
+      state.lastPayload = payload;
+      save();
+
+      const jsonText = safeJsonStringify(payload);
+
+      // テストモード：WEBHOOK_URLが空
+      if (!WEBHOOK_URL){
+        el.jsonPreviewWrap.style.display = "block";
+        el.jsonPreview.textContent = jsonText;
+        toast("warn", "テストモード：WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
+        return;
+      }
+
+      // 本番：POST送信
+      el.jsonPreviewWrap.style.display = "none";
+      toast("", "送信中…");
+      try{
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonText
+        });
+        if (!res.ok){
+          const txt = await safeReadText(res);
+          toast("bad", "送信失敗：HTTP " + res.status + " / " + (txt ? "body=" + txt.slice(0, 400) : "no body"));
+          return;
+        }
+        const body = await safeReadText(res);
+        toast("ok", "送信成功：HTTP " + res.status + (body ? " / response=" + body.slice(0, 400) : ""));
+      }catch(e){
+        toast("bad", "送信エラー： " + (e?.message || e));
+      }
+    }
+
+    async function safeReadText(res){
+      try{
+        return await res.text();
+      }catch{
+        return "";
+      }
+    }
+
+    /***********************
+     * Rendering
+     ***********************/
+    function hideAllViews(){
+      el.viewHero.hidden = true;
+      el.viewProfile.hidden = true;
+      el.viewQuestions.hidden = true;
+      el.viewWorry.hidden = true;
+      el.viewResult.hidden = true;
+    }
+
+    function renderAll(){
+      hideAllViews();
+      if (state.view === "hero"){
+        el.viewHero.hidden = false;
+        setProgress(0, "0%");
+      }
+      if (state.view === "profile"){
+        el.viewProfile.hidden = false;
+        renderProfile();
+        setProgress(5, "プロフィール");
+      }
+      if (state.view === "questions"){
+        el.viewQuestions.hidden = false;
+        renderQuestion();
+      }
+      if (state.view === "worry"){
+        el.viewWorry.hidden = false;
+        renderWorry();
+        setProgress(92, "悩み入力");
+      }
+      if (state.view === "result"){
+        el.viewResult.hidden = false;
+        renderResult();
+        setProgress(100, "結果");
+      }
+    }
+
+    function renderProfile(){
+      el.name.value = state.profile.name || "";
+      el.gender.value = state.profile.gender || "";
+      el.birthday.value = state.profile.birthday || "";
+      el.userId.value = state.userId || "";
+    }
+
+    function renderQuestion(){
+      const i = state.currentIndex;
+      const q = QUESTIONS[i];
+
+      el.qProgress.textContent = (i+1) + " / 100";
+      el.qTag.textContent = q.tag;
+      el.qText.textContent = q.text;
+
+      // Progress percent: profile(5%) + questions(5..90%)
+      const base = 5;
+      const span = 85;
+      const pct = base + ( (i) / 100 ) * span;
+      setProgress(pct, el.qProgress.textContent);
+
+      // Build 9-scale grid
+      el.scaleGrid.innerHTML = "";
+      const groupName = "q" + (i+1);
+
+      for (let v=1; v<=9; v++){
+        const id = `radio_${i}_${v}`;
+        const wrap = document.createElement("div");
+        wrap.className = "radioCard";
+
+        const input = document.createElement("input");
+        input.type = "radio";
+        input.name = groupName;
+        input.id = id;
+        input.value = String(v);
+        input.checked = (state.answers[i] === v);
+        input.setAttribute("aria-label", `${v}`);
+
+        const lab = document.createElement("label");
+        lab.setAttribute("for", id);
+        lab.textContent = String(v);
+
+        // Click/tap effect
+        wrap.addEventListener("pointerdown", (e)=>{
+          if (e.pointerType === "mouse" || e.pointerType === "touch" || e.pointerType === "pen") {
+            sparkAt(wrap, e.clientX, e.clientY);
+          }
+        });
+
+        input.addEventListener("change", ()=>{
+          state.answers[i] = v;
+          save();
+          el.qGuard.style.opacity = "0";
+          // Optionally auto-advance? (ここではしない。UX的に誤タップ防止)
+        });
+
+        // Keyboard accessibility is native via radio inputs.
+        wrap.appendChild(input);
+        wrap.appendChild(lab);
+        el.scaleGrid.appendChild(wrap);
+      }
+
+      const answered = (state.answers[i] !== null);
+      el.qGuard.style.opacity = answered ? "0" : "1";
+
+      el.btnPrevQ.disabled = (i === 0);
+      el.btnNextQ.textContent = (i === 99) ? "次へ（悩み入力）" : "次へ";
+    }
+
+    function renderWorry(){
+      el.worryText.value = state.worryText || "";
+      updateWorryCount();
+    }
+
+    function updateWorryCount(){
+      const len = el.worryText.value.length;
+      el.worryCount.textContent = `${len} / 2000`;
+    }
+
+    function renderResult(){
+      hideToast();
+      el.jsonPreviewWrap.style.display = "none";
+
+      const scores = computeScores();
+      const t = computeType(scores);
+      const typeCode = t.typeCode;
+
+      el.typeCode.textContent = typeCode;
+      el.typeTitle.textContent = TYPE_TITLES[typeCode] || "（未定義）";
+      el.typeSub.textContent = (typeCode === "BAL") ? "（統合適応者）" : "";
+      el.balanceNote.style.display = t.isBAL ? "inline-flex" : "none";
+
+      // Axis bars
+      el.axisBars.innerHTML = "";
+      const axisData = [
+        { key:"E", left:"E", right:"I", score: scores.E },
+        { key:"S", left:"S", right:"N", score: scores.S },
+        { key:"T", left:"T", right:"F", score: scores.T },
+        { key:"J", left:"J", right:"P", score: scores.J },
+      ];
+
+      for (const a of axisData){
+        const leftPct = axisPercent(a.score);
+        const rightPct = 100 - leftPct;
+        const conf = confidence(a.score);
+
+        const box = document.createElement("div");
+        box.className = "barBox";
+
+        const top = document.createElement("div");
+        top.className = "barTop";
+        top.innerHTML = `
+          <span>${a.left}/${a.right}</span>
+          <span>${a.left}寄り ${leftPct.toFixed(1)}% / ${a.right}寄り ${rightPct.toFixed(1)}%</span>
+        `;
+
+        const line = document.createElement("div");
+        line.className = "barLine";
+        const fill = document.createElement("i");
+        fill.style.width = leftPct.toFixed(1) + "%";
+        line.appendChild(fill);
+
+        const small = document.createElement("div");
+        small.className = "muted small";
+        small.style.marginTop = "8px";
+        small.textContent = `軸スコア: ${a.score} / 信頼度: ${conf.toFixed(1)}%`;
+
+        box.appendChild(top);
+        box.appendChild(line);
+        box.appendChild(small);
+        el.axisBars.appendChild(box);
+      }
+
+      // Confidence overall
+      const overall = overallConfidence(scores);
+      el.confOverall.textContent = overall.toFixed(1) + "%";
+      el.confBar.style.width = overall.toFixed(1) + "%";
+
+      // Layers
+      el.layers.innerHTML = "";
+      const tarot = TAROT_MAJOR[typeCode] || "—";
+      const zm = zodiacMode(scores, t.isBAL);
+      const five = fiveElements(typeCode);
+
+      const layers = [
+        {
+          title: "タロット（大アルカナ）",
+          body: `対応カード：${tarot}\n\n象徴：あなたの意思決定の癖や、今期のテーマを“物語”として捉えるための比喩です。`
+        },
+        {
+          title: "星座モード（象徴）",
+          body: `モード：${zm}\n\n象徴：実際の星座を確定するものではなく、“行動のテンポ”や“変化への姿勢”を示す比喩です。`
+        },
+        {
+          title: "五行（四柱推命の象徴：比喩）",
+          body: `象徴：${five}\n\n象徴：気質を元素に置き換えた比喩です。相性や運勢の断定ではありません。`
+        },
+        {
+          title: "手相（象徴：比喩）",
+          body: palmistryText(typeCode)
+        },
+        {
+          title: "姓名判断（象徴：比喩）",
+          body: nameologyText(typeCode)
+        }
+      ];
+
+      for (const L of layers){
+        const d = document.createElement("details");
+        const s = document.createElement("summary");
+        s.innerHTML = `<span>${escapeHtml(L.title)}</span><span class="chev" aria-hidden="true"></span>`;
+        const p = document.createElement("div");
+        p.className = "layerText";
+        p.textContent = L.body;
+        d.appendChild(s);
+        d.appendChild(p);
+        el.layers.appendChild(d);
+      }
+
+      // Build payload for UI actions
+      try{
+        const payload = buildPayload();
+        state.lastPayload = payload;
+        save();
+      }catch{
+        // If worry step not completed, payload might still be valid; but keep quiet
+      }
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    /***********************
+     * Navigation guards
+     ***********************/
+    function ensureAnsweredCurrent(){
+      const i = state.currentIndex;
+      const ans = state.answers[i];
+      const ok = (Number.isInteger(ans) && ans >=1 && ans <=9);
+      el.qGuard.style.opacity = ok ? "0" : "1";
+      return ok;
+    }
+
+    function ensureAllAnswered(){
+      for (let i=0; i<100; i++){
+        const a = state.answers[i];
+        if (!Number.isInteger(a) || a < 1 || a > 9) return false;
+      }
+      return true;
+    }
+
+    /***********************
+     * Event bindings
+     ***********************/
+    el.btnStart.addEventListener("click", ()=> setView("profile"));
+
+    el.btnBackToHero.addEventListener("click", ()=> setView("hero"));
+
+    el.btnToQuestions.addEventListener("click", ()=>{
+      if (!validateProfile()) return;
+      syncProfileFromInputs();
+      setView("questions");
     });
 
-    const pct = Math.round((idx)/questions.length*100);
-    $bar.style.width = pct + "%";
-    $step.textContent = `${idx+1} / ${questions.length}`;
+    el.btnSampleProfileOnly.addEventListener("click", ()=>{
+      el.name.value = "太郎";
+      el.gender.value = "male";
+      el.birthday.value = "2003-05-01";
+      // userId は空でOK（必要なら手入力）
+      syncProfileFromInputs();
+    });
 
-    document.getElementById("back").style.opacity = idx===0 ? .35 : 1;
-    document.getElementById("back").style.pointerEvents = idx===0 ? "none" : "auto";
-  }
+    el.btnSample.addEventListener("click", ()=>{
+      // Sample fill all: profile + answers (all 3) + worry
+      state.profile.name = "太郎";
+      state.profile.gender = "male";
+      state.profile.birthday = "2003-05-01";
+      state.userId = state.userId || ""; // keep
+      state.answers = new Array(100).fill(3); // Makeテスト用
+      state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
+      state.currentIndex = 0;
+      save();
+      setView("profile");
+      el.profileRestoreNote.style.display = "block";
+      setTimeout(()=> el.profileRestoreNote.style.display="none", 3500);
+    });
 
-  function sparkle(el, e){
-    const r = el.getBoundingClientRect();
-    const x = (e?.clientX ?? (r.left + r.width/2));
-    const y = (e?.clientY ?? (r.top  + r.height/2));
-    const s = document.createElement("i");
-    s.className = "spark";
-    s.style.left = (x - r.left) + "px";
-    s.style.top  = (y - r.top) + "px";
-    el.appendChild(s);
-    setTimeout(()=>s.remove(), 650);
-  }
+    el.btnResetFromHero.addEventListener("click", clearAll);
+    el.btnResetFromQuestions.addEventListener("click", clearAll);
+    el.btnResetFromResult.addEventListener("click", clearAll);
 
-  function choose(i, e){
-    const btn = e.currentTarget;
-    sparkle(btn, e);
+    el.btnJumpProfile.addEventListener("click", ()=>{
+      syncProfileFromInputs(); // might be empty if not visited; safe
+      setView("profile");
+    });
 
-    answers[idx] = i;
-    idx++;
-    if(idx >= questions.length){
-      showResult();
-    }else{
-      render();
-    }
-  }
+    el.name.addEventListener("input", syncProfileFromInputs);
+    el.gender.addEventListener("change", syncProfileFromInputs);
+    el.birthday.addEventListener("change", syncProfileFromInputs);
+    el.userId.addEventListener("input", syncProfileFromInputs);
 
-  let loopTimer = null;
-  let rIndex = 0;
+    el.btnPrevQ.addEventListener("click", ()=>{
+      if (state.currentIndex > 0){
+        state.currentIndex--;
+        save();
+        renderQuestion();
+      }
+    });
 
-  function showResult(){
-    $quiz.style.display = "none";
-    $result.classList.add("on");
+    el.btnNextQ.addEventListener("click", ()=>{
+      if (!ensureAnsweredCurrent()) return;
+      if (state.currentIndex === 99){
+        // Ensure all answered
+        if (!ensureAllAnswered()){
+          toast("bad", "未回答が残っています。全100問に回答してください。");
+          return;
+        }
+        setView("worry");
+        return;
+      }
+      state.currentIndex++;
+      save();
+      renderQuestion();
+    });
 
-    // ざっくり結果判定（デモ）
-    const sum = answers.reduce((a,b)=>a+b,0);
-    rIndex = sum % results.length;
-    applyResult(results[rIndex]);
+    el.worryText.addEventListener("input", ()=>{
+      state.worryText = el.worryText.value.slice(0, 2000);
+      updateWorryCount();
+      save();
+    });
 
-    // 結果ループ（豪華感の演出）
-    clearInterval(loopTimer);
-    loopTimer = setInterval(()=>{
-      rIndex = (rIndex + 1) % results.length;
-      applyResult(results[rIndex], true);
-    }, 4200);
-  }
+    el.btnBackToQuestions.addEventListener("click", ()=> setView("questions"));
 
-  function applyResult(r, anim=false){
-    const set = (id, v)=>document.getElementById(id).textContent = v;
-    set("rtype", r.type);
-    set("rheadline", r.headline);
-    set("rstrong", r.strong);
-    set("rweak", r.weak);
-    set("raction", r.action);
+    el.btnShowResult.addEventListener("click", ()=>{
+      // Worry is optional (payload accepts empty string). But we keep it.
+      if (!ensureAllAnswered()){
+        toast("bad", "未回答が残っています。設問に戻って全100問に回答してください。");
+        setView("questions");
+        return;
+      }
+      setView("result");
+    });
 
-    if(anim){
-      $result.animate([
-        {transform:"translateY(0px)", opacity:1},
-        {transform:"translateY(-4px)", opacity:.92},
-        {transform:"translateY(0px)", opacity:1}
-      ], {duration:380, easing:"ease-out"});
-    }
-  }
+    el.btnFinalSubmit.addEventListener("click", finalSubmit);
 
-  document.getElementById("restart").addEventListener("click", ()=>{
-    clearInterval(loopTimer);
-    idx = 0; answers.length = 0;
-    $result.classList.remove("on");
-    $result.style.display = "none";
-    $quiz.style.display = "block";
-    $bar.style.width = "0%";
-    $result.style.display = "";
-    render();
-  });
+    el.btnCopyJson.addEventListener("click", async ()=>{
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }catch(e){
+          toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return;
+        }
+      }
+      const text = safeJsonStringify(payload);
+      const ok = await copyToClipboard(text);
+      toast(ok ? "ok" : "bad", ok ? "JSONをコピーしました。" : "コピーに失敗しました。");
+    });
 
-  document.getElementById("copy").addEventListener("click", async ()=>{
-    const txt = [
-      "【FortuneAI 診断結果】",
-      document.getElementById("rtype").textContent,
-      document.getElementById("rheadline").textContent,
-      "強み：" + document.getElementById("rstrong").textContent,
-      "弱点：" + document.getElementById("rweak").textContent,
-      "開運：" + document.getElementById("raction").textContent
-    ].join("\n");
-    try{
-      await navigator.clipboard.writeText(txt);
-      alert("コピーしました");
-    }catch{
-      prompt("コピーして使ってください", txt);
-    }
-  });
+    el.btnDownloadJson.addEventListener("click", ()=>{
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }catch(e){
+          toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return;
+        }
+      }
+      const text = safeJsonStringify(payload);
+      downloadText("fortuneai_final_submit.json", text);
+      toast("ok", "JSONをダウンロードしました。");
+    });
 
-  document.getElementById("back").addEventListener("click", ()=>{
-    if(idx>0){ idx--; render(); }
-  });
+    /***********************
+     * Boot
+     ***********************/
+    (function init(){
+      // Query prefill
+      const q = parseQuery();
+      if (q.userId){
+        state.userId = q.userId;
+      }
 
-  render();
-</script>
+      const restored = load();
+      if (restored){
+        // merge query userId override
+        if (q.userId) state.userId = q.userId;
+        // show restore note on profile
+        el.profileRestoreNote.style.display = "block";
+        setTimeout(()=> el.profileRestoreNote.style.display="none", 3500);
+      }
+
+      // Ensure questions length
+      if (!Array.isArray(QUESTIONS) || QUESTIONS.length !== 100){
+        alert("設問データが不正です（100問必要）。QUESTIONSを確認してください。");
+      }
+
+      // Render initial view
+      renderAll();
+
+      // If restored state is stuck mid-questions but profile missing, force profile
+      if (state.view !== "hero"){
+        // Keep as is
+      }
+
+      // If worry text exists, update counter
+      updateWorryCount();
+    })();
+  </script>
 </body>
 </html>
