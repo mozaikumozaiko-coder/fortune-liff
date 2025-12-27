@@ -3,27 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>LIFF最小テスト</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <title>FortuneAI</title>
 </head>
 <body style="font-family:sans-serif; padding:20px;">
-  <h1>LIFF動作テスト</h1>
-  <p id="msg">初期化中…</p>
-
-  <script>
-    const LIFF_ID = "YOUR_LIFF_ID"; // 後で差し替える
-
-    async function main(){
-      try{
-        await liff.init({ liffId: LIFF_ID });
-        document.getElementById("msg").textContent =
-          "OK：LIFF初期化成功 / isLoggedIn=" + liff.isLoggedIn();
-      }catch(e){
-        document.getElementById("msg").textContent =
-          "NG：LIFF初期化失敗 → " + (e?.message || e);
-      }
-    }
-    main();
-  </script>
+  <h1>ページ表示OK</h1>
+  <p>Endpoint URL が合っていれば、ミニアプリからこのページが開きます。</p>
 </body>
 </html>
