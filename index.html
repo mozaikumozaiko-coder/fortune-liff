@@ -3,10 +3,402 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FortuneAI</title>
+  <title>FortuneAI 診断</title>
+  <style>
+    :root{
+      --bg1:#070b1a; --bg2:#0b1231; --acc:#cfa76e; --acc2:#7c4dff; --txt:#eaf0ff;
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; color:var(--txt); font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+      min-height:100vh;
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(124,77,255,.25), transparent 60%),
+        radial-gradient(900px 500px at 80% 30%, rgba(207,167,110,.20), transparent 60%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      overflow-x:hidden;
+    }
+    .wrap{max-width:980px; margin:0 auto; padding:18px 14px 40px;}
+    .hero{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:16px; border:1px solid var(--line); background:rgba(255,255,255,.04);
+      border-radius:18px; backdrop-filter: blur(10px);
+      position:sticky; top:0; z-index:5;
+    }
+    .brand{display:flex; gap:12px; align-items:center;}
+    .orb{
+      width:44px; height:44px; border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.9), rgba(255,255,255,.05) 45%, rgba(124,77,255,.35) 70%, rgba(207,167,110,.25));
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: 0 0 26px rgba(124,77,255,.28), 0 0 18px rgba(207,167,110,.18);
+    }
+    h1{font-size:16px; margin:0; letter-spacing:.06em}
+    .sub{opacity:.85; font-size:12px}
+    .progress{
+      display:flex; align-items:center; gap:10px;
+      min-width:220px;
+    }
+    .bar{
+      flex:1; height:10px; border-radius:999px; background:rgba(255,255,255,.10);
+      overflow:hidden; border:1px solid rgba(255,255,255,.12);
+    }
+    .bar > i{
+      display:block; height:100%; width:0%;
+      background: linear-gradient(90deg, rgba(124,77,255,.9), rgba(207,167,110,.9));
+      border-radius:999px;
+      transition: width .35s ease;
+    }
+    .step{font-size:12px; opacity:.9; white-space:nowrap}
+
+    .card{
+      margin-top:14px;
+      border:1px solid var(--line); background:var(--card); border-radius:18px;
+      padding:16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    }
+    .qtitle{font-size:14px; margin:0 0 10px; letter-spacing:.03em}
+    .qdesc{margin:0 0 14px; opacity:.85; font-size:12px; line-height:1.5}
+
+    .choices{display:grid; grid-template-columns: 1fr; gap:10px;}
+    @media(min-width:700px){
+      .choices{grid-template-columns:1fr 1fr;}
+    }
+    .btn{
+      position:relative;
+      padding:14px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color:var(--txt);
+      cursor:pointer;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      user-select:none;
+      overflow:hidden;
+    }
+    .btn:hover{border-color: rgba(207,167,110,.42);}
+    .btn:active{transform: translateY(1px) scale(.995);}
+    .btn b{display:block; font-size:13px; letter-spacing:.02em}
+    .btn span{display:block; margin-top:6px; font-size:12px; opacity:.82; line-height:1.4}
+
+    /* tap effect */
+    .spark{
+      position:absolute; inset:auto;
+      width:10px; height:10px; border-radius:999px;
+      pointer-events:none;
+      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.2), transparent 70%);
+      transform: translate(-50%,-50%) scale(1);
+      animation: pop .55s ease-out forwards;
+      filter: blur(.2px);
+    }
+    @keyframes pop{
+      0%{opacity:0; transform:translate(-50%,-50%) scale(.4);}
+      20%{opacity:1;}
+      100%{opacity:0; transform:translate(-50%,-50%) scale(7);}
+    }
+
+    .footer{
+      margin-top:14px; display:flex; gap:10px; justify-content:space-between; align-items:center; flex-wrap:wrap;
+      opacity:.88; font-size:12px;
+    }
+    .ghost{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      color:var(--txt);
+      padding:10px 12px; border-radius:12px; cursor:pointer;
+    }
+
+    /* result carousel */
+    .result{display:none;}
+    .result.on{display:block;}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(207,167,110,.35);
+      background: rgba(207,167,110,.10);
+      font-size:12px;
+    }
+    .big{
+      margin-top:12px;
+      font-size:18px; line-height:1.35; letter-spacing:.03em;
+    }
+    .grid{
+      margin-top:12px;
+      display:grid; grid-template-columns:1fr; gap:10px;
+    }
+    @media(min-width:700px){ .grid{grid-template-columns:1fr 1fr 1fr;} }
+    .tile{
+      padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+    }
+    .tile h3{margin:0 0 8px; font-size:12px; opacity:.9}
+    .tile p{margin:0; font-size:12px; opacity:.85; line-height:1.55}
+    .hint{margin-top:10px; font-size:12px; opacity:.8}
+  </style>
 </head>
-<body style="font-family:sans-serif; padding:20px;">
-  <h1>ページ表示OK</h1>
-  <p>Endpoint URL が合っていれば、ミニアプリからこのページが開きます。</p>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="brand">
+        <div class="orb"></div>
+        <div>
+          <h1>FortuneAI 診断</h1>
+          <div class="sub">タップで選択 → エフェクト → 結果を豪華表示（デモ）</div>
+        </div>
+      </div>
+      <div class="progress">
+        <div class="bar"><i id="bar"></i></div>
+        <div class="step" id="step">1 / 5</div>
+      </div>
+    </div>
+
+    <div class="card" id="quiz">
+      <p class="qtitle" id="qtitle">Q1. 直感の強さは？</p>
+      <p class="qdesc" id="qdesc">迷ったとき、理屈より「なんとなく」を信じることが多いですか？</p>
+      <div class="choices" id="choices"></div>
+
+      <div class="footer">
+        <button class="ghost" id="back">戻る</button>
+        <span>※まずはUI確認用。後で質問/結果は自由に差し替え。</span>
+      </div>
+    </div>
+
+    <div class="card result" id="result">
+      <span class="badge">解析完了：<b id="rtype">オラクル型</b></span>
+      <div class="big" id="rheadline">あなたの直感は「瞬間的に核心へ触れる」タイプ。</div>
+
+      <div class="grid">
+        <div class="tile">
+          <h3>強み</h3>
+          <p id="rstrong">空気の変化に早く気づき、最適解を直感で掴む。</p>
+        </div>
+        <div class="tile">
+          <h3>弱点</h3>
+          <p id="rweak">情報過多だと迷いが増え、判断が鈍る。</p>
+        </div>
+        <div class="tile">
+          <h3>開運アクション</h3>
+          <p id="raction">3分だけ“無音”の時間を作り、最初に浮かんだ結論をメモ。</p>
+        </div>
+      </div>
+
+      <div class="hint" id="loopHint">結果は自動でループ表示します（豪華演出の例）。</div>
+
+      <div class="footer">
+        <button class="ghost" id="restart">最初から</button>
+        <button class="ghost" id="copy">結果をコピー</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ===== デモ用データ =====
+  const questions = [
+    {
+      title: "Q1. 直感の強さは？",
+      desc: "迷ったとき、理屈より「なんとなく」を信じることが多いですか？",
+      choices: [
+        {t:"かなり当たる", d:"直感で選んで成功することが多い"},
+        {t:"まあまあ", d:"直感も理屈も半々"},
+        {t:"あまり信じない", d:"根拠がないと動けない"},
+        {t:"日による", d:"状況でブレる"},
+      ]
+    },
+    {
+      title: "Q2. 行動の速さは？",
+      desc: "チャンスが来たら、すぐ動けるタイプですか？",
+      choices: [
+        {t:"即行動", d:"思い立ったらすぐ試す"},
+        {t:"準備してから", d:"最低限の段取りを固める"},
+        {t:"慎重に検討", d:"メリット/デメリットを精査"},
+        {t:"流れに任せる", d:"自然に決まるのを待つ"},
+      ]
+    },
+    {
+      title: "Q3. 対人のエネルギーは？",
+      desc: "人と会った後、元気になる？それとも疲れやすい？",
+      choices: [
+        {t:"元気になる", d:"話すほどエネルギーが湧く"},
+        {t:"半々", d:"相手と場による"},
+        {t:"疲れやすい", d:"一人時間で回復する"},
+        {t:"役割次第", d:"目的があれば平気"},
+      ]
+    },
+    {
+      title: "Q4. 価値観の軸は？",
+      desc: "大事にするのはどれ？",
+      choices: [
+        {t:"自由", d:"縛られずに選びたい"},
+        {t:"安定", d:"再現性と安心が大事"},
+        {t:"成長", d:"難しいほど燃える"},
+        {t:"調和", d:"周りとのバランス優先"},
+      ]
+    },
+    {
+      title: "Q5. 今のテーマは？",
+      desc: "最近いちばん気になるのは？",
+      choices: [
+        {t:"恋愛", d:"関係性を進めたい/整えたい"},
+        {t:"仕事", d:"成果・評価・転機が気になる"},
+        {t:"お金", d:"収入・支出・将来設計"},
+        {t:"自己成長", d:"習慣化・メンタル・健康"},
+      ]
+    }
+  ];
+
+  const results = [
+    {
+      type:"オラクル型",
+      headline:"あなたの直感は「瞬間的に核心へ触れる」タイプ。",
+      strong:"空気の変化に早く気づき、最適解を直感で掴む。",
+      weak:"情報過多だと迷いが増え、判断が鈍る。",
+      action:"3分だけ“無音”の時間を作り、最初に浮かんだ結論をメモ。"
+    },
+    {
+      type:"ストラテジスト型",
+      headline:"あなたは「設計して勝つ」戦略タイプ。",
+      strong:"目標までの道筋を作るのが得意。再現性が高い。",
+      weak:"完璧主義で着手が遅れることがある。",
+      action:"最初の一手だけ“60点”で良いので今日中に動かす。"
+    },
+    {
+      type:"カタリスト型",
+      headline:"あなたは「場を動かす」起爆剤タイプ。",
+      strong:"行動と熱量で周囲を巻き込む。勢いが武器。",
+      weak:"熱が冷めると継続が課題になりやすい。",
+      action:"毎日同じ時間に“1分だけ”触れる習慣を作る。"
+    }
+  ];
+
+  // ===== ロジック =====
+  let idx = 0;
+  const answers = [];
+  const $qtitle = document.getElementById("qtitle");
+  const $qdesc  = document.getElementById("qdesc");
+  const $choices= document.getElementById("choices");
+  const $bar    = document.getElementById("bar");
+  const $step   = document.getElementById("step");
+  const $quiz   = document.getElementById("quiz");
+  const $result = document.getElementById("result");
+
+  function render(){
+    const q = questions[idx];
+    $qtitle.textContent = q.title;
+    $qdesc.textContent = q.desc;
+    $choices.innerHTML = "";
+    q.choices.forEach((c, i)=>{
+      const b = document.createElement("div");
+      b.className = "btn";
+      b.innerHTML = `<b>${c.t}</b><span>${c.d}</span>`;
+      b.addEventListener("click", (e)=>choose(i, e));
+      $choices.appendChild(b);
+    });
+
+    const pct = Math.round((idx)/questions.length*100);
+    $bar.style.width = pct + "%";
+    $step.textContent = `${idx+1} / ${questions.length}`;
+
+    document.getElementById("back").style.opacity = idx===0 ? .35 : 1;
+    document.getElementById("back").style.pointerEvents = idx===0 ? "none" : "auto";
+  }
+
+  function sparkle(el, e){
+    const r = el.getBoundingClientRect();
+    const x = (e?.clientX ?? (r.left + r.width/2));
+    const y = (e?.clientY ?? (r.top  + r.height/2));
+    const s = document.createElement("i");
+    s.className = "spark";
+    s.style.left = (x - r.left) + "px";
+    s.style.top  = (y - r.top) + "px";
+    el.appendChild(s);
+    setTimeout(()=>s.remove(), 650);
+  }
+
+  function choose(i, e){
+    const btn = e.currentTarget;
+    sparkle(btn, e);
+
+    answers[idx] = i;
+    idx++;
+    if(idx >= questions.length){
+      showResult();
+    }else{
+      render();
+    }
+  }
+
+  let loopTimer = null;
+  let rIndex = 0;
+
+  function showResult(){
+    $quiz.style.display = "none";
+    $result.classList.add("on");
+
+    // ざっくり結果判定（デモ）
+    const sum = answers.reduce((a,b)=>a+b,0);
+    rIndex = sum % results.length;
+    applyResult(results[rIndex]);
+
+    // 結果ループ（豪華感の演出）
+    clearInterval(loopTimer);
+    loopTimer = setInterval(()=>{
+      rIndex = (rIndex + 1) % results.length;
+      applyResult(results[rIndex], true);
+    }, 4200);
+  }
+
+  function applyResult(r, anim=false){
+    const set = (id, v)=>document.getElementById(id).textContent = v;
+    set("rtype", r.type);
+    set("rheadline", r.headline);
+    set("rstrong", r.strong);
+    set("rweak", r.weak);
+    set("raction", r.action);
+
+    if(anim){
+      $result.animate([
+        {transform:"translateY(0px)", opacity:1},
+        {transform:"translateY(-4px)", opacity:.92},
+        {transform:"translateY(0px)", opacity:1}
+      ], {duration:380, easing:"ease-out"});
+    }
+  }
+
+  document.getElementById("restart").addEventListener("click", ()=>{
+    clearInterval(loopTimer);
+    idx = 0; answers.length = 0;
+    $result.classList.remove("on");
+    $result.style.display = "none";
+    $quiz.style.display = "block";
+    $bar.style.width = "0%";
+    $result.style.display = "";
+    render();
+  });
+
+  document.getElementById("copy").addEventListener("click", async ()=>{
+    const txt = [
+      "【FortuneAI 診断結果】",
+      document.getElementById("rtype").textContent,
+      document.getElementById("rheadline").textContent,
+      "強み：" + document.getElementById("rstrong").textContent,
+      "弱点：" + document.getElementById("rweak").textContent,
+      "開運：" + document.getElementById("raction").textContent
+    ].join("\n");
+    try{
+      await navigator.clipboard.writeText(txt);
+      alert("コピーしました");
+    }catch{
+      prompt("コピーして使ってください", txt);
+    }
+  });
+
+  document.getElementById("back").addEventListener("click", ()=>{
+    if(idx>0){ idx--; render(); }
+  });
+
+  render();
+</script>
 </body>
 </html>
