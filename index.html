@@ -236,6 +236,8 @@
       opacity:.90;
       white-space:nowrap;
     }
+
+    /* ---- Slider UI ---- */
     .scale{
       margin-top:12px;
       border-radius: 16px;
@@ -249,45 +251,87 @@
       opacity:.82;
       gap:10px;
       line-height:1.3;
-      margin-bottom:8px;
+      margin-bottom:10px;
     }
-    .scaleGrid{
-      display:grid;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 6px;
+    .sliderRow{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
     }
-    .radioCard{
-      position:relative;
-      border-radius: 12px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.03);
-      overflow:hidden;
-    }
-    .radioCard input{
-      position:absolute; inset:0;
-      opacity:0; cursor:pointer;
-    }
-    .radioCard label{
-      margin:0;
-      display:flex; align-items:center; justify-content:center;
-      padding: 10px 0;
-      font-size: 12px;
-      opacity:.92;
-      cursor:pointer;
-      user-select:none;
-    }
-    .radioCard:has(input:focus-visible){
-      outline: 3px solid rgba(207,167,110,.25);
-      outline-offset: 2px;
-    }
-    .radioCard:has(input:checked){
-      border-color: rgba(207,167,110,.55);
-      background: linear-gradient(180deg, rgba(207,167,110,.18), rgba(124,77,255,.12));
-    }
-    .radioCard:has(input:checked) label{
-      opacity:1;
+    .valueBadge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width: 44px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(207,167,110,.35);
+      background: rgba(207,167,110,.10);
+      font-size:12px;
       font-weight:700;
       letter-spacing:.02em;
+    }
+    .rangeWrap{
+      flex: 1 1 280px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+    }
+    input[type="range"]{
+      width:100%;
+      margin: 6px 0;
+      background: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 22px;
+    }
+    input[type="range"]::-webkit-slider-runnable-track{
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(90deg, rgba(124,77,255,.45), rgba(207,167,110,.45));
+    }
+    input[type="range"]::-webkit-slider-thumb{
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      margin-top: -6px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.12) 45%, rgba(207,167,110,.30));
+      box-shadow: 0 0 24px rgba(124,77,255,.18), 0 0 18px rgba(207,167,110,.14);
+      cursor: pointer;
+    }
+    input[type="range"]::-moz-range-track{
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(90deg, rgba(124,77,255,.45), rgba(207,167,110,.45));
+    }
+    input[type="range"]::-moz-range-thumb{
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.20);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.12) 45%, rgba(207,167,110,.30));
+      cursor: pointer;
+    }
+    .ticks{
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+      font-size:11px;
+      opacity:.78;
+      line-height:1.2;
+      margin-top: 4px;
+      user-select:none;
+    }
+    .ticks span{
+      width: 14%;
+      text-align:center;
     }
 
     .spark{
@@ -467,7 +511,7 @@
           <div class="orb" aria-hidden="true"></div>
           <div>
             <h1 class="title">FortuneAI式 17タイプ診断</h1>
-            <div class="subtitle">100の質問×9段階で17タイプに分類。占い5種類の象徴レイヤー付き</div>
+            <div class="subtitle">100の質問×7段階で17タイプに分類。占い5種類の象徴レイヤー付き</div>
           </div>
         </div>
         <div class="progressWrap" aria-label="進捗">
@@ -484,7 +528,7 @@
       <div class="hero">
         <div>
           <p class="lead">
-            100問の回答（1〜9）から、E/I・S/N・T/F・J/Pの4軸スコアを算出し、16タイプ＋均衡（BAL）を判定します。<br>
+            100問の回答（1〜7）から、E/I・S/N・T/F・J/Pの4軸スコアを算出し、16タイプ＋均衡（BAL）を判定します。<br>
             さらにタロット・星座モード・五行・手相・姓名判断の「象徴レイヤー」を結果として表示します。
           </p>
           <div class="disclaimer">
@@ -494,7 +538,7 @@
 
           <div class="pillRow" aria-label="特徴">
             <div class="pill">✅ 自動保存（localStorage）</div>
-            <div class="pill">✅ 9段階スケール</div>
+            <div class="pill">✅ 7段階スライダー</div>
             <div class="pill">✅ 17タイプ判定（BALあり）</div>
             <div class="pill">✅ Make連携payload生成</div>
           </div>
@@ -513,8 +557,8 @@
           <p class="mini"><b>Make連携について</b></p>
           <p class="mini muted">
             最終送信（final_submit）時に、以下の形式のJSON payloadを生成します。<br>
-            本番：WEBHOOK_URLを設定するとfetch()でPOST送信。<br>
-            テスト：WEBHOOK_URLが空なら、送信せずJSONプレビュー/コピー/ダウンロードを提供します。
+            本番：WEBHOOK_URLを設定してあるためfetch()でPOST送信します。<br>
+            テスト：送信内容はJSONコピー/ダウンロードでも確認できます。
           </p>
           <div class="sep"></div>
           <p class="mini"><b>注意（userId）</b></p>
@@ -585,9 +629,22 @@
       <div class="scale" id="scaleBox">
         <div class="scaleLegend">
           <span>1 = まったくそう思わない</span>
-          <span>9 = 非常にそう思う</span>
+          <span>7 = 非常にそう思う</span>
         </div>
-        <div class="scaleGrid" id="scaleGrid" aria-label="9段階評価"></div>
+
+        <div class="sliderRow">
+          <div class="valueBadge" id="sliderValue">-</div>
+          <div class="rangeWrap" id="rangeWrap">
+            <input id="answerSlider" type="range" min="1" max="7" step="1" value="4" aria-label="回答スライダー（1〜7）" />
+            <div class="ticks" aria-hidden="true">
+              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="hint" style="margin:10px 0 0;">
+          ※未回答のまま次へ進めません（スライダーを一度動かすと回答確定）。
+        </p>
       </div>
 
       <div class="btnRow" style="justify-content:space-between;">
@@ -644,7 +701,7 @@
           <i id="confBar" style="width:0%;"></i>
         </div>
         <p class="hint" style="margin:8px 0 0;">
-          信頼度は各軸の絶対値（0〜100）を%に換算し、4軸平均で算出します。
+          信頼度は各軸の絶対値を「その軸の最大値」で割って%化し、4軸平均で算出します（7段階対応）。
         </p>
       </div>
 
@@ -668,7 +725,7 @@
 
       <div id="jsonPreviewWrap" style="display:none;">
         <div class="sep"></div>
-        <p class="lead"><b>JSONプレビュー（テストモード：WEBHOOK_URL未設定）</b></p>
+        <p class="lead"><b>JSONプレビュー</b></p>
         <div class="jsonBox" id="jsonPreview"></div>
       </div>
     </section>
@@ -682,8 +739,17 @@
     /***********************
      * 設定（ここだけ編集）
      ***********************/
-    const WEBHOOK_URL = ""; // 本番: Make Webhook URL を設定（例: https://hook.us1.make.com/xxxxx）
+    const WEBHOOK_URL = "https://hook.eu2.make.com/7ac62r32ffup0cl0d1kr9h3dpbf8dz3h";
     const STORAGE_KEY = "fortuneai_17type_v1";
+
+    // 7段階設定
+    const SCALE_MIN = 1;
+    const SCALE_MAX = 7;
+    const SCALE_NEUTRAL = 4; // 1..7の中立
+    const VALUE_MAX = SCALE_MAX - SCALE_NEUTRAL; // 3  （= -3..+3）
+
+    // BAL判定しきい値（軸スコアの絶対値がこれ未満なら均衡扱い）
+    const BAL_THRESHOLD = 10;
 
     /***********************
      * 17タイプ称号データ（固定）
@@ -715,20 +781,13 @@
 
     /***********************
      * 設問データ（100問）
-     * 重要：
-     * - ユーザー文面に「前回提示の100問」を貼り付け…とありますが、このチャットにはその100問が未提供のため、
-     *   ここでは要件に沿う “雛形” の100問（tag分配=各軸25問）を同梱しています。
-     * - もし「厳密なQ1〜Q100テキスト＆タグ」が別途ある場合、このQUESTIONS配列をその内容に置換してください。
      ***********************/
     const QUESTIONS = buildDefaultQuestions();
 
     function buildDefaultQuestions(){
-      // 各軸25問、+/-混在。idは1..100固定、順番固定。
-      // テキストは置換しやすいように短め・日本語UIに統一。
       const out = [];
       const mk = (id, text, tag) => ({ id, text, tag });
 
-      // E軸 25問（E+ / E-）
       const E = [
         ["初対面の場でも、自然に話しかけるほうだ","[E+]"],
         ["一人で過ごす時間が長いほど安心する","[E-]"],
@@ -757,7 +816,6 @@
         ["人と話すほどアイデアが出る","[E+]"],
       ];
 
-      // S軸 25問（S+ = S / S- = N）
       const S = [
         ["事実や実例をもとに判断することが多い","[S+]"],
         ["抽象的な可能性を考えるのが好きだ","[S-]"],
@@ -786,7 +844,6 @@
         ["現実のリスクを先に洗い出す","[S+]"],
       ];
 
-      // T軸 25問（T+ = T / T- = F）
       const T = [
         ["結論は論理の整合性を優先したい","[T+]"],
         ["相手の気持ちを優先して言い方を選ぶ","[T-]"],
@@ -812,10 +869,9 @@
         ["関係性が壊れそうなら方針を変える","[T-]"],
         ["最適解を探すのが好きだ","[T+]"],
         ["相手が安心できる説明を心がける","[T-]"],
-        ["結論を急がず気持ちを整える時間も必要","[T-]"], // T-を少し多めにしてバランス
+        ["結論を急がず気持ちを整える時間も必要","[T-]"],
       ];
 
-      // J軸 25問（J+ = J / J- = P）
       const J = [
         ["締切や計画がある方が動きやすい","[J+]"],
         ["選択肢を残しておきたい","[J-]"],
@@ -844,18 +900,36 @@
         ["結論を早めに固めてスッキリしたい","[J+]"],
       ];
 
-      // 合成（順番固定：E25, S25, T25, J25）
       let id = 1;
       for (const [t, tag] of E) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of S) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of T) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of J) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
 
-      // 100保証
-      if (out.length !== 100) {
-        throw new Error("QUESTIONS length must be 100. Current=" + out.length);
-      }
+      if (out.length !== 100) throw new Error("QUESTIONS length must be 100. Current=" + out.length);
       return out;
+    }
+
+    /***********************
+     * Axis counts / max
+     ***********************/
+    const AXIS_COUNTS = computeAxisCounts(QUESTIONS);   // {E:25,S:25,T:25,J:25} 想定
+    const AXIS_MAX = {
+      E: AXIS_COUNTS.E * VALUE_MAX,
+      S: AXIS_COUNTS.S * VALUE_MAX,
+      T: AXIS_COUNTS.T * VALUE_MAX,
+      J: AXIS_COUNTS.J * VALUE_MAX,
+    };
+
+    function computeAxisCounts(questions){
+      const c = { E:0, S:0, T:0, J:0 };
+      for (const q of questions){
+        const m = String(q.tag).match(/\[([ESTJ])([+-])\]/);
+        if (!m) continue;
+        const axis = m[1];
+        if (c[axis] !== undefined) c[axis] += 1;
+      }
+      return c;
     }
 
     /***********************
@@ -891,12 +965,15 @@
       qProgress: document.getElementById("qProgress"),
       qTag: document.getElementById("qTag"),
       qText: document.getElementById("qText"),
-      scaleGrid: document.getElementById("scaleGrid"),
       btnPrevQ: document.getElementById("btnPrevQ"),
       btnNextQ: document.getElementById("btnNextQ"),
       btnJumpProfile: document.getElementById("btnJumpProfile"),
       btnResetFromQuestions: document.getElementById("btnResetFromQuestions"),
       qGuard: document.getElementById("qGuard"),
+
+      answerSlider: document.getElementById("answerSlider"),
+      sliderValue: document.getElementById("sliderValue"),
+      rangeWrap: document.getElementById("rangeWrap"),
 
       worryText: document.getElementById("worryText"),
       worryCount: document.getElementById("worryCount"),
@@ -926,17 +1003,13 @@
      * State
      ***********************/
     const state = {
-      view: "hero", // hero|profile|questions|worry|result
-      currentIndex: 0, // 0..99
-      profile: {
-        name: "",
-        gender: "",
-        birthday: "",
-      },
-      userId: "", // payload userId
-      answers: new Array(100).fill(null), // 1..9 or null
+      view: "hero",
+      currentIndex: 0,
+      profile: { name: "", gender: "", birthday: "" },
+      userId: "",
+      answers: new Array(100).fill(null), // 1..7 or null
       worryText: "",
-      lastPayload: null, // for preview/copy/download
+      lastPayload: null,
     };
 
     /***********************
@@ -978,7 +1051,7 @@
           birthday: String(data.profile?.birthday || ""),
         };
         state.userId = String(data.userId || "");
-        state.answers = data.answers.map(v => (v===null || v===undefined) ? null : clamp(Number(v), 1, 9));
+        state.answers = data.answers.map(v => (v===null || v===undefined) ? null : clamp(Number(v), SCALE_MIN, SCALE_MAX));
         state.worryText = String(data.worryText || "");
         return true;
       }catch{
@@ -1042,7 +1115,6 @@
         await navigator.clipboard.writeText(text);
         return true;
       }catch{
-        // Fallback
         const ta = document.createElement("textarea");
         ta.value = text;
         ta.style.position = "fixed";
@@ -1100,15 +1172,14 @@
     }
 
     /***********************
-     * Scoring & Typing
+     * Scoring & Typing (7段階対応)
      ***********************/
     function answerToValue(ans){
-      // 1..9 -> -4..+4
-      return (Number(ans) - 5);
+      // 1..7 -> -3..+3
+      return (Number(ans) - SCALE_NEUTRAL);
     }
 
     function applyTagToAxis(tag, val, scores){
-      // tag format: "[E+]" "[S-]" "[T+]" "[J-]"
       const m = String(tag).match(/\[([ESTJ])([+-])\]/);
       if (!m) return;
       const axis = m[1];
@@ -1129,11 +1200,10 @@
         const val = answerToValue(ans);
         applyTagToAxis(QUESTIONS[i].tag, val, scores);
       }
-      // Each axis max abs = 100 (25 * 4)
-      scores.E = clamp(scores.E, -100, 100);
-      scores.S = clamp(scores.S, -100, 100);
-      scores.T = clamp(scores.T, -100, 100);
-      scores.J = clamp(scores.J, -100, 100);
+      scores.E = clamp(scores.E, -AXIS_MAX.E, AXIS_MAX.E);
+      scores.S = clamp(scores.S, -AXIS_MAX.S, AXIS_MAX.S);
+      scores.T = clamp(scores.T, -AXIS_MAX.T, AXIS_MAX.T);
+      scores.J = clamp(scores.J, -AXIS_MAX.J, AXIS_MAX.J);
       return scores;
     }
 
@@ -1143,7 +1213,7 @@
       const absT = Math.abs(scores.T);
       const absJ = Math.abs(scores.J);
 
-      const isBAL = (absE < 10 && absS < 10 && absT < 10 && absJ < 10);
+      const isBAL = (absE < BAL_THRESHOLD && absS < BAL_THRESHOLD && absT < BAL_THRESHOLD && absJ < BAL_THRESHOLD);
       if (isBAL){
         return { typeCode:"BAL", isBAL:true };
       }
@@ -1155,22 +1225,23 @@
       return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
     }
 
-    function axisPercent(score){
-      // E寄り% = ((score + 100) / 200) * 100
-      const p = ((score + 100) / 200) * 100;
+    function axisPercent(score, axisKey){
+      const max = AXIS_MAX[axisKey] || 1;
+      const p = ((score + max) / (2 * max)) * 100;
       return clamp(p, 0, 100);
     }
 
-    function confidence(score){
-      // abs(score)/100 * 100 = abs(score)
-      return clamp(Math.abs(score), 0, 100);
+    function confidence(score, axisKey){
+      const max = AXIS_MAX[axisKey] || 1;
+      const p = (Math.abs(score) / max) * 100;
+      return clamp(p, 0, 100);
     }
 
     function overallConfidence(scores){
-      const ei = confidence(scores.E);
-      const sn = confidence(scores.S);
-      const tf = confidence(scores.T);
-      const jp = confidence(scores.J);
+      const ei = confidence(scores.E, "E");
+      const sn = confidence(scores.S, "S");
+      const tf = confidence(scores.T, "T");
+      const jp = confidence(scores.J, "J");
       return (ei + sn + tf + jp) / 4;
     }
 
@@ -1178,15 +1249,13 @@
      * Symbolic Layers
      ***********************/
     function zodiacMode(scores, isBAL){
-      // E優勢→活動宮 / I優勢→不動宮 / BALや拮抗→柔軟宮
       if (isBAL) return "柔軟宮モード（バランスと適応）";
       const absE = Math.abs(scores.E);
-      if (absE < 10) return "柔軟宮モード（拮抗・調整）";
+      if (absE < BAL_THRESHOLD) return "柔軟宮モード（拮抗・調整）";
       return (scores.E >= 0) ? "活動宮モード（能動・始動）" : "不動宮モード（持続・安定）";
     }
 
     function fiveElements(typeCode){
-      // NT→金 / NF→木 / ST→土 / SF→水 / BAL→火
       if (typeCode === "BAL") return "火（変容・統合）";
       const nt = typeCode.includes("N") && typeCode.includes("T");
       const nf = typeCode.includes("N") && typeCode.includes("F");
@@ -1246,7 +1315,7 @@
     }
 
     /***********************
-     * Payload Builder (必須仕様)
+     * Payload Builder (7段階対応)
      ***********************/
     function buildPayload(){
       const userId = (state.userId || "").trim();
@@ -1262,13 +1331,13 @@
         answers: state.answers.map(v => Number(v)),
         worryText: state.worryText || ""
       };
-      // 型チェック（最低限）
+
       if (!Array.isArray(payload.answers) || payload.answers.length !== 100) {
         throw new Error("answers must be array length 100");
       }
       for (const a of payload.answers){
-        if (!Number.isInteger(a) || a < 1 || a > 9) {
-          throw new Error("answers must be integers 1..9");
+        if (!Number.isInteger(a) || a < SCALE_MIN || a > SCALE_MAX) {
+          throw new Error(`answers must be integers ${SCALE_MIN}..${SCALE_MAX}`);
         }
       }
       if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) {
@@ -1294,16 +1363,6 @@
 
       const jsonText = safeJsonStringify(payload);
 
-      // テストモード：WEBHOOK_URLが空
-      if (!WEBHOOK_URL){
-        el.jsonPreviewWrap.style.display = "block";
-        el.jsonPreview.textContent = jsonText;
-        toast("warn", "テストモード：WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
-        return;
-      }
-
-      // 本番：POST送信
-      el.jsonPreviewWrap.style.display = "none";
       toast("", "送信中…");
       try{
         const res = await fetch(WEBHOOK_URL, {
@@ -1384,58 +1443,23 @@
       el.qTag.textContent = q.tag;
       el.qText.textContent = q.text;
 
-      // Progress percent: profile(5%) + questions(5..90%)
       const base = 5;
       const span = 85;
       const pct = base + ( (i) / 100 ) * span;
       setProgress(pct, el.qProgress.textContent);
 
-      // Build 9-scale grid
-      el.scaleGrid.innerHTML = "";
-      const groupName = "q" + (i+1);
-
-      for (let v=1; v<=9; v++){
-        const id = `radio_${i}_${v}`;
-        const wrap = document.createElement("div");
-        wrap.className = "radioCard";
-
-        const input = document.createElement("input");
-        input.type = "radio";
-        input.name = groupName;
-        input.id = id;
-        input.value = String(v);
-        input.checked = (state.answers[i] === v);
-        input.setAttribute("aria-label", `${v}`);
-
-        const lab = document.createElement("label");
-        lab.setAttribute("for", id);
-        lab.textContent = String(v);
-
-        // Click/tap effect
-        wrap.addEventListener("pointerdown", (e)=>{
-          if (e.pointerType === "mouse" || e.pointerType === "touch" || e.pointerType === "pen") {
-            sparkAt(wrap, e.clientX, e.clientY);
-          }
-        });
-
-        input.addEventListener("change", ()=>{
-          state.answers[i] = v;
-          save();
-          el.qGuard.style.opacity = "0";
-          // Optionally auto-advance? (ここではしない。UX的に誤タップ防止)
-        });
-
-        // Keyboard accessibility is native via radio inputs.
-        wrap.appendChild(input);
-        wrap.appendChild(lab);
-        el.scaleGrid.appendChild(wrap);
-      }
-
-      const answered = (state.answers[i] !== null);
-      el.qGuard.style.opacity = answered ? "0" : "1";
-
       el.btnPrevQ.disabled = (i === 0);
       el.btnNextQ.textContent = (i === 99) ? "次へ（悩み入力）" : "次へ";
+
+      // スライダー表示：未回答なら見た目は4だが、未回答扱いのまま
+      const current = state.answers[i];
+      el.answerSlider.min = String(SCALE_MIN);
+      el.answerSlider.max = String(SCALE_MAX);
+      el.answerSlider.step = "1";
+      el.answerSlider.value = String(current ?? SCALE_NEUTRAL);
+
+      el.sliderValue.textContent = (current === null) ? "-" : String(current);
+      el.qGuard.style.opacity = (current === null) ? "1" : "0";
     }
 
     function renderWorry(){
@@ -1461,7 +1485,6 @@
       el.typeSub.textContent = (typeCode === "BAL") ? "（統合適応者）" : "";
       el.balanceNote.style.display = t.isBAL ? "inline-flex" : "none";
 
-      // Axis bars
       el.axisBars.innerHTML = "";
       const axisData = [
         { key:"E", left:"E", right:"I", score: scores.E },
@@ -1471,9 +1494,9 @@
       ];
 
       for (const a of axisData){
-        const leftPct = axisPercent(a.score);
+        const leftPct = axisPercent(a.score, a.key);
         const rightPct = 100 - leftPct;
-        const conf = confidence(a.score);
+        const conf = confidence(a.score, a.key);
 
         const box = document.createElement("div");
         box.className = "barBox";
@@ -1502,12 +1525,10 @@
         el.axisBars.appendChild(box);
       }
 
-      // Confidence overall
       const overall = overallConfidence(scores);
       el.confOverall.textContent = overall.toFixed(1) + "%";
       el.confBar.style.width = overall.toFixed(1) + "%";
 
-      // Layers
       el.layers.innerHTML = "";
       const tarot = TAROT_MAJOR[typeCode] || "—";
       const zm = zodiacMode(scores, t.isBAL);
@@ -1526,14 +1547,8 @@
           title: "五行（四柱推命の象徴：比喩）",
           body: `象徴：${five}\n\n象徴：気質を元素に置き換えた比喩です。相性や運勢の断定ではありません。`
         },
-        {
-          title: "手相（象徴：比喩）",
-          body: palmistryText(typeCode)
-        },
-        {
-          title: "姓名判断（象徴：比喩）",
-          body: nameologyText(typeCode)
-        }
+        { title: "手相（象徴：比喩）", body: palmistryText(typeCode) },
+        { title: "姓名判断（象徴：比喩）", body: nameologyText(typeCode) },
       ];
 
       for (const L of layers){
@@ -1548,14 +1563,11 @@
         el.layers.appendChild(d);
       }
 
-      // Build payload for UI actions
       try{
         const payload = buildPayload();
         state.lastPayload = payload;
         save();
-      }catch{
-        // If worry step not completed, payload might still be valid; but keep quiet
-      }
+      }catch{}
     }
 
     function escapeHtml(s){
@@ -1573,7 +1585,7 @@
     function ensureAnsweredCurrent(){
       const i = state.currentIndex;
       const ans = state.answers[i];
-      const ok = (Number.isInteger(ans) && ans >=1 && ans <=9);
+      const ok = (Number.isInteger(ans) && ans >= SCALE_MIN && ans <= SCALE_MAX);
       el.qGuard.style.opacity = ok ? "0" : "1";
       return ok;
     }
@@ -1581,7 +1593,7 @@
     function ensureAllAnswered(){
       for (let i=0; i<100; i++){
         const a = state.answers[i];
-        if (!Number.isInteger(a) || a < 1 || a > 9) return false;
+        if (!Number.isInteger(a) || a < SCALE_MIN || a > SCALE_MAX) return false;
       }
       return true;
     }
@@ -1590,7 +1602,6 @@
      * Event bindings
      ***********************/
     el.btnStart.addEventListener("click", ()=> setView("profile"));
-
     el.btnBackToHero.addEventListener("click", ()=> setView("hero"));
 
     el.btnToQuestions.addEventListener("click", ()=>{
@@ -1603,17 +1614,15 @@
       el.name.value = "太郎";
       el.gender.value = "male";
       el.birthday.value = "2003-05-01";
-      // userId は空でOK（必要なら手入力）
       syncProfileFromInputs();
     });
 
     el.btnSample.addEventListener("click", ()=>{
-      // Sample fill all: profile + answers (all 3) + worry
       state.profile.name = "太郎";
       state.profile.gender = "male";
       state.profile.birthday = "2003-05-01";
-      state.userId = state.userId || ""; // keep
-      state.answers = new Array(100).fill(3); // Makeテスト用
+      state.userId = state.userId || "";
+      state.answers = new Array(100).fill(4); // 7段階の中立
       state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
       state.currentIndex = 0;
       save();
@@ -1627,7 +1636,7 @@
     el.btnResetFromResult.addEventListener("click", clearAll);
 
     el.btnJumpProfile.addEventListener("click", ()=>{
-      syncProfileFromInputs(); // might be empty if not visited; safe
+      syncProfileFromInputs();
       setView("profile");
     });
 
@@ -1646,8 +1655,8 @@
 
     el.btnNextQ.addEventListener("click", ()=>{
       if (!ensureAnsweredCurrent()) return;
+
       if (state.currentIndex === 99){
-        // Ensure all answered
         if (!ensureAllAnswered()){
           toast("bad", "未回答が残っています。全100問に回答してください。");
           return;
@@ -1660,6 +1669,40 @@
       renderQuestion();
     });
 
+    // スライダー操作：一度触れたら回答確定（null→数値）
+    let sliderTouched = false;
+    el.answerSlider.addEventListener("pointerdown", (e)=>{
+      sliderTouched = true;
+      if (e.pointerType) sparkAt(el.rangeWrap, e.clientX, e.clientY);
+    });
+
+    el.answerSlider.addEventListener("input", ()=>{
+      const i = state.currentIndex;
+      const v = clamp(Number(el.answerSlider.value), SCALE_MIN, SCALE_MAX);
+
+      // 「触れた」前提で確定（未回答のまま次へ防止）
+      if (sliderTouched || state.answers[i] !== null) {
+        state.answers[i] = v;
+        el.sliderValue.textContent = String(v);
+        el.qGuard.style.opacity = "0";
+        save();
+      } else {
+        // 念のため：触ってない状態では表示だけ
+        el.sliderValue.textContent = "-";
+        el.qGuard.style.opacity = "1";
+      }
+    });
+
+    // キーボード操作でも回答確定
+    el.answerSlider.addEventListener("change", ()=>{
+      const i = state.currentIndex;
+      const v = clamp(Number(el.answerSlider.value), SCALE_MIN, SCALE_MAX);
+      state.answers[i] = v;
+      el.sliderValue.textContent = String(v);
+      el.qGuard.style.opacity = "0";
+      save();
+    });
+
     el.worryText.addEventListener("input", ()=>{
       state.worryText = el.worryText.value.slice(0, 2000);
       updateWorryCount();
@@ -1669,7 +1712,6 @@
     el.btnBackToQuestions.addEventListener("click", ()=> setView("questions"));
 
     el.btnShowResult.addEventListener("click", ()=>{
-      // Worry is optional (payload accepts empty string). But we keep it.
       if (!ensureAllAnswered()){
         toast("bad", "未回答が残っています。設問に戻って全100問に回答してください。");
         setView("questions");
@@ -1708,35 +1750,21 @@
      * Boot
      ***********************/
     (function init(){
-      // Query prefill
       const q = parseQuery();
-      if (q.userId){
-        state.userId = q.userId;
-      }
+      if (q.userId) state.userId = q.userId;
 
       const restored = load();
       if (restored){
-        // merge query userId override
         if (q.userId) state.userId = q.userId;
-        // show restore note on profile
         el.profileRestoreNote.style.display = "block";
         setTimeout(()=> el.profileRestoreNote.style.display="none", 3500);
       }
 
-      // Ensure questions length
       if (!Array.isArray(QUESTIONS) || QUESTIONS.length !== 100){
         alert("設問データが不正です（100問必要）。QUESTIONSを確認してください。");
       }
 
-      // Render initial view
       renderAll();
-
-      // If restored state is stuck mid-questions but profile missing, force profile
-      if (state.view !== "hero"){
-        // Keep as is
-      }
-
-      // If worry text exists, update counter
       updateWorryCount();
     })();
   </script>
