@@ -2,166 +2,175 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
+  <!-- iOS含む：ズーム抑止（※アクセシビリティ上は必要に応じて解除してください） -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>FortuneAI式 17タイプ診断（章クリアUI）</title>
-  <style>
-    :root{
-      /* 動的テーマ（JSで章ごとに更新） */
-      --accent1: #7c4dff;
-      --accent2: #cfa76e;
-      --accent3: #2fe6ff;
+  <title>FortuneAI式 17タイプ診断</title>
 
-      --bg0:#060916;
+  <style>
+    /* =========================
+       THEME（20問ごとに切替）
+    ========================== */
+    :root{
+      --bg0:#070b1a;
       --bg1:#0b1231;
 
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.14);
       --text:#eaf0ff;
       --muted: rgba(234,240,255,.78);
 
-      --card: rgba(255,255,255,.06);
-      --line: rgba(255,255,255,.12);
+      /* accent（章で変化） */
+      --accent1:#7c4dff; /* purple */
+      --accent2:#cfa76e; /* gold */
+      --accent3:#43d3ff; /* cyan */
 
-      --shadow: 0 20px 70px rgba(0,0,0,.40);
-      --r: 20px;
+      --shadow: 0 18px 60px rgba(0,0,0,.38);
+      --r: 18px;
 
-      --danger:#ff6b6b;
-      --ok:#41d18a;
-      --warn:#ffcc66;
+      --safeBottom: env(safe-area-inset-bottom, 0px);
+      --safeTop: env(safe-area-inset-top, 0px);
     }
 
     *{box-sizing:border-box}
-    html, body{height:100%; overscroll-behavior:none;}
+    html, body{
+      height:100%;
+      overscroll-behavior: none;
+      -webkit-text-size-adjust: 100%;
+    }
     body{
       margin:0;
       color:var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+
       background:
-        radial-gradient(1200px 650px at 18% 8%, color-mix(in oklab, var(--accent1) 35%, transparent), transparent 62%),
-        radial-gradient(900px 540px at 85% 30%, color-mix(in oklab, var(--accent2) 30%, transparent), transparent 62%),
+        radial-gradient(1200px 650px at 15% 5%, color-mix(in oklab, var(--accent1) 35%, transparent), transparent 62%),
+        radial-gradient(900px 540px at 85% 25%, color-mix(in oklab, var(--accent2) 26%, transparent), transparent 62%),
+        radial-gradient(900px 540px at 65% 85%, color-mix(in oklab, var(--accent3) 18%, transparent), transparent 62%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
-      touch-action: pan-y;
-      -webkit-text-size-adjust: 100%;
+      touch-action: pan-y; /* ページは縦スクロール中心 */
+    }
+    a{color:inherit}
+    code{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+
+    /* =========================
+       LAYOUT
+    ========================== */
+    .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding: 14px 14px calc(90px + var(--safeBottom)); /* 下固定ナビ分の余白 */
     }
 
-    .wrap{max-width:1180px; margin:0 auto; padding:16px 14px 40px;}
     .topbar{
-      position:sticky; top:0; z-index:40;
-      background: linear-gradient(180deg, rgba(6,9,22,.94), rgba(11,18,49,.70));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: 22px;
-      padding: 12px 12px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
+      position:sticky; top:0; z-index:50;
+      padding-top: var(--safeTop);
+      background: linear-gradient(180deg, rgba(7,11,26,.92), rgba(11,18,49,.65));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-
-    .topbarGrid{
-      display:grid;
-      grid-template-columns: 1.2fr 1fr;
+    .topbarInner{
+      max-width:1180px;
+      margin:0 auto;
+      padding: 12px 14px 14px;
+      display:flex;
       gap:12px;
       align-items:center;
+      justify-content:space-between;
     }
-    @media(max-width:860px){
-      .topbarGrid{grid-template-columns:1fr; gap:10px;}
-    }
-
     .brand{
       display:flex; gap:12px; align-items:center;
-      min-width: 240px;
+      min-width: 220px;
     }
     .orb{
       width:44px; height:44px; border-radius:999px;
       background:
-        radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.10) 45%, rgba(124,77,255,.35) 72%, rgba(207,167,110,.22));
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.92), rgba(255,255,255,.10) 42%, rgba(124,77,255,.28) 72%, rgba(207,167,110,.18));
       border:1px solid rgba(255,255,255,.18);
-      box-shadow: 0 0 24px rgba(124,77,255,.22), 0 0 18px rgba(207,167,110,.14);
-      flex:0 0 auto;
+      box-shadow: 0 0 26px color-mix(in oklab, var(--accent1) 28%, transparent),
+                  0 0 18px color-mix(in oklab, var(--accent2) 18%, transparent);
+      flex: 0 0 auto;
     }
-    .title{font-size:14px; letter-spacing:.06em; margin:0; line-height:1.2;}
-    .subtitle{font-size:12px; opacity:.86; margin-top:4px; line-height:1.35;}
-
-    .topRight{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-      justify-items:end;
+    .title{
+      font-size:14px;
+      letter-spacing:.06em;
+      margin:0;
+      line-height:1.2;
     }
-    @media(max-width:860px){
-      .topRight{justify-items:stretch;}
-    }
-
-    /* ===== 水ゲージ（常に波が動く） ===== */
-    .waterCard{
-      width:100%;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      border-radius: 18px;
-      padding: 10px 12px;
-      position:relative;
+    .subtitle{
+      font-size:12px;
+      opacity:.86;
+      margin-top:4px;
+      line-height:1.35;
+      white-space:nowrap;
       overflow:hidden;
+      text-overflow:ellipsis;
+      max-width: 56vw;
     }
-    .waterTop{
-      display:flex; justify-content:space-between; align-items:center;
-      gap:10px; flex-wrap:wrap;
-      font-size:12px; opacity:.92;
-      position:relative; z-index:2;
+
+    /* =========================
+       “水が溜まる”ゲージ（常時ゆらぐ）
+    ========================== */
+    .meter{
+      width: min(520px, 52vw);
+      min-width: 220px;
+      display:flex; align-items:center; gap:10px;
+      justify-content:flex-end;
     }
-    .waterTop b{letter-spacing:.03em;}
-    .waterTank{
-      margin-top:8px;
-      height:16px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
+    .meterText{
+      font-size:12px;
+      opacity:.92;
+      min-width: 86px;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .waterBar{
+      position:relative;
+      height: 16px;
+      width: 100%;
+      border-radius: 999px;
       background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.14);
       overflow:hidden;
-      position:relative;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
     }
     .waterFill{
       position:absolute;
-      left:0; top:0; bottom:0;
-      width:0%;
-      border-radius:999px;
-      /* ベース色（章のテーマに寄せる） */
+      inset:0 auto 0 0;
+      width: 0%;
+      border-radius: 999px;
       background:
         linear-gradient(90deg,
-          color-mix(in oklab, var(--accent1) 85%, #ffffff 0%),
-          color-mix(in oklab, var(--accent2) 85%, #ffffff 0%));
-      transition: width .35s ease;
+          color-mix(in oklab, var(--accent1) 90%, white 10%),
+          color-mix(in oklab, var(--accent3) 70%, white 10%),
+          color-mix(in oklab, var(--accent2) 85%, white 10%));
+      filter: saturate(1.05);
+      transition: width .30s ease;
       overflow:hidden;
     }
-    .waterWave{
+    /* 波：疑似要素で“常に動く” */
+    .waterFill::before{
+      content:"";
       position:absolute;
-      left:-40px; top:-10px;
-      width: calc(100% + 80px);
-      height: 40px;
+      inset:-10px -40px -10px -40px;
       background:
-        radial-gradient(circle at 10px 18px, rgba(255,255,255,.18) 0 6px, transparent 7px),
-        radial-gradient(circle at 30px 22px, rgba(255,255,255,.14) 0 7px, transparent 8px),
-        radial-gradient(circle at 60px 18px, rgba(255,255,255,.16) 0 6px, transparent 7px),
-        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02));
-      opacity:.95;
-      filter: blur(.2px);
-      animation: waveMove 1.8s linear infinite;
-      transform: translateY(0);
-      pointer-events:none;
+        radial-gradient(18px 10px at 20px 18px, rgba(255,255,255,.34), rgba(255,255,255,0) 70%),
+        radial-gradient(22px 12px at 60px 26px, rgba(255,255,255,.22), rgba(255,255,255,0) 72%),
+        radial-gradient(18px 10px at 100px 18px, rgba(255,255,255,.30), rgba(255,255,255,0) 70%);
+      opacity:.55;
+      animation: waveMove 2.4s linear infinite;
+      mix-blend-mode: screen;
     }
     @keyframes waveMove{
-      from{ transform: translateX(0); }
-      to{ transform: translateX(40px); }
+      0%{ transform: translateX(0px); }
+      100%{ transform: translateX(80px); }
     }
 
-    /* ===== 全体レイアウト ===== */
-    .layout{
-      margin-top:14px;
-      display:grid;
-      grid-template-columns: 1fr 360px;
-      gap:14px;
-      align-items:start;
-    }
-    @media(max-width:980px){
-      .layout{grid-template-columns:1fr; }
-    }
-
+    /* =========================
+       CARDS
+    ========================== */
     .card{
+      margin-top:14px;
       border:1px solid var(--line);
       background: var(--card);
       border-radius: var(--r);
@@ -169,756 +178,774 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
     }
-
-    /* 右固定パネル */
-    .side{
-      position:sticky;
-      top:92px;
-      display:grid;
-      gap:12px;
+    .h1{
+      font-size:18px;
+      margin:0 0 8px;
+      letter-spacing:.05em;
+      line-height:1.25;
     }
-    @media(max-width:980px){
-      .side{position:static; top:auto;}
+    .lead{
+      margin:0;
+      font-size:13px;
+      opacity:.88;
+      line-height:1.75;
     }
+    .muted{opacity:.84}
+    .small{font-size:12px}
 
-    .sideTitle{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      margin:0 0 6px;
-    }
-    .sideTitle h2{margin:0; font-size:14px; letter-spacing:.05em;}
-    .chip{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      font-size:12px;
-      opacity:.95;
-      white-space:nowrap;
-    }
-    .chip strong{letter-spacing:.03em;}
-
-    .miniLine{height:1px; background: rgba(255,255,255,.10); margin:10px 0;}
-
-    /* 章ステッパー */
-    .chapters{
+    .grid2{
       display:grid;
       grid-template-columns: 1fr;
-      gap:8px;
-      margin-top:8px;
+      gap: 14px;
+      align-items:start;
     }
-    .chapterItem{
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      border-radius: 16px;
-      padding: 10px 10px;
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      opacity:.85;
-    }
-    .chapterItem.active{
-      opacity:1;
-      border-color: color-mix(in oklab, var(--accent1) 40%, rgba(255,255,255,.14));
-      background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent1) 18%, transparent);
-    }
-    .chapterItem.done{
-      opacity:.95;
-      border-color: rgba(65,209,138,.35);
-      background: rgba(65,209,138,.06);
-    }
-    .chapterItem b{font-size:12px; letter-spacing:.03em;}
-    .chapterItem span{font-size:12px; opacity:.88;}
-
-    /* モメンタム（答えたくなる仕掛け） */
-    .momentumBox{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      padding: 12px;
-    }
-    .momentumTop{
-      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
-      font-size:12px; opacity:.90;
-    }
-    .momentumBar{
-      margin-top:8px;
-      height:12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.08);
-      overflow:hidden;
-      position:relative;
-    }
-    .momentumFill{
-      height:100%;
-      width:0%;
-      border-radius:999px;
-      background: linear-gradient(90deg,
-        color-mix(in oklab, var(--accent1) 90%, white 0%),
-        color-mix(in oklab, var(--accent2) 90%, white 0%));
-      transition: width .28s ease;
-    }
-    .momentumGlow{
-      position:absolute; inset:-20px -60px;
-      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,.10), transparent 62%);
-      animation: glowMove 2.6s ease-in-out infinite alternate;
-      pointer-events:none;
-      opacity:.9;
-    }
-    @keyframes glowMove{
-      from{ transform: translateX(-12px); }
-      to{ transform: translateX(12px); }
-    }
-    .praise{
-      margin-top:10px;
-      font-size:12px;
-      line-height:1.6;
-      color: rgba(234,240,255,.88);
+    @media(min-width:980px){
+      .grid2{grid-template-columns: 1.35fr .65fr;}
     }
 
-    /* ===== メイン設問カード ===== */
-    .qHead{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      flex-wrap:wrap;
-      margin-bottom:10px;
-    }
-    .qHeadLeft{min-width:240px;}
-    .qLabel{
-      font-size:12px; opacity:.86; letter-spacing:.08em;
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
-    .tagBadge{
-      font-size:12px;
-      padding: 6px 10px;
+    .sideStack{display:grid; gap:14px;}
+
+    .sep{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
+    .miniLine{height:1px; background: rgba(255,255,255,.10); margin: 10px 0;}
+
+    .pillRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 8px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.16);
       background: rgba(255,255,255,.04);
-      opacity:.92;
-      white-space:nowrap;
-    }
-    .qTitle{
-      margin:8px 0 0;
-      font-size:18px;
-      line-height:1.45;
-      letter-spacing:.02em;
-    }
-
-    /* 章テーマ切替の演出（設問カード上部にグラデ帯） */
-    .themeRibbon{
-      height:10px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--accent1), var(--accent2));
-      box-shadow: 0 0 18px color-mix(in oklab, var(--accent1) 22%, transparent);
-      opacity:.95;
-      margin-bottom:12px;
-    }
-
-    /* ===== 7段階スライダー（カスタム） ===== */
-    .scaleWrap{
-      margin-top: 12px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      padding: 14px 12px;
-      position:relative;
-      overflow:hidden;
-    }
-    .scaleHead{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      font-size:12px; opacity:.92;
-    }
-    .scaleHead b{
-      font-size:16px;
-      letter-spacing:.04em;
-      min-width: 30px;
-      text-align:center;
-      opacity:1;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-    }
-    .scaleHint{
-      margin-top:8px;
       font-size:12px;
-      opacity:.84;
-      line-height:1.6;
-    }
-
-    .sliderBox{
-      margin-top: 12px;
-      position: relative;
-      height: 28px;
-      user-select:none;
-      touch-action: none; /* 重要：ここだけジェスチャ抑止（ズーム/横ズレ防止） */
-      -webkit-user-select:none;
-    }
-    .sliderTrack{
-      position:absolute; left:0; right:0;
-      top:50%; transform: translateY(-50%);
-      height: 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      overflow:hidden;
-    }
-    .sliderFill{
-      position:absolute; left:0;
-      top:50%; transform: translateY(-50%);
-      height: 12px;
-      border-radius: 999px;
-      width: 0px;
-      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
-      transition: width .22s ease;
-    }
-
-    .sliderThumb{
-      position:absolute;
-      top:50%;
-      transform: translate(-50%, -50%);
-      width: 24px; height: 24px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.26);
-      background: rgba(255,255,255,.92); /* ★透明すぎない */
-      box-shadow: 0 0 18px rgba(0,0,0,.22);
-      transition: transform .08s linear, box-shadow .18s ease;
-    }
-    .sliderThumb::after{
-      content:"";
-      position:absolute; inset:4px;
-      border-radius:999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.90), rgba(255,255,255,.10));
       opacity:.95;
     }
 
-    .tickRow{
-      margin-top: 12px;
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 8px;
-      align-items:center;
-    }
-    .tickBtn{
-      appearance:none;
-      border:none;
-      background: rgba(255,255,255,.04);
-      color: rgba(234,240,255,.88);
-      font-size: 12px;
-      padding: 10px 0;
-      border-radius: 14px;
-      cursor:pointer;
-      border: 1px solid rgba(255,255,255,.12);
-      user-select:none;
-      transition: transform .08s ease, border-color .18s ease, background .18s ease;
-    }
-    .tickBtn:active{transform: translateY(1px);}
-    .tickBtn.sel{
-      border-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.08);
-      box-shadow: 0 0 0 3px rgba(255,255,255,.05);
-    }
-
-    .unsetNote{
-      margin-top:10px;
-      font-size:12px;
-      line-height:1.6;
-      color: rgba(255,204,102,.92);
-      display:none;
-    }
-
-    /* ===== ボタン ===== */
-    .btnRow{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
-      margin-top: 14px;
-    }
-    .btnGroup{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
     .btn{
       appearance:none; border:none;
       padding: 12px 14px;
-      border-radius: 16px;
+      border-radius: 14px;
       cursor:pointer;
       color: var(--text);
       background: rgba(255,255,255,.06);
       border: 1px solid rgba(255,255,255,.14);
-      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease, filter .2s ease;
       user-select:none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn:hover{border-color: color-mix(in oklab, var(--accent1) 45%, rgba(255,255,255,.14));}
+    .btn:hover{border-color: rgba(255,255,255,.22);}
     .btn:active{transform: translateY(1px) scale(.995);}
     .btn.primary{
-      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      background: linear-gradient(90deg,
+        color-mix(in oklab, var(--accent1) 85%, black 10%),
+        color-mix(in oklab, var(--accent2) 80%, black 10%));
       border-color: rgba(255,255,255,.18);
+      filter: saturate(1.08);
     }
-    .btn.ghost{background: rgba(255,255,255,.03);}
-    .btn.danger{background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.38);}
+    .btn.ghost{ background: rgba(255,255,255,.03); }
+    .btn.danger{
+      background: rgba(255,107,107,.12);
+      border-color: rgba(255,107,107,.40);
+    }
     .btn:disabled{opacity:.45; cursor:not-allowed;}
 
-    .tiny{
-      font-size:12px;
-      opacity:.86;
-      line-height:1.6;
+    .toast{
       margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      font-size: 12px;
+      line-height:1.6;
+      opacity:.92;
     }
+    .toast.ok{border-color: rgba(65,209,138,.35); background: rgba(65,209,138,.08); color: rgba(234,240,255,.95);}
+    .toast.bad{border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08); color: rgba(234,240,255,.95);}
+    .toast.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08); color: rgba(234,240,255,.95);}
 
-    /* ===== プロフィール/悩み/結果 ===== */
-    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;}
-    @media(max-width:860px){ .grid2{grid-template-columns:1fr;} }
+    /* =========================
+       PROFILE FIELDS
+    ========================== */
     label{display:block; font-size:12px; opacity:.88; margin-bottom:6px;}
     .field{
       width:100%;
       padding: 12px 12px;
-      border-radius: 16px;
+      border-radius: 14px;
       border:1px solid rgba(255,255,255,.14);
       background: rgba(0,0,0,.18);
       color: var(--text);
       outline:none;
     }
     .field:focus{
-      border-color: color-mix(in oklab, var(--accent2) 50%, rgba(255,255,255,.14));
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 16%, transparent);
+      border-color: color-mix(in oklab, var(--accent2) 55%, white 0%);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 18%, transparent);
     }
-    .err{color: var(--danger); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
+    .err{color: #ff6b6b; font-size:12px; margin-top:6px; line-height:1.5; display:none;}
 
-    .textarea{min-height:160px; resize: vertical; line-height: 1.6;}
-    .counter{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12px; opacity:.85;}
+    /* =========================
+       QUESTION “革新的”UI
+    ========================== */
+    .qCard{
+      padding: 16px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(700px 280px at 10% 10%, color-mix(in oklab, var(--accent1) 18%, transparent), transparent 55%),
+        radial-gradient(650px 260px at 90% 35%, color-mix(in oklab, var(--accent2) 12%, transparent), transparent 60%),
+        rgba(255,255,255,.04);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .qTop{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:10px;
+      flex-wrap:wrap;
+    }
+    .qMeta{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      font-size:12px; opacity:.92;
+    }
+    .chip{
+      display:inline-flex; gap:8px; align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      white-space:nowrap;
+    }
+    .chapterBadge{
+      border-color: color-mix(in oklab, var(--accent1) 25%, rgba(255,255,255,.14));
+      background: color-mix(in oklab, var(--accent1) 12%, rgba(255,255,255,.04));
+    }
+    .qText{
+      margin: 10px 0 0;
+      font-size: 15px;
+      letter-spacing:.02em;
+      line-height:1.7;
+    }
 
-    /* ===== モーダル（章クリア演出） ===== */
+    /* =========================
+       Slider（モバイルでドラッグ可能・ズレ防止）
+    ========================== */
+    .scaleWrap{
+      margin-top: 14px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.14);
+      padding: 14px 12px;
+    }
+    .scaleHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      font-size:12px;
+      opacity:.92;
+    }
+    .valuePill{
+      min-width: 44px;
+      text-align:center;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      box-shadow: 0 0 0 3px rgba(0,0,0,.10) inset;
+    }
+
+    .range{
+      margin-top: 12px;
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 10px;
+      border-radius: 999px;
+      outline:none;
+      border: 1px solid rgba(255,255,255,.14);
+
+      /* 左側だけ色が変わる（JSで --fillPct と --fillColor を更新） */
+      background:
+        linear-gradient(90deg,
+          var(--fillColor) 0%,
+          var(--fillColor) var(--fillPct),
+          rgba(255,255,255,.10) var(--fillPct),
+          rgba(255,255,255,.10) 100%);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.10);
+      touch-action: manipulation; /* iOSでもドラッグが死ににくい */
+      -webkit-tap-highlight-color: transparent;
+    }
+    .range::-webkit-slider-runnable-track{
+      height: 10px;
+      border-radius: 999px;
+    }
+    .range::-webkit-slider-thumb{
+      -webkit-appearance: none;
+      appearance: none;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+
+      /* 透明すぎない、しっかりした水晶感 */
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.96), rgba(255,255,255,.22) 40%, color-mix(in oklab, var(--fillColor) 70%, rgba(0,0,0,.10)) 75%),
+        radial-gradient(circle at 70% 70%, rgba(255,255,255,.18), rgba(255,255,255,0) 62%);
+      box-shadow:
+        0 0 18px color-mix(in oklab, var(--fillColor) 40%, transparent),
+        0 0 12px rgba(0,0,0,.25);
+
+      /* “カーソルずれ”対策（thumbをトラック中央に合わせる） */
+      margin-top: -8px; /* track 10px / thumb 26px -> (10-26)/2 = -8 */
+      transform: scale(var(--thumbScale, 1));
+      transition: transform .10s linear;
+    }
+    .range::-moz-range-track{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .range::-moz-range-thumb{
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.96), rgba(255,255,255,.22) 40%, color-mix(in oklab, var(--fillColor) 70%, rgba(0,0,0,.10)) 75%);
+      box-shadow: 0 0 18px color-mix(in oklab, var(--fillColor) 40%, transparent), 0 0 12px rgba(0,0,0,.25);
+      transform: scale(var(--thumbScale, 1));
+      transition: transform .10s linear;
+    }
+
+    .tickRow{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .tickBtn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      color: rgba(234,240,255,.88);
+      border-radius: 12px;
+      padding: 10px 0;
+      font-size: 12px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .08s ease, border-color .2s ease, background .2s ease;
+    }
+    .tickBtn:active{ transform: translateY(1px) scale(.995); }
+    .tickBtn.on{
+      border-color: color-mix(in oklab, var(--fillColor) 55%, rgba(255,255,255,.12));
+      background: color-mix(in oklab, var(--fillColor) 18%, rgba(255,255,255,.03));
+      color: rgba(234,240,255,.96);
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--fillColor) 14%, transparent);
+    }
+
+    /* =========================
+       右：神秘の巡礼路（Ascent）
+    ========================== */
+    .sideTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .ascentWrap{
+      margin-top: 10px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      padding: 10px;
+      overflow:hidden;
+      position:relative;
+    }
+    .ascentCaption{
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.6;
+      color: rgba(234,240,255,.88);
+    }
+    #ascentPathProg{
+      transition: stroke-dashoffset .38s ease;
+    }
+    .ascentPulse{
+      animation: ascentPulse .9s ease-out 1;
+      transform-origin: center;
+    }
+    @keyframes ascentPulse{
+      0%{ transform: scale(1); }
+      40%{ transform: scale(1.16); }
+      100%{ transform: scale(1); }
+    }
+
+    /* =========================
+       下固定ナビ（親指で操作しやすい）
+    ========================== */
+    .bottomNav{
+      position: fixed;
+      left:0; right:0; bottom:0;
+      z-index:60;
+      padding: 10px 12px calc(10px + var(--safeBottom));
+      background: linear-gradient(180deg, rgba(7,11,26,.10), rgba(7,11,26,.82));
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .bottomNavInner{
+      max-width:1180px;
+      margin:0 auto;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .navLeft, .navRight{display:flex; gap:10px; align-items:center;}
+    .navHint{
+      font-size:12px;
+      opacity:.78;
+      display:none;
+    }
+    @media(min-width:980px){
+      .navHint{display:block;}
+    }
+
+    /* =========================
+       20問ごとの“章クリア”モーダル
+    ========================== */
     .modalBack{
-      position:fixed; inset:0; z-index:100;
+      position: fixed;
+      inset:0;
+      z-index: 200;
       background: rgba(0,0,0,.55);
       display:none;
-      align-items:center; justify-content:center;
-      padding:16px;
-      backdrop-filter: blur(10px);
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
     }
     .modal{
-      width:min(720px, 100%);
+      width: min(520px, 96vw);
       border-radius: 22px;
-      border:1px solid rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.16);
       background:
-        radial-gradient(900px 380px at 20% 10%, color-mix(in oklab, var(--accent1) 25%, transparent), transparent 62%),
-        radial-gradient(780px 340px at 90% 30%, color-mix(in oklab, var(--accent2) 22%, transparent), transparent 62%),
-        rgba(10,14,32,.92);
-      box-shadow: var(--shadow);
-      padding: 16px;
+        radial-gradient(600px 240px at 20% 20%, color-mix(in oklab, var(--accent1) 22%, transparent), transparent 60%),
+        radial-gradient(600px 240px at 80% 35%, color-mix(in oklab, var(--accent2) 16%, transparent), transparent 62%),
+        rgba(10,14,36,.78);
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      padding: 18px;
+      backdrop-filter: blur(14px);
       position:relative;
       overflow:hidden;
     }
-    .modalTop{
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;
+    .modalGlow{
+      position:absolute;
+      inset:-60px -80px;
+      background:
+        radial-gradient(120px 80px at 20% 30%, rgba(255,255,255,.14), rgba(255,255,255,0) 70%),
+        radial-gradient(120px 80px at 70% 50%, rgba(255,255,255,.10), rgba(255,255,255,0) 70%);
+      animation: modalFloat 3.6s ease-in-out infinite;
+      pointer-events:none;
     }
-    .modalTop h3{
+    @keyframes modalFloat{
+      0%,100%{ transform: translateY(0px); opacity:.9; }
+      50%{ transform: translateY(10px); opacity:1; }
+    }
+    .modalTitle{
       margin:0;
-      font-size:18px;
-      letter-spacing:.03em;
-      line-height:1.35;
+      font-size:16px;
+      letter-spacing:.06em;
     }
-    .modalTop p{
-      margin:6px 0 0;
-      font-size:12px;
-      opacity:.88;
-      line-height:1.6;
+    .modalBody{
+      margin-top:10px;
+      font-size:13px;
+      line-height:1.8;
+      opacity:.92;
     }
-    .closeX{
-      appearance:none; border:none;
-      width:40px; height:40px;
-      border-radius: 14px;
-      cursor:pointer;
-      background: rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.14);
-      color: var(--text);
-      font-size:18px;
-      line-height:1;
-    }
-    .modalGrid{
+    .rewardRow{
       margin-top:12px;
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:12px;
+      gap:10px;
     }
-    @media(max-width:860px){ .modalGrid{grid-template-columns:1fr;} }
-    .miniCard{
-      border-radius: 18px;
+    .reward{
+      border-radius: 16px;
       border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.22);
-      padding: 12px;
-    }
-    .miniCard b{font-size:12px; letter-spacing:.03em;}
-    .miniCard p{margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;}
-
-    .modalBtns{
-      margin-top: 14px;
-      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;
-    }
-
-    /* ===== トースト ===== */
-    .toast{
-      margin-top: 12px;
-      padding:10px 12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
+      background: rgba(255,255,255,.04);
+      padding: 10px;
       font-size:12px;
       line-height:1.6;
-      opacity:.92;
-      display:none;
     }
-    .toast.ok{border-color: rgba(65,209,138,.35); background: rgba(65,209,138,.08);}
-    .toast.bad{border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08);}
-    .toast.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08);}
 
-    .footerNote{
+    /* =========================
+       VIEWS
+    ========================== */
+    [hidden]{display:none !important;}
+    .footer{
       text-align:center;
       margin-top:18px;
       font-size:12px;
-      opacity:.80;
-    }
-
-    /* Confetti canvas */
-    #confettiCanvas{
-      position:fixed; inset:0;
-      z-index:120;
-      pointer-events:none;
-      display:none;
+      opacity:.78;
     }
   </style>
 </head>
+
 <body>
-  <canvas id="confettiCanvas"></canvas>
-
-  <div class="wrap">
-    <div class="topbar">
-      <div class="topbarGrid">
-        <div class="brand">
-          <div class="orb" aria-hidden="true"></div>
-          <div>
-            <h1 class="title">FortuneAI式 17タイプ診断</h1>
-            <div class="subtitle">100問を20問×5章に分割。章ごとに色と演出が変わる“続けたくなる”診断</div>
-          </div>
+  <!-- TOPBAR -->
+  <header class="topbar" aria-label="ヘッダー">
+    <div class="topbarInner">
+      <div class="brand">
+        <div class="orb" aria-hidden="true"></div>
+        <div>
+          <h1 class="title">FortuneAI式 17タイプ診断</h1>
+          <div class="subtitle" id="topSubtitle">100の質問×7段階スライダーで17タイプに分類。占い5種類の象徴レイヤー付き</div>
         </div>
+      </div>
 
-        <div class="topRight">
-          <div class="waterCard" aria-label="進捗（水ゲージ）">
-            <div class="waterTop">
-              <span>進捗：<b id="answeredText">0</b> / 100</span>
-              <span>章：<b id="chapterText">1</b> / 5</span>
-            </div>
-            <div class="waterTank">
-              <div class="waterFill" id="waterFill">
-                <div class="waterWave"></div>
-              </div>
-            </div>
-          </div>
+      <div class="meter" aria-label="進捗メーター">
+        <div class="waterBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="waterFill" id="waterFill"></div>
         </div>
+        <div class="meterText" id="meterText">0 / 100</div>
       </div>
     </div>
+  </header>
 
-    <!-- HERO -->
+  <div class="wrap">
+    <!-- VIEW: HERO -->
     <section class="card" id="viewHero">
-      <div class="themeRibbon"></div>
-      <p style="margin:0; font-size:13px; line-height:1.7; opacity:.90;">
-        100問×7段階で4軸（E/I・S/N・T/F・J/P）をスコア化し、16タイプ＋均衡（BAL）を判定します。<br>
-        20問ごとに章クリア演出が入り、色も変わります。途中保存・再開も可能です。
+      <h2 class="h1">診断の流れ</h2>
+      <p class="lead">
+        100問（1〜7）から、E/I・S/N・T/F・J/Pの4軸スコアを算出し、16タイプ＋均衡（BAL）を判定します。<br>
+        さらに「タロット・星座モード・五行・手相・姓名判断」の象徴レイヤーを結果として表示します。<br>
+        20問ごとに“章”が切り替わり、画面の色・雰囲気が変わります。
       </p>
-      <div style="margin-top:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); padding:10px 12px;">
-        <div style="font-size:12px; line-height:1.6; opacity:.90;">
-          免責：本コンテンツは娯楽・自己理解目的です。医療/法律/投資などの専門助言ではありません。
-        </div>
+
+      <div class="pillRow" aria-label="特徴">
+        <div class="pill">✅ 7段階（初期値4で進行可能）</div>
+        <div class="pill">✅ 20問ごとに章クリア演出</div>
+        <div class="pill">✅ 進捗が“巡礼路”として上昇</div>
+        <div class="pill">✅ Make連携payload生成</div>
       </div>
 
-      <div class="btnRow" style="justify-content:flex-start;">
-        <div class="btnGroup">
-          <button class="btn primary" id="btnStart">開始</button>
-          <button class="btn ghost" id="btnSample">サンプル入力（テスト）</button>
-          <button class="btn danger" id="btnResetAll">最初からやり直す（保存を消去）</button>
-        </div>
+      <div class="btnRow">
+        <button class="btn primary" id="btnStart">開始</button>
+        <button class="btn ghost" id="btnSample">サンプル回答で自動入力（テスト）</button>
+        <button class="btn danger" id="btnResetFromHero">最初からやり直す（保存を消去）</button>
       </div>
 
-      <div class="tiny">
-        ヒント：右側の「章ステッパー」で今どこまで進んだかが一目で分かります。章クリアごとに“気持ちよく次へ”進めます。
+      <div class="sep"></div>
+
+      <p class="lead muted small">
+        注意：外部ライブラリ禁止のため、LIFF SDKなしでLINE userIdは自動取得できません。userId は手入力または URL クエリ（?userId=...）等で渡してください。
+      </p>
+    </section>
+
+    <!-- VIEW: PROFILE -->
+    <section class="card" id="viewProfile" hidden>
+      <h2 class="h1">プロフィール入力</h2>
+      <p class="lead">送信payloadの profile に直結します。必須項目は未入力のまま進めません。</p>
+
+      <div class="grid2" style="margin-top:12px;">
+        <div>
+          <label for="name">表示名（必須）</label>
+          <input class="field" id="name" type="text" inputmode="text" autocomplete="name" placeholder="例：太郎" />
+          <div class="err" id="errName">表示名を入力してください。</div>
+
+          <div style="height:12px;"></div>
+
+          <label for="gender">性別（必須）</label>
+          <select class="field" id="gender" aria-label="性別">
+            <option value="">選択してください</option>
+            <option value="male">male（男性）</option>
+            <option value="female">female（女性）</option>
+            <option value="other">other（その他）</option>
+          </select>
+          <div class="err" id="errGender">性別を選択してください。</div>
+
+          <div style="height:12px;"></div>
+
+          <label for="birthday">生年月日（必須）</label>
+          <input class="field" id="birthday" type="date" />
+          <div class="err" id="errBirthday">生年月日を入力してください（YYYY-MM-DD）。</div>
+
+          <div style="height:12px;"></div>
+
+          <label for="userId">userId（任意 / LINE userId等）</label>
+          <input class="field" id="userId" type="text" inputmode="text" autocomplete="off" placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+          <p class="muted small" style="margin:8px 0 0;">※URLに <code>?userId=...</code> があれば自動で入ります。</p>
+
+          <div class="btnRow">
+            <button class="btn ghost" id="btnBackToHero">戻る</button>
+            <button class="btn primary" id="btnToQuestions">回答へ進む</button>
+          </div>
+
+          <div class="toast warn" id="profileRestoreNote" style="display:none;">
+            保存データを検出しました。プロフィール・回答・進捗を復元しています。
+          </div>
+        </div>
+
+        <div class="sideStack">
+          <div class="card" style="margin:0; box-shadow:none;">
+            <h3 class="h1" style="font-size:14px;">Make連携（送信形式）</h3>
+            <p class="lead muted small">
+              最終送信（final_submit）時に JSON payload を生成し、WEBHOOK_URL が設定されていれば POST します。<br>
+              WEBHOOK_URL が空なら送信せず、プレビュー/コピー/ダウンロードを提供します。
+            </p>
+            <div class="miniLine"></div>
+            <p class="muted small" style="margin:0;">
+              章クリア演出はUI側だけの“体験設計”です。送信payloadは常に同一スキーマです。
+            </p>
+          </div>
+        </div>
       </div>
     </section>
 
-    <div class="layout">
-      <!-- MAIN -->
-      <main>
-        <!-- PROFILE -->
-        <section class="card" id="viewProfile" hidden>
-          <div class="themeRibbon"></div>
-          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">プロフィール</h2>
-          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
-            送信payloadの <code>profile</code> に反映されます。必須は（名前/性別/生年月日）。
-          </p>
-
-          <div class="grid2">
-            <div>
-              <label for="name">表示名（必須）</label>
-              <input class="field" id="name" type="text" autocomplete="name" placeholder="例：太郎" />
-              <div class="err" id="errName">表示名を入力してください。</div>
+    <!-- VIEW: QUESTIONS -->
+    <section class="card" id="viewQuestions" hidden>
+      <div class="grid2">
+        <!-- MAIN -->
+        <div class="qCard">
+          <div class="qTop">
+            <div class="qMeta">
+              <span class="chip chapterBadge" id="chapterChip">CHAPTER 1 / 5</span>
+              <span class="chip" id="qIndexChip">Q 1 / 100</span>
+              <span class="chip" id="qTagChip">[E+]</span>
             </div>
-            <div>
-              <label for="gender">性別（必須）</label>
-              <select class="field" id="gender">
-                <option value="">選択してください</option>
-                <option value="male">male（男性）</option>
-                <option value="female">female（女性）</option>
-                <option value="other">other（その他）</option>
-              </select>
-              <div class="err" id="errGender">性別を選択してください。</div>
-            </div>
-            <div>
-              <label for="birthday">生年月日（必須）</label>
-              <input class="field" id="birthday" type="date" />
-              <div class="err" id="errBirthday">生年月日を入力してください（YYYY-MM-DD）。</div>
-            </div>
-            <div>
-              <label for="userId">userId（任意 / LINE userId等）</label>
-              <input class="field" id="userId" type="text" autocomplete="off" placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-              <div style="margin-top:8px; font-size:12px; opacity:.82; line-height:1.6;">
-                URLに <code>?userId=...</code> があれば自動入力します（外部SDKなし）。
-              </div>
+            <div class="qMeta">
+              <span class="chip">完了 <strong id="doneCountText">0</strong></span>
+              <span class="chip">現在 <strong id="currentValueText">4</strong></span>
             </div>
           </div>
 
-          <div class="btnRow" style="justify-content:flex-start;">
-            <div class="btnGroup">
-              <button class="btn ghost" id="btnBackHero">戻る</button>
-              <button class="btn primary" id="btnToQuestions">設問へ進む</button>
-              <button class="btn ghost" id="btnSampleProfile">サンプルプロフィール</button>
-            </div>
-          </div>
-        </section>
+          <div class="qText" id="qText">Q1. （設問）</div>
 
-        <!-- QUESTIONS -->
-        <section class="card" id="viewQuestions" hidden>
-          <div class="themeRibbon"></div>
-
-          <div class="qHead">
-            <div class="qHeadLeft">
-              <div class="qLabel">
-                <span id="qMeta">第1章 / Q1</span>
-                <span class="tagBadge" id="qTag">[E+]</span>
-              </div>
-              <h3 class="qTitle" id="qText">Q1. （設問）</h3>
+          <div class="scaleWrap" aria-label="7段階スライダー">
+            <div class="scaleHead">
+              <span>1 = まったくそう思わない</span>
+              <span class="valuePill" id="valuePill">4</span>
+              <span>7 = 非常にそう思う</span>
             </div>
 
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <span class="chip">この章：<strong id="chapterAnswered">0</strong>/20</span>
-              <span class="chip">連続回答：<strong id="streak">0</strong></span>
+            <input id="range" class="range" type="range" min="1" max="7" step="1" value="4"
+                   aria-label="回答（1〜7）" />
+
+            <div class="tickRow" id="tickRow" aria-label="1〜7のタップ選択">
+              <!-- JSで生成 -->
             </div>
           </div>
 
-          <div id="scaleHost"></div>
-          <div class="unsetNote" id="unsetNote">未選択です。数字をタップするか、ドラッグで選んでください。</div>
+          <div class="toast" id="qToast" style="display:none;"></div>
+
+          <div class="sep"></div>
 
           <div class="btnRow">
-            <div class="btnGroup">
-              <button class="btn ghost" id="btnPrev">前へ</button>
-              <button class="btn ghost" id="btnSkipToProfile">プロフィールへ</button>
-              <button class="btn danger" id="btnResetFromQ">最初からやり直す</button>
-            </div>
-            <div class="btnGroup">
-              <button class="btn primary" id="btnNext">次へ</button>
-            </div>
+            <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
+            <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
           </div>
+        </div>
 
-          <div class="tiny" id="microPraise" style="margin-top:10px;">
-            小さく進めばOK。20問ごとに区切るので、負担が増えません。
-          </div>
-        </section>
-
-        <!-- WORRY -->
-        <section class="card" id="viewWorry" hidden>
-          <div class="themeRibbon"></div>
-          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">悩み入力</h2>
-          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
-            最終送信payloadの <code>worryText</code> に入ります（最大2000文字）。
-          </p>
-
-          <label for="worryText" style="margin-top:12px;">悩み（最大2000文字）</label>
-          <textarea class="field textarea" id="worryText" maxlength="2000" placeholder="例：仕事の方向性が定まらず不安です。強みの活かし方が知りたい…"></textarea>
-          <div class="counter">
-            <span style="opacity:.84;">入力内容は自動保存されます。</span>
-            <span id="worryCount">0 / 2000</span>
-          </div>
-
-          <div class="btnRow">
-            <div class="btnGroup">
-              <button class="btn ghost" id="btnBackToQ">設問へ戻る</button>
-              <button class="btn danger" id="btnResetFromW">最初からやり直す</button>
+        <!-- SIDE -->
+        <div class="sideStack">
+          <!-- Ascent card -->
+          <section class="card" style="margin:0; box-shadow:none;" id="ascentCard">
+            <div class="sideTitle">
+              <h2 class="h1" style="font-size:14px; margin:0;">神秘の巡礼路</h2>
+              <span class="chip">到達 <strong id="ascentNodeText">0</strong>/100</span>
             </div>
-            <div class="btnGroup">
-              <button class="btn primary" id="btnToResult">結果を見る</button>
+            <div class="muted small" style="margin-top:8px; line-height:1.6;">
+              回答が進むほど、光の道が伸び、あなたの位置が上昇します。
             </div>
-          </div>
-        </section>
 
-        <!-- RESULT -->
-        <section class="card" id="viewResult" hidden>
-          <div class="themeRibbon"></div>
-          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">結果</h2>
-
-          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <span class="chip">判定：<strong id="typeCode">----</strong></span>
-            <span class="chip" id="balChip" style="display:none;">BAL（均衡型）</span>
-          </div>
-
-          <h3 style="margin:10px 0 0; font-size:18px; letter-spacing:.02em;" id="typeTitle">FortuneAI：----</h3>
-          <p style="margin:6px 0 0; font-size:12px; opacity:.88; line-height:1.7;" id="typeSub">—</p>
-
-          <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;" id="axisGrid"></div>
-
-          <div class="miniLine"></div>
-
-          <h3 style="margin:0; font-size:14px; letter-spacing:.03em;">占い5種類の象徴レイヤー</h3>
-          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
-            ※実在の占術を断定するものではなく、象徴（比喩）として表示します。
-          </p>
-          <div style="margin-top:12px; display:grid; gap:10px;" id="layers"></div>
-
-          <div class="miniLine"></div>
-
-          <div class="btnRow" style="justify-content:space-between;">
-            <div class="btnGroup">
-              <button class="btn ghost" id="btnBackToW">悩みへ戻る</button>
-              <button class="btn danger" id="btnResetFromR">最初からやり直す</button>
-            </div>
-            <div class="btnGroup">
-              <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
-              <button class="btn ghost" id="btnCopyJson">JSONコピー</button>
-              <button class="btn ghost" id="btnDownloadJson">JSONDL</button>
-            </div>
-          </div>
-
-          <div class="toast" id="submitToast"></div>
-
-          <div id="jsonPreviewWrap" style="display:none;">
             <div class="miniLine"></div>
-            <div style="font-size:12px; opacity:.90;"><b>テストモード（WEBHOOK_URL未設定）：JSONプレビュー</b></div>
-            <pre style="margin:10px 0 0; border-radius:16px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.22); padding:12px; overflow:auto; max-height:320px; font-size:11.5px; line-height:1.55;"
-                 id="jsonPreview"></pre>
-          </div>
-        </section>
-      </main>
 
-      <!-- SIDE -->
-      <aside class="side">
-        <section class="card">
-          <div class="sideTitle">
-            <h2>ナビ</h2>
-            <span class="chip">今：<strong id="sideNow">—</strong></span>
-          </div>
-          <div style="font-size:12px; opacity:.88; line-height:1.6;">
-            20問で1章。章を超えるたびに色と演出が変わり、“次へ行きたくなる”設計です。
-          </div>
+            <div class="ascentWrap">
+              <svg id="ascentSvg" viewBox="0 0 320 220" width="100%" height="220" role="img" aria-label="巡礼路の進捗">
+                <defs>
+                  <radialGradient id="ascentGlow" cx="50%" cy="40%" r="70%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,.12)"/>
+                    <stop offset="60%" stop-color="rgba(255,255,255,.03)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+                  </radialGradient>
 
-          <div class="miniLine"></div>
+                  <linearGradient id="ascentStroke" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="var(--accent1)"/>
+                    <stop offset="55%" stop-color="var(--accent3)"/>
+                    <stop offset="100%" stop-color="var(--accent2)"/>
+                  </linearGradient>
 
-          <div style="font-size:12px; opacity:.90; letter-spacing:.03em;"><b>章ステッパー</b></div>
-          <div class="chapters" id="chapterList"></div>
-        </section>
+                  <filter id="softGlow">
+                    <feGaussianBlur stdDeviation="2.2" result="b"/>
+                    <feMerge>
+                      <feMergeNode in="b"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
 
-        <section class="momentumBox">
-          <div class="momentumTop">
-            <span>モメンタム（今の勢い）</span>
-            <b id="momentumPct">0%</b>
-          </div>
-          <div class="momentumBar">
-            <div class="momentumFill" id="momentumFill"></div>
-            <div class="momentumGlow"></div>
-          </div>
-          <div class="praise" id="momentumText">まずは1問。水が溜まり始めます。</div>
-        </section>
+                <rect x="0" y="0" width="320" height="220" fill="url(#ascentGlow)"/>
 
-        <section class="card">
-          <div class="sideTitle">
-            <h2>ショートカット</h2>
-            <span class="chip">保存：<strong>ON</strong></span>
-          </div>
-          <div class="btnRow" style="justify-content:flex-start; margin-top:10px;">
-            <div class="btnGroup">
-              <button class="btn ghost" id="btnGoHero">トップ</button>
-              <button class="btn ghost" id="btnGoProfile">プロフィール</button>
-              <button class="btn ghost" id="btnGoResult" title="※未回答があると結果に行けません">結果</button>
+                <!-- 尖塔（ゴール） -->
+                <g opacity=".95">
+                  <path d="M160 18 L176 58 L160 48 L144 58 Z" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.16)"/>
+                  <circle cx="160" cy="18" r="6" fill="rgba(255,255,255,.22)" stroke="rgba(255,255,255,.22)"/>
+                  <text x="160" y="14" text-anchor="middle" font-size="10" fill="rgba(234,240,255,.85)" style="letter-spacing:.12em;">GOAL</text>
+                </g>
+
+                <!-- ベース道 -->
+                <path id="ascentPathBase"
+                  d="M42 190
+                     C 72 176, 88 172, 106 160
+                     C 126 146, 120 128, 140 118
+                     C 158 109, 166 128, 184 112
+                     C 202 96, 180 78, 200 68
+                     C 224 56, 236 84, 258 58
+                     C 274 38, 230 32, 196 40
+                     C 172 46, 168 34, 160 24"
+                  fill="none"
+                  stroke="rgba(255,255,255,.14)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+
+                <!-- 進捗道 -->
+                <path id="ascentPathProg"
+                  d="M42 190
+                     C 72 176, 88 172, 106 160
+                     C 126 146, 120 128, 140 118
+                     C 158 109, 166 128, 184 112
+                     C 202 96, 180 78, 200 68
+                     C 224 56, 236 84, 258 58
+                     C 274 38, 230 32, 196 40
+                     C 172 46, 168 34, 160 24"
+                  fill="none"
+                  stroke="url(#ascentStroke)"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  filter="url(#softGlow)"/>
+
+                <g id="ascentRunes" opacity=".95"></g>
+
+                <g id="ascentMarker" filter="url(#softGlow)">
+                  <circle id="ascentHalo" cx="42" cy="190" r="10" fill="rgba(255,255,255,.10)"/>
+                  <circle id="ascentDot" cx="42" cy="190" r="5.5" fill="rgba(255,255,255,.92)" stroke="rgba(255,255,255,.22)"/>
+                </g>
+
+                <g id="ascentParticles" opacity=".9"></g>
+
+                <text x="42" y="206" text-anchor="start" font-size="10" fill="rgba(234,240,255,.70)" style="letter-spacing:.12em;">START</text>
+              </svg>
+
+              <div class="ascentCaption" id="ascentCaption">まずは1問。光が道を描き始めます。</div>
             </div>
-          </div>
-          <div style="margin-top:10px; font-size:12px; opacity:.86; line-height:1.6;">
-            userId は <code>?userId=</code> で渡すと自動入力できます（LIFF SDK不要）。
-          </div>
-        </section>
-      </aside>
-    </div>
+          </section>
 
-    <div class="footerNote">© FortuneAI / 単一ファイル構成（外部ライブラリ不使用）</div>
+          <section class="card" style="margin:0; box-shadow:none;">
+            <h3 class="h1" style="font-size:14px; margin:0;">操作のコツ</h3>
+            <div class="muted small" style="margin-top:8px; line-height:1.7;">
+              ・スライダーはドラッグ可能（スマホOK）<br>
+              ・数字ボタンで即選択（誤操作が減る）<br>
+              ・進捗は「完了数」で増える（4のままでも次へ進める）<br>
+              ・20問ごとに章が変わり、色も変化します
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW: WORRY -->
+    <section class="card" id="viewWorry" hidden>
+      <h2 class="h1">悩み入力</h2>
+      <p class="lead">最終送信payloadの <code>worryText</code> に入ります（最大2000文字）。</p>
+
+      <label for="worryText" style="margin-top:12px;">悩み（最大2000文字）</label>
+      <textarea class="field" id="worryText" maxlength="2000" style="min-height:160px; resize:vertical; line-height:1.6;"
+        placeholder="例：仕事の方向性が定まらず不安です。今後の強みの活かし方が知りたい…"></textarea>
+
+      <div class="btnRow" style="justify-content:space-between;">
+        <div class="muted small" id="worryCount">0 / 2000</div>
+        <button class="btn primary" id="btnShowResult">結果を見る</button>
+      </div>
+    </section>
+
+    <!-- VIEW: RESULT -->
+    <section class="card" id="viewResult" hidden>
+      <h2 class="h1">結果</h2>
+      <p class="lead muted small" style="margin-top:-4px;">
+        ※ここは前の版と同じロジックを使っています（4軸スコア→17タイプ + 象徴レイヤー）。
+      </p>
+
+      <div class="sep"></div>
+
+      <div class="toast" id="resultToast" style="display:none;"></div>
+
+      <div class="btnRow">
+        <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
+        <button class="btn ghost" id="btnCopyJson">JSONをコピー</button>
+        <button class="btn ghost" id="btnDownloadJson">JSONをダウンロード</button>
+        <button class="btn danger" id="btnResetFromResult">最初からやり直す（保存を消去）</button>
+      </div>
+
+      <div id="jsonPreviewWrap" style="display:none;">
+        <div class="sep"></div>
+        <p class="lead"><b>JSONプレビュー（テストモード：WEBHOOK_URL未設定）</b></p>
+        <pre class="field" id="jsonPreview" style="max-height:320px; overflow:auto; white-space:pre; font-size:11.5px; line-height:1.55;"></pre>
+      </div>
+    </section>
+
+    <div class="footer">© FortuneAI / 本ページは単一ファイル構成（外部ライブラリ不使用）</div>
   </div>
 
-  <!-- 章クリアモーダル -->
-  <div class="modalBack" id="modalBack" role="dialog" aria-modal="true">
-    <div class="modal">
-      <div class="modalTop">
-        <div>
-          <h3 id="modalTitle">第1章 クリア</h3>
-          <p id="modalDesc">素晴らしい。次の章はテーマカラーが切り替わります。</p>
-        </div>
-        <button class="closeX" id="modalClose" aria-label="閉じる">×</button>
+  <!-- Bottom Nav (QUESTIONS時だけ表示) -->
+  <div class="bottomNav" id="bottomNav" style="display:none;">
+    <div class="bottomNavInner">
+      <div class="navLeft">
+        <button class="btn ghost" id="btnPrevQ">前へ</button>
+        <span class="navHint">親指で操作できる下ナビ</span>
+      </div>
+      <div class="navRight">
+        <button class="btn primary" id="btnNextQ">次へ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chapter Clear Modal -->
+  <div class="modalBack" id="chapterModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="章クリア">
+      <div class="modalGlow" aria-hidden="true"></div>
+      <h3 class="modalTitle" id="chapterModalTitle">CHAPTER CLEAR</h3>
+      <div class="modalBody" id="chapterModalBody">
+        章を突破しました。色（雰囲気）が切り替わり、次のステージに進みます。
       </div>
 
-      <div class="modalGrid">
-        <div class="miniCard">
-          <b>この章の進捗</b>
-          <p id="modalChapterStats">20/20 完了</p>
-        </div>
-        <div class="miniCard">
-          <b>全体の進捗</b>
-          <p id="modalAllStats">20/100（20%）</p>
-        </div>
-        <div class="miniCard">
-          <b>次の一言</b>
-          <p id="modalNudge">次の20問は“テンポよく”。直感でOK。</p>
-        </div>
-        <div class="miniCard">
-          <b>ごほうび</b>
-          <p id="modalReward">テーマカラー変更 + コンフェッティ + モメンタム上昇</p>
-        </div>
+      <div class="rewardRow">
+        <div class="reward" id="reward1">報酬：ルーンが点灯し、巡礼路が拡張されます。</div>
+        <div class="reward" id="reward2">ボーナス：次の20問は色相が変化し、集中が続きやすくなります。</div>
       </div>
 
-      <div class="modalBtns">
-        <div class="btnGroup">
-          <button class="btn ghost" id="modalPause">ここで止める（保存して終了）</button>
-        </div>
-        <div class="btnGroup">
-          <button class="btn primary" id="modalContinue">次の章へ進む</button>
-        </div>
+      <div class="btnRow" style="justify-content:flex-end;">
+        <button class="btn primary" id="btnChapterContinue">次の章へ</button>
       </div>
     </div>
   </div>
 
   <script>
     /***********************
-     * 設定（必要ならここだけ編集）
+     * 設定（ここだけ編集）
      ***********************/
     const WEBHOOK_URL = "https://hook.eu2.make.com/7ac62r32ffup0cl0d1kr9h3dpbf8dz3h";
-    const STORAGE_KEY = "fortuneai_17type_chapters_v1";
+    const STORAGE_KEY = "fortuneai_17type_v2_mystic_ascent";
 
-    // 章設定：20問×5章
-    const CHUNK = 20;
-    const TOTAL = 100;
-    const CHAPTERS = 5;
-
-    // 4軸最大値：各軸25問×3=75
+    // 1..7（中心4）での軸最大値：25問×3 = 75
     const AXIS_MAX = 75;
 
-    // 章ごとのテーマ（背景に効く/ボタン/水/アクセント）
+    // 20問ごとの章テーマ
     const THEMES = [
-      { name: "星雲パープル", a1:"#7c4dff", a2:"#cfa76e", a3:"#2fe6ff", nudge:"良いペース。次は“直感でサクサク”。" },
-      { name: "深海シアン",   a1:"#2fe6ff", a2:"#7c4dff", a3:"#cfa76e", nudge:"深呼吸してOK。迷ったら“中庸→微調整”。" },
-      { name: "黎明ゴールド", a1:"#cfa76e", a2:"#2fe6ff", a3:"#7c4dff", nudge:"ここから加速。テンポを崩さず行ける。" },
-      { name: "紅玉ピンク",   a1:"#ff5bd6", a2:"#cfa76e", a3:"#2fe6ff", nudge:"疲れたら1分休憩。戻ればすぐ続きから。" },
-      { name: "翠光グリーン", a1:"#41d18a", a2:"#2fe6ff", a3:"#cfa76e", nudge:"最後の章。水位が上がるほど“終わりが近い”。" },
+      { name:"CHAPTER 1 / 5", a1:"#7c4dff", a2:"#cfa76e", a3:"#43d3ff", bg0:"#070b1a", bg1:"#0b1231" },
+      { name:"CHAPTER 2 / 5", a1:"#43d3ff", a2:"#7c4dff", a3:"#cfa76e", bg0:"#06101a", bg1:"#071a2b" },
+      { name:"CHAPTER 3 / 5", a1:"#cfa76e", a2:"#43d3ff", a3:"#7c4dff", bg0:"#120c0a", bg1:"#0b1231" },
+      { name:"CHAPTER 4 / 5", a1:"#ff6bd6", a2:"#43d3ff", a3:"#cfa76e", bg0:"#0d0616", bg1:"#08163a" },
+      { name:"CHAPTER 5 / 5", a1:"#41d18a", a2:"#cfa76e", a3:"#7c4dff", bg0:"#060f0d", bg1:"#081a2b" },
     ];
 
     /***********************
-     * 17タイプ称号
+     * 17タイプ称号データ（固定）
      ***********************/
     const TYPE_TITLES = {
       "INTJ":"FortuneAI：黒曜アーキテクト（戦略設計者）",
@@ -930,14 +957,14 @@
       "ENFJ":"FortuneAI：旭日メンター（覚醒導師）",
       "ENFP":"FortuneAI：虹彩オラクル（可能性点火者）",
       "ISTJ":"FortuneAI：鉄律マーシャル（秩序監督者）",
-      "ISFJ":"守灯スチュワード（献身支援者）",
+      "ISFJ":"FortuneAI：守灯スチュワード（献身支援者）",
       "ESTJ":"FortuneAI：白鋼マーシャル（現場統制者）",
-      "ESFJ":"FortuneAI：祝祭ホスト（調和演出者）",
-      "ISTP":"FortuneAI：影刃スミス（実務解体者）",
-      "ISFP":"FortuneAI：花晶アーティザン（美感匠）",
-      "ESTP":"FortuneAI：疾風ストライカー（機会攻略者）",
-      "ESFP":"FortuneAI：陽光パフォーマー（感情起動者）",
-      "BAL":"FortuneAI：均衡アルケミスト（統合適応者）"
+      "ESFJ":"祝祭ホスト（調和演出者）",
+      "ISTP":"影刃スミス（実務解体者）",
+      "ISFP":"花晶アーティザン（美感匠）",
+      "ESTP":"疾風ストライカー（機会攻略者）",
+      "ESFP":"陽光パフォーマー（感情起動者）",
+      "BAL":"均衡アルケミスト（統合適応者）"
     };
 
     const TAROT_MAJOR = {
@@ -946,9 +973,10 @@
     };
 
     /***********************
-     * 設問（100問）※必要なら文言差し替えOK
+     * 設問データ（100問）
      ***********************/
     const QUESTIONS = buildDefaultQuestions();
+
     function buildDefaultQuestions(){
       const out = [];
       const mk = (id, text, tag) => ({ id, text, tag });
@@ -1070,7 +1098,8 @@
       for (const [t, tag] of S) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of T) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of J) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
-      if (out.length !== 100) throw new Error("QUESTIONS length must be 100");
+
+      if (out.length !== 100) throw new Error("QUESTIONS length must be 100. Current=" + out.length);
       return out;
     }
 
@@ -1078,6 +1107,7 @@
      * DOM
      ***********************/
     const $ = (id)=>document.getElementById(id);
+
     const dom = {
       viewHero: $("viewHero"),
       viewProfile: $("viewProfile"),
@@ -1085,17 +1115,12 @@
       viewWorry: $("viewWorry"),
       viewResult: $("viewResult"),
 
-      answeredText: $("answeredText"),
-      chapterText: $("chapterText"),
-      waterFill: $("waterFill"),
-
       btnStart: $("btnStart"),
       btnSample: $("btnSample"),
-      btnResetAll: $("btnResetAll"),
+      btnResetFromHero: $("btnResetFromHero"),
 
-      btnBackHero: $("btnBackHero"),
+      btnBackToHero: $("btnBackToHero"),
       btnToQuestions: $("btnToQuestions"),
-      btnSampleProfile: $("btnSampleProfile"),
 
       name: $("name"),
       gender: $("gender"),
@@ -1104,91 +1129,95 @@
       errName: $("errName"),
       errGender: $("errGender"),
       errBirthday: $("errBirthday"),
+      profileRestoreNote: $("profileRestoreNote"),
 
-      qMeta: $("qMeta"),
-      qTag: $("qTag"),
       qText: $("qText"),
-      scaleHost: $("scaleHost"),
-      unsetNote: $("unsetNote"),
+      qTagChip: $("qTagChip"),
+      qIndexChip: $("qIndexChip"),
+      chapterChip: $("chapterChip"),
+      doneCountText: $("doneCountText"),
+      currentValueText: $("currentValueText"),
+      valuePill: $("valuePill"),
+      range: $("range"),
+      tickRow: $("tickRow"),
+      qToast: $("qToast"),
 
-      btnPrev: $("btnPrev"),
-      btnNext: $("btnNext"),
-      btnSkipToProfile: $("btnSkipToProfile"),
-      btnResetFromQ: $("btnResetFromQ"),
-      microPraise: $("microPraise"),
+      btnPrevQ: $("btnPrevQ"),
+      btnNextQ: $("btnNextQ"),
+      btnJumpProfile: $("btnJumpProfile"),
+      btnResetFromQuestions: $("btnResetFromQuestions"),
 
-      chapterAnswered: $("chapterAnswered"),
-      streak: $("streak"),
-
-      sideNow: $("sideNow"),
-      chapterList: $("chapterList"),
-
-      momentumFill: $("momentumFill"),
-      momentumPct: $("momentumPct"),
-      momentumText: $("momentumText"),
-
-      btnGoHero: $("btnGoHero"),
-      btnGoProfile: $("btnGoProfile"),
-      btnGoResult: $("btnGoResult"),
+      bottomNav: $("bottomNav"),
 
       worryText: $("worryText"),
       worryCount: $("worryCount"),
-      btnBackToQ: $("btnBackToQ"),
-      btnResetFromW: $("btnResetFromW"),
-      btnToResult: $("btnToResult"),
+      btnShowResult: $("btnShowResult"),
 
-      typeCode: $("typeCode"),
-      typeTitle: $("typeTitle"),
-      typeSub: $("typeSub"),
-      balChip: $("balChip"),
-      axisGrid: $("axisGrid"),
-      layers: $("layers"),
-
-      btnBackToW: $("btnBackToW"),
-      btnResetFromR: $("btnResetFromR"),
       btnFinalSubmit: $("btnFinalSubmit"),
       btnCopyJson: $("btnCopyJson"),
       btnDownloadJson: $("btnDownloadJson"),
-      submitToast: $("submitToast"),
+      btnResetFromResult: $("btnResetFromResult"),
+
       jsonPreviewWrap: $("jsonPreviewWrap"),
       jsonPreview: $("jsonPreview"),
+      resultToast: $("resultToast"),
 
-      modalBack: $("modalBack"),
-      modalClose: $("modalClose"),
-      modalTitle: $("modalTitle"),
-      modalDesc: $("modalDesc"),
-      modalChapterStats: $("modalChapterStats"),
-      modalAllStats: $("modalAllStats"),
-      modalNudge: $("modalNudge"),
-      modalReward: $("modalReward"),
-      modalPause: $("modalPause"),
-      modalContinue: $("modalContinue"),
+      waterFill: $("waterFill"),
+      meterText: $("meterText"),
 
-      confettiCanvas: $("confettiCanvas"),
+      topSubtitle: $("topSubtitle"),
+
+      chapterModal: $("chapterModal"),
+      chapterModalTitle: $("chapterModalTitle"),
+      chapterModalBody: $("chapterModalBody"),
+      btnChapterContinue: $("btnChapterContinue"),
+      reward1: $("reward1"),
+      reward2: $("reward2"),
+
+      ascentNodeText: $("ascentNodeText"),
+      ascentCaption: $("ascentCaption"),
+      ascentPathProg: $("ascentPathProg"),
+      ascentRunes: $("ascentRunes"),
+      ascentHalo: $("ascentHalo"),
+      ascentDot: $("ascentDot"),
+      ascentParticles: $("ascentParticles"),
+      ascentSvg: $("ascentSvg"),
     };
 
     /***********************
      * State
-     * answers: 0=未選択 / 1..7=選択済
      ***********************/
     const state = {
       view: "hero",
-      index: 0,
-      profile: { name:"", gender:"", birthday:"" },
+      currentIndex: 0,
+
+      profile: { name: "", gender: "", birthday: "" },
       userId: "",
-      answers: new Array(TOTAL).fill(0),
+
+      // 初期値4（進行可能）
+      answers: new Array(100).fill(4),
+
+      // “完了”は別で管理（体験設計：最初から100%にならないようにする）
+      // ※要求「4を回答済み扱い」は “送信スキーマ上”満たしつつ、進捗は done で上げる
+      done: new Array(100).fill(false),
+
       worryText: "",
-      streak: 0,
-      lastAnsweredAt: 0,
       lastPayload: null,
-      lastChapterCleared: 0, // 0..5
+
+      lastChapterShown: 0, // 20/40/60/80/100 の表示済み管理
     };
 
     /***********************
-     * Utils
+     * iOSピンチズーム抑止（rangeドラッグは殺さない）
+     ***********************/
+    document.addEventListener("gesturestart", (e)=>e.preventDefault(), { passive:false });
+    document.addEventListener("gesturechange",(e)=>e.preventDefault(), { passive:false });
+    document.addEventListener("gestureend",  (e)=>e.preventDefault(), { passive:false });
+
+    /***********************
+     * Utilities
      ***********************/
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
-    const now = ()=>Date.now();
 
     function parseQuery(){
       const q = new URLSearchParams(location.search);
@@ -1196,7 +1225,17 @@
     }
 
     function save(){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const data = {
+        view: state.view,
+        currentIndex: state.currentIndex,
+        profile: state.profile,
+        userId: state.userId,
+        answers: state.answers,
+        done: state.done,
+        worryText: state.worryText,
+        lastChapterShown: state.lastChapterShown,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     }
 
     function load(){
@@ -1205,26 +1244,33 @@
       try{
         const data = JSON.parse(raw);
         if (!data || typeof data !== "object") return false;
-        if (!Array.isArray(data.answers) || data.answers.length !== TOTAL) return false;
+        if (!Array.isArray(data.answers) || data.answers.length !== 100) return false;
 
-        state.view = String(data.view || "hero");
-        state.index = clamp(Number(data.index || 0), 0, TOTAL-1);
+        state.view = data.view || "hero";
+        state.currentIndex = clamp(Number(data.currentIndex || 0), 0, 99);
         state.profile = {
           name: String(data.profile?.name || ""),
           gender: String(data.profile?.gender || ""),
           birthday: String(data.profile?.birthday || ""),
         };
         state.userId = String(data.userId || "");
-        state.answers = data.answers.map(v => {
-          const n = Number(v);
-          if (!Number.isFinite(n)) return 0;
-          if (n === 0) return 0;
-          return clamp(Math.round(n), 1, 7);
+
+        state.answers = data.answers.map(v=>{
+          if (v===null || v===undefined || v==="") return 4;
+          return clamp(Number(v),1,7);
         });
+
+        // done が無い旧データは “現在Index以前を完了” として復元
+        if (Array.isArray(data.done) && data.done.length === 100){
+          state.done = data.done.map(Boolean);
+        } else {
+          state.done = new Array(100).fill(false);
+          for (let i=0;i<state.currentIndex;i++) state.done[i] = true;
+        }
+
         state.worryText = String(data.worryText || "");
-        state.streak = clamp(Number(data.streak || 0), 0, 9999);
-        state.lastAnsweredAt = Number(data.lastAnsweredAt || 0);
-        state.lastChapterCleared = clamp(Number(data.lastChapterCleared || 0), 0, CHAPTERS);
+        state.lastChapterShown = Number(data.lastChapterShown || 0);
+
         return true;
       }catch{
         return false;
@@ -1234,295 +1280,110 @@
     function clearAll(){
       localStorage.removeItem(STORAGE_KEY);
       state.view = "hero";
-      state.index = 0;
+      state.currentIndex = 0;
       state.profile = { name:"", gender:"", birthday:"" };
       state.userId = "";
-      state.answers = new Array(TOTAL).fill(0);
+      state.answers = new Array(100).fill(4);
+      state.done = new Array(100).fill(false);
       state.worryText = "";
-      state.streak = 0;
-      state.lastAnsweredAt = 0;
       state.lastPayload = null;
-      state.lastChapterCleared = 0;
-      applyThemeByIndex(0);
-      render();
-      window.scrollTo({top:0, behavior:"smooth"});
+      state.lastChapterShown = 0;
+      renderAll();
     }
 
     function setView(v){
       state.view = v;
       save();
-      render();
-      window.scrollTo({top:0, behavior:"smooth"});
+      renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    function answeredCount(){
-      let c = 0;
-      for (const a of state.answers) if (a >= 1 && a <= 7) c++;
-      return c;
+    function showToast(el, kind, msg){
+      el.className = "toast " + (kind || "");
+      el.textContent = msg;
+      el.style.display = "block";
+    }
+    function hideToast(el){ el.style.display="none"; }
+
+    function answeredDoneCount(){
+      // 完了（done）数で進捗を出す：体験が“積み上がる”設計
+      return state.done.reduce((a,b)=>a+(b?1:0),0);
     }
 
-    function chapterOfIndex(i){
-      return Math.floor(i / CHUNK) + 1; // 1..5
-    }
-    function chapterStart(ch){
-      return (ch - 1) * CHUNK;
-    }
-    function chapterEnd(ch){
-      return Math.min(ch * CHUNK - 1, TOTAL - 1);
-    }
-    function chapterAnsweredCount(ch){
-      const s = chapterStart(ch), e = chapterEnd(ch);
-      let c = 0;
-      for (let i=s; i<=e; i++) if (state.answers[i] >= 1) c++;
-      return c;
-    }
-    function allChaptersCleared(){
-      for (let ch=1; ch<=CHAPTERS; ch++){
-        if (chapterAnsweredCount(ch) < CHUNK) return false;
-      }
-      return true;
+    function currentChapterByDone(doneCount){
+      // 0..19 -> 0, 20..39 -> 1, ...
+      const idx = clamp(Math.floor(doneCount / 20), 0, 4);
+      return idx;
     }
 
-    function applyTheme(theme){
-      document.documentElement.style.setProperty("--accent1", theme.a1);
-      document.documentElement.style.setProperty("--accent2", theme.a2);
-      document.documentElement.style.setProperty("--accent3", theme.a3);
+    function applyThemeByDone(doneCount){
+      const chap = currentChapterByDone(doneCount);
+      const th = THEMES[chap];
+
+      // CSS変数に反映（“全体の色が変わる”）
+      document.documentElement.style.setProperty("--accent1", th.a1);
+      document.documentElement.style.setProperty("--accent2", th.a2);
+      document.documentElement.style.setProperty("--accent3", th.a3);
+      document.documentElement.style.setProperty("--bg0", th.bg0);
+      document.documentElement.style.setProperty("--bg1", th.bg1);
+
+      dom.chapterChip.textContent = th.name;
+      dom.topSubtitle.textContent = `章：${th.name}｜100問×7段階スライダー（巡礼路で上昇）`;
     }
 
-    function applyThemeByIndex(i){
-      const ch = chapterOfIndex(i);
-      const theme = THEMES[ch-1] || THEMES[0];
-      applyTheme(theme);
-    }
+    function updateMeter(){
+      const done = answeredDoneCount();
+      const pct = (done / 100) * 100;
+      dom.waterFill.style.width = pct.toFixed(1) + "%";
+      dom.meterText.textContent = `${done} / 100`;
+      dom.waterFill.parentElement.setAttribute("aria-valuenow", String(done));
 
-    function toast(kind, msg){
-      dom.submitToast.className = "toast " + (kind || "");
-      dom.submitToast.textContent = msg;
-      dom.submitToast.style.display = "block";
-    }
-    function hideToast(){ dom.submitToast.style.display = "none"; }
-
-    async function copyToClipboard(text){
-      try{
-        await navigator.clipboard.writeText(text);
-        return true;
-      }catch{
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        let ok = false;
-        try{ ok = document.execCommand("copy"); }catch{ ok = false; }
-        ta.remove();
-        return ok;
-      }
-    }
-
-    function downloadText(filename, text){
-      const blob = new Blob([text], {type:"application/json;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
+      applyThemeByDone(done);
+      updateAscent(done);
     }
 
     /***********************
-     * Slider colors by value（数字で分かりやすく）
+     * Slider color mapping (値で色が変わる)
      ***********************/
-    // 1..7 に対応する色（視認性優先）
-    const VALUE_COLORS = {
-      1: "#ff4d6d", // 赤
-      2: "#ff7a45", // 橙
-      3: "#ffcc66", // 黄
-      4: "#b6c0ff", // 中庸（淡い青紫）
-      5: "#2fe6ff", // シアン
-      6: "#7c4dff", // 紫
-      7: "#cfa76e", // ゴールド
-    };
-
-    function mix(a,b,t){
-      const pa = hexToRgb(a), pb = hexToRgb(b);
-      const r = Math.round(pa.r + (pb.r-pa.r)*t);
-      const g = Math.round(pa.g + (pb.g-pa.g)*t);
-      const bb= Math.round(pa.b + (pb.b-pa.b)*t);
-      return `rgb(${r},${g},${bb})`;
-    }
-    function hexToRgb(hex){
-      const h = hex.replace("#","");
-      const v = parseInt(h.length===3 ? h.split("").map(x=>x+x).join("") : h, 16);
-      return { r:(v>>16)&255, g:(v>>8)&255, b:v&255 };
+    function valueColor(v){
+      // 1→冷/暗, 4→中立, 7→熱/明 みたいに段階色
+      // 章のaccentも混ぜる
+      const map = {
+        1: "color-mix(in oklab, var(--accent1) 70%, black 25%)",
+        2: "color-mix(in oklab, var(--accent1) 70%, var(--accent3) 20%)",
+        3: "color-mix(in oklab, var(--accent3) 70%, var(--accent1) 20%)",
+        4: "color-mix(in oklab, var(--accent3) 55%, rgba(255,255,255,.10) 0%)",
+        5: "color-mix(in oklab, var(--accent2) 55%, var(--accent3) 30%)",
+        6: "color-mix(in oklab, var(--accent2) 72%, var(--accent3) 12%)",
+        7: "color-mix(in oklab, var(--accent2) 85%, white 8%)",
+      };
+      return map[clamp(v,1,7)];
     }
 
-    /***********************
-     * Custom 7-step slider (ドラッグOK)
-     * - 未選択のときは「中庸表示」だがカウントしない
-     ***********************/
-    function buildSevenSlider({ value, isSet, onChange }){
-      const wrap = document.createElement("div");
-      wrap.className = "scaleWrap";
+    function applyThumbScale(v){
+      const dist = Math.abs(v - 4);   // 0..3
+      const t = dist / 3;            // 0..1
+      const scale = 1 + t * 0.45;    // 1.00..1.45
+      dom.range.style.setProperty("--thumbScale", String(scale));
+    }
 
-      const head = document.createElement("div");
-      head.className = "scaleHead";
-      const left = document.createElement("span");
-      left.textContent = "1 = まったくそう思わない";
-      const mid = document.createElement("b");
-      mid.textContent = isSet ? String(value) : "—";
-      const right = document.createElement("span");
-      right.textContent = "7 = 非常にそう思う";
-      head.appendChild(left); head.appendChild(mid); head.appendChild(right);
+    function applyRangePaint(v){
+      const pct = ((v - 1) / 6) * 100; // 0..100
+      dom.range.style.setProperty("--fillPct", pct.toFixed(2) + "%");
+      dom.range.style.setProperty("--fillColor", valueColor(v));
+      dom.valuePill.textContent = String(v);
+      dom.currentValueText.textContent = String(v);
+      applyThumbScale(v);
 
-      const hint = document.createElement("div");
-      hint.className = "scaleHint";
-      hint.textContent = "数字をタップ、または丸をドラッグ。未選択のまま次へは進めません。";
-
-      const slider = document.createElement("div");
-      slider.className = "sliderBox";
-      slider.setAttribute("role","slider");
-      slider.setAttribute("aria-valuemin","1");
-      slider.setAttribute("aria-valuemax","7");
-      slider.setAttribute("tabindex","0");
-
-      const track = document.createElement("div");
-      track.className = "sliderTrack";
-
-      const fill = document.createElement("div");
-      fill.className = "sliderFill";
-
-      const thumb = document.createElement("div");
-      thumb.className = "sliderThumb";
-
-      slider.appendChild(track);
-      slider.appendChild(fill);
-      slider.appendChild(thumb);
-
-      const ticks = document.createElement("div");
-      ticks.className = "tickRow";
-      const tickBtns = [];
-
-      for (let i=1; i<=7; i++){
-        const b = document.createElement("button");
-        b.type="button";
-        b.className="tickBtn";
-        b.textContent = String(i);
-        b.addEventListener("click", ()=> setValue(i, true));
-        ticks.appendChild(b);
-        tickBtns.push(b);
-      }
-
-      wrap.appendChild(head);
-      wrap.appendChild(slider);
-      wrap.appendChild(ticks);
-      wrap.appendChild(hint);
-
-      let current = clamp(Number(value || 4), 1, 7);
-      let setFlag = !!isSet;
-
-      function updateUI(){
-        // 中央表示
-        mid.textContent = setFlag ? String(current) : "—";
-        slider.setAttribute("aria-valuenow", String(current));
-
-        // thumb位置
-        const rect = slider.getBoundingClientRect();
-        const thumbW = 24;
-        const pad = thumbW/2;
-        const usable = Math.max(1, rect.width - pad*2);
-        const p = (current - 1) / 6;
-        const x = pad + usable * p;
-
-        thumb.style.left = x + "px";
-        fill.style.width = x + "px";
-
-        // value色
-        const c = VALUE_COLORS[current] || "#b6c0ff";
-        const c2 = mix(c, getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#cfa76e", 0.35);
-
-        // 未選択は淡く（でもカーソルは見える）
-        const alpha = setFlag ? 1.0 : 0.35;
-
-        fill.style.background = `linear-gradient(90deg, ${c}, ${c2})`;
-        fill.style.opacity = alpha;
-
-        thumb.style.background = setFlag ? c : "rgba(255,255,255,.70)";
-        thumb.style.borderColor = setFlag ? "rgba(255,255,255,.32)" : "rgba(255,255,255,.18)";
-        thumb.style.boxShadow = setFlag
-          ? `0 0 0 3px ${mix(c,"#000000",0.0).replace("rgb","rgba").replace(")",", .18)")} , 0 12px 28px rgba(0,0,0,.28)`
-          : "0 10px 26px rgba(0,0,0,.26)";
-
-        // tick
-        tickBtns.forEach((btn, idx)=>{
-          const v = idx+1;
-          btn.classList.toggle("sel", setFlag && v===current);
-          btn.style.borderColor = "rgba(255,255,255,.12)";
-          btn.style.background = "rgba(255,255,255,.04)";
-          if (setFlag && v===current){
-            btn.style.borderColor = "rgba(255,255,255,.18)";
-            btn.style.background = "rgba(255,255,255,.08)";
-          }
-        });
-      }
-
-      function setValue(v, emit){
-        const nv = clamp(Math.round(Number(v)), 1, 7);
-        current = nv;
-        setFlag = true;
-        updateUI();
-        if (emit) onChange(current);
-      }
-
-      function valueFromClientX(clientX){
-        const rect = slider.getBoundingClientRect();
-        const thumbW = 24;
-        const pad = thumbW/2;
-        const usable = Math.max(1, rect.width - pad*2);
-        const x = clamp(clientX - rect.left, pad, rect.width - pad);
-        const p = (x - pad) / usable;
-        const raw = 1 + p*6;
-        return clamp(Math.round(raw), 1, 7);
-      }
-
-      slider.addEventListener("click", (e)=>{
-        if (slider._dragging) return;
-        setValue(valueFromClientX(e.clientX), true);
+      // tick highlight
+      const btns = dom.tickRow.querySelectorAll("button[data-v]");
+      btns.forEach(b=>{
+        b.classList.toggle("on", Number(b.dataset.v) === v);
       });
-
-      slider.addEventListener("pointerdown", (e)=>{
-        slider._dragging = true;
-        slider.setPointerCapture(e.pointerId);
-        setValue(valueFromClientX(e.clientX), true);
-      });
-      slider.addEventListener("pointermove", (e)=>{
-        if (!slider._dragging) return;
-        setValue(valueFromClientX(e.clientX), true);
-      });
-      function endDrag(){ slider._dragging = false; }
-      slider.addEventListener("pointerup", endDrag);
-      slider.addEventListener("pointercancel", endDrag);
-      slider.addEventListener("lostpointercapture", endDrag);
-
-      slider.addEventListener("keydown", (e)=>{
-        if (e.key==="ArrowLeft"||e.key==="ArrowDown"){ e.preventDefault(); setValue(current-1,true); }
-        if (e.key==="ArrowRight"||e.key==="ArrowUp"){ e.preventDefault(); setValue(current+1,true); }
-        if (e.key==="Home"){ e.preventDefault(); setValue(1,true); }
-        if (e.key==="End"){ e.preventDefault(); setValue(7,true); }
-      });
-
-      const ro = new ResizeObserver(()=> updateUI());
-      ro.observe(slider);
-
-      // 初期表示（未選択なら4を基準に位置だけ出す）
-      updateUI();
-
-      return { node: wrap, destroy: ()=>ro.disconnect() };
     }
 
     /***********************
-     * Profile validation
+     * Validation
      ***********************/
     function validateProfile(){
       let ok = true;
@@ -1534,14 +1395,15 @@
       const gender = dom.gender.value;
       const birthday = dom.birthday.value;
 
-      if (!name){ dom.errName.style.display="block"; ok=false; }
-      if (!gender){ dom.errGender.style.display="block"; ok=false; }
+      if (!name){ dom.errName.style.display = "block"; ok = false; }
+      if (!gender){ dom.errGender.style.display = "block"; ok = false; }
       if (!birthday || !/^\d{4}-\d{2}-\d{2}$/.test(birthday)){
-        dom.errBirthday.style.display="block"; ok=false;
+        dom.errBirthday.style.display = "block"; ok = false;
       }
       return ok;
     }
-    function syncProfile(){
+
+    function syncProfileFromInputs(){
       state.profile.name = dom.name.value.trim();
       state.profile.gender = dom.gender.value;
       state.profile.birthday = dom.birthday.value;
@@ -1550,10 +1412,12 @@
     }
 
     /***********************
-     * Score & type
+     * Scoring & Typing
      ***********************/
-    function answerToValue(ans){ return (Number(ans) - 4); } // 1..7 -> -3..+3
-
+    function answerToValue(ans){
+      // 1..7 -> -3..+3（中心4）
+      return (Number(ans) - 4);
+    }
     function applyTagToAxis(tag, val, scores){
       const m = String(tag).match(/\[([ESTJ])([+-])\]/);
       if (!m) return;
@@ -1565,13 +1429,10 @@
       if (axis === "T") scores.T += v;
       if (axis === "J") scores.J += v;
     }
-
     function computeScores(){
       const scores = { E:0, S:0, T:0, J:0 };
-      for (let i=0; i<TOTAL; i++){
-        const a = state.answers[i];
-        if (a < 1) continue; // 未選択はスコア計算しない
-        const val = answerToValue(a);
+      for (let i=0; i<100; i++){
+        const val = answerToValue(state.answers[i]);
         applyTagToAxis(QUESTIONS[i].tag, val, scores);
       }
       scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
@@ -1580,16 +1441,13 @@
       scores.J = clamp(scores.J, -AXIS_MAX, AXIS_MAX);
       return scores;
     }
-
     function computeType(scores){
       const absE = Math.abs(scores.E);
       const absS = Math.abs(scores.S);
       const absT = Math.abs(scores.T);
       const absJ = Math.abs(scores.J);
-
       const isBAL = (absE < 8 && absS < 8 && absT < 8 && absJ < 8);
       if (isBAL) return { typeCode:"BAL", isBAL:true };
-
       const EorI = (scores.E >= 0) ? "E" : "I";
       const SorN = (scores.S >= 0) ? "S" : "N";
       const TorF = (scores.T >= 0) ? "T" : "F";
@@ -1597,104 +1455,63 @@
       return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
     }
 
-    function axisPercent(score){
-      const p = ((score + AXIS_MAX) / (2*AXIS_MAX)) * 100;
-      return clamp(p, 0, 100);
-    }
-
     /***********************
-     * Symbolic layers
-     ***********************/
-    function zodiacMode(scores, isBAL){
-      if (isBAL) return "柔軟宮モード（バランスと適応）";
-      const absE = Math.abs(scores.E);
-      if (absE < 8) return "柔軟宮モード（拮抗・調整）";
-      return (scores.E >= 0) ? "活動宮モード（能動・始動）" : "不動宮モード（持続・安定）";
-    }
-    function fiveElements(typeCode){
-      if (typeCode === "BAL") return "火（変容・統合）";
-      const nt = typeCode.includes("N") && typeCode.includes("T");
-      const nf = typeCode.includes("N") && typeCode.includes("F");
-      const st = typeCode.includes("S") && typeCode.includes("T");
-      const sf = typeCode.includes("S") && typeCode.includes("F");
-      if (nt) return "金（構造・分析）";
-      if (nf) return "木（成長・理想）";
-      if (st) return "土（実務・安定）";
-      if (sf) return "水（共感・調和）";
-      return "火（変容・統合）";
-    }
-    function palmistryText(typeCode){
-      const map = {
-        "INTJ":"知能線が深く伸びる象徴。集中と戦略で勝ち筋を組み立てる相。",
-        "INTP":"知能線が分岐する象徴。概念の解剖と再構成で本質へ近づく相。",
-        "ENTJ":"運命線が強い象徴。目標を掲げ、現実を動かす推進力の相。",
-        "ENTP":"知能線が軽快に跳ねる象徴。発想転換で停滞を突破する相。",
-        "INFJ":"感情線が静かに整う象徴。洞察と意味づけで未来を照らす相。",
-        "INFP":"感情線が繊細に弧を描く象徴。理想と美意識で世界を編む相。",
-        "ENFJ":"感情線と運命線が結ぶ象徴。人を育て、場を明るく導く相。",
-        "ENFP":"太陽丘が輝く象徴。可能性を点火し、広がりを生む相。",
-        "ISTJ":"生命線が厚い象徴。堅実に積み上げ、秩序で成果を守る相。",
-        "ISFJ":"感情線が柔らかい象徴。支える力で安心の基盤を作る相。",
-        "ESTJ":"運命線が直線的な象徴。現場統制と決断で結果へ寄せる相。",
-        "ESFJ":"感情線が上向く象徴。調和と祝祭で関係性を整える相。",
-        "ISTP":"知能線が鋭い象徴。実務を解体し、最短で直す職人の相。",
-        "ISFP":"感情線が美しく流れる象徴。感性で価値を磨く美感の相。",
-        "ESTP":"生命線が躍動する象徴。機会を掴み、状況を攻略する相。",
-        "ESFP":"太陽線が明るい象徴。感情を起動し、場を温める相。",
-        "BAL":"主要線が均整な象徴。統合適応でどの型にも寄り添える相。"
-      };
-      return map[typeCode] || "象徴テキスト（未定義）";
-    }
-    function nameologyText(typeCode){
-      const map = {
-        "INTJ":"文字の“骨格”を整える象徴。名は戦略を呼び、選択を鋭くする。",
-        "INTP":"文字の“意味”を研ぐ象徴。名は理解を深め、探究を進める。",
-        "ENTJ":"文字の“覇気”を立てる象徴。名は主導権を引き寄せる。",
-        "ENTP":"文字の“跳躍”を生む象徴。名は変化と発明を呼び込む。",
-        "INFJ":"文字の“灯”を宿す象徴。名は洞察と直観を澄ませる。",
-        "INFP":"文字の“詩”を帯びる象徴。名は理想と優しさを育てる。",
-        "ENFJ":"文字の“導”を作る象徴。名は人をまとめ、育成を促す。",
-        "ENFP":"文字の“虹”を広げる象徴。名は縁と可能性を増幅する。",
-        "ISTJ":"文字の“柱”を固める象徴。名は秩序と安定を支える。",
-        "ISFJ":"文字の“守”を強める象徴。名は献身と安心感を高める。",
-        "ESTJ":"文字の“律”を示す象徴。名は統制と成果の流れを作る。",
-        "ESFJ":"文字の“祝”を巡らす象徴。名は調和と人気を底上げする。",
-        "ISTP":"文字の“刃”を磨く象徴。名は技術と即応性を研ぎ澄ます。",
-        "ISFP":"文字の“華”を咲かせる象徴。名は美意識と表現を強める。",
-        "ESTP":"文字の“風”を走らせる象徴。名は機会と突破力を呼ぶ。",
-        "ESFP":"文字の“陽”を増やす象徴。名は注目と喜びを引き寄せる。",
-        "BAL":"文字の“調”を整える象徴。名は統合と柔軟な運を育てる。"
-      };
-      return map[typeCode] || "象徴テキスト（未定義）";
-    }
-
-    /***********************
-     * Make payload
+     * Payload
      ***********************/
     function buildPayload(){
+      const userId = (state.userId || "").trim();
       const payload = {
         action: "final_submit",
-        userId: (state.userId || "").trim(),
+        userId: userId || "",
         step: 999,
         profile: {
           gender: state.profile.gender,
           name: state.profile.name,
           birthday: state.profile.birthday
         },
-        answers: state.answers.map(v => Number(v)), // 0あり得るが送信前にチェック
+        answers: state.answers.map(v => Number(v)),
         worryText: state.worryText || ""
       };
-
-      // 必須
-      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday){
-        throw new Error("プロフィールが未入力です");
+      if (!Array.isArray(payload.answers) || payload.answers.length !== 100) throw new Error("answers must be array length 100");
+      for (const a of payload.answers){
+        if (!Number.isInteger(a) || a < 1 || a > 7) throw new Error("answers must be integers 1..7");
       }
-      // 全回答必須
-      if (payload.answers.some(a => !Number.isInteger(a) || a<1 || a>7)){
-        throw new Error("未回答があります（全100問に回答してください）");
-      }
+      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) throw new Error("profile is incomplete");
       if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0, 2000);
       return payload;
+    }
+
+    function safeJsonStringify(obj){ return JSON.stringify(obj, null, 2); }
+
+    async function copyToClipboard(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        return true;
+      }catch{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "0";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        let ok = false;
+        try{ ok = document.execCommand("copy"); }catch{ ok = false; }
+        document.body.removeChild(ta);
+        return ok;
+      }
+    }
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     }
 
     async function safeReadText(res){
@@ -1702,221 +1519,221 @@
     }
 
     async function finalSubmit(){
-      hideToast();
+      hideToast(dom.resultToast);
       let payload;
       try{
         payload = buildPayload();
       }catch(e){
-        toast("bad", "送信前チェックに失敗： " + (e?.message || e));
+        showToast(dom.resultToast, "bad", "送信前チェックに失敗しました： " + (e?.message || e));
         return;
       }
       state.lastPayload = payload;
       save();
 
-      const json = JSON.stringify(payload, null, 2);
+      const jsonText = safeJsonStringify(payload);
 
       if (!WEBHOOK_URL){
         dom.jsonPreviewWrap.style.display = "block";
-        dom.jsonPreview.textContent = json;
-        toast("warn", "WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
+        dom.jsonPreview.textContent = jsonText;
+        showToast(dom.resultToast, "warn", "テストモード：WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
         return;
       }
 
       dom.jsonPreviewWrap.style.display = "none";
-      toast("", "送信中…");
-
+      showToast(dom.resultToast, "", "送信中…");
       try{
         const res = await fetch(WEBHOOK_URL, {
           method: "POST",
-          headers: {"Content-Type":"application/json"},
-          body: json
+          headers: { "Content-Type": "application/json" },
+          body: jsonText
         });
         if (!res.ok){
           const txt = await safeReadText(res);
-          toast("bad", "送信失敗：HTTP " + res.status + " / " + (txt ? txt.slice(0,400) : "no body"));
+          showToast(dom.resultToast, "bad", "送信失敗：HTTP " + res.status + " / " + (txt ? "body=" + txt.slice(0, 400) : "no body"));
           return;
         }
         const body = await safeReadText(res);
-        toast("ok", "送信成功：HTTP " + res.status + (body ? " / " + body.slice(0,250) : ""));
+        showToast(dom.resultToast, "ok", "送信成功：HTTP " + res.status + (body ? " / response=" + body.slice(0, 400) : ""));
       }catch(e){
-        toast("bad", "送信エラー： " + (e?.message || e));
+        showToast(dom.resultToast, "bad", "送信エラー： " + (e?.message || e));
       }
     }
 
     /***********************
-     * “答えたくなる”モメンタム
-     * - 直近で回答すると上がる（放置で少し落ちる）
+     * Mystical Ascent (巡礼路)
      ***********************/
-    function updateStreakOnAnswer(){
-      const t = now();
-      const dt = t - state.lastAnsweredAt;
-      // 2分以内なら連続扱い
-      if (dt > 0 && dt <= 120000) state.streak += 1;
-      else state.streak = 1;
+    const ascent = { pathLen: 0, lastDone: 0, raf: 0, particles: [] };
 
-      state.lastAnsweredAt = t;
-      save();
+    function initAscent(){
+      if (!dom.ascentPathProg) return;
+      const p = dom.ascentPathProg;
+      ascent.pathLen = p.getTotalLength();
+      p.style.strokeDasharray = `${ascent.pathLen} ${ascent.pathLen}`;
+      p.style.strokeDashoffset = `${ascent.pathLen}`;
+
+      renderAscentRunes();
+      seedAscentParticles(20);
+
+      cancelAnimationFrame(ascent.raf);
+      ascent.raf = requestAnimationFrame(ascentAnimate);
     }
 
-    function momentumValue(){
-      // 回答数 + 連続回答 を適度に混ぜる
-      const a = answeredCount();
-      const base = (a / TOTAL) * 70;          // 0..70
-      const streakBoost = Math.min(state.streak, 30) * 1.0; // 0..30
-      let m = base + streakBoost;             // 0..100
-      // 長時間放置で少し落ちる（視覚上の演出）
-      const dt = now() - state.lastAnsweredAt;
-      if (state.lastAnsweredAt && dt > 180000){
-        const decay = Math.min((dt - 180000) / 600000, 1) * 12; // 最大12%
-        m = Math.max(0, m - decay);
+    function renderAscentRunes(){
+      dom.ascentRunes.innerHTML = "";
+      for (let n=5; n<=100; n+=5){
+        const t = n/100;
+        const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen*t);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+        g.setAttribute("data-node", String(n));
+
+        const is20 = (n%20===0);
+        const is10 = (n%10===0);
+
+        if (is20){
+          const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+          ring.setAttribute("cx", pt.x);
+          ring.setAttribute("cy", pt.y);
+          ring.setAttribute("r", 9);
+          ring.setAttribute("fill","rgba(255,255,255,.06)");
+          ring.setAttribute("stroke","rgba(255,255,255,.18)");
+          ring.setAttribute("stroke-width","1.2");
+          g.appendChild(ring);
+        } else if (is10){
+          const diamond = document.createElementNS("http://www.w3.org/2000/svg","path");
+          diamond.setAttribute("d", `M ${pt.x} ${pt.y-6} L ${pt.x+6} ${pt.y} L ${pt.x} ${pt.y+6} L ${pt.x-6} ${pt.y} Z`);
+          diamond.setAttribute("fill","rgba(255,255,255,.06)");
+          diamond.setAttribute("stroke","rgba(255,255,255,.16)");
+          g.appendChild(diamond);
+        } else {
+          const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+          dot.setAttribute("cx", pt.x);
+          dot.setAttribute("cy", pt.y);
+          dot.setAttribute("r", 3.6);
+          dot.setAttribute("fill","rgba(255,255,255,.06)");
+          dot.setAttribute("stroke","rgba(255,255,255,.14)");
+          g.appendChild(dot);
+        }
+
+        dom.ascentRunes.appendChild(g);
       }
-      return clamp(m, 0, 100);
     }
 
-    function momentumCopy(m){
-      if (m < 10) return "まずは1問。水が溜まり始めます。";
-      if (m < 30) return "いい感じ。『次へ』で流れに乗れます。";
-      if (m < 55) return "ペースが乗ってきました。20問はすぐ終わります。";
-      if (m < 75) return "集中状態。今のまま章クリアまで行けます。";
-      if (m < 90) return "ほぼゾーン。迷ったら直感でOK。";
-      return "仕上がってます。最後まで一気に回収できます。";
-    }
-
-    /***********************
-     * Chapter clear modal + confetti
-     ***********************/
-    function openModalForChapter(ch){
-      const theme = THEMES[ch-1] || THEMES[0];
-      dom.modalTitle.textContent = `第${ch}章 クリア`;
-      dom.modalDesc.textContent = `テーマ「${theme.name}」達成。次章は色が切り替わります。`;
-      dom.modalChapterStats.textContent = `${CHUNK}/${CHUNK} 完了`;
-      const ac = answeredCount();
-      dom.modalAllStats.textContent = `${ac}/${TOTAL}（${Math.round((ac/TOTAL)*100)}%）`;
-      dom.modalNudge.textContent = theme.nudge;
-      dom.modalReward.textContent = "テーマカラー変更 / 水位上昇 / コンフェッティ";
-
-      dom.modalBack.style.display = "flex";
-      startConfetti(); // ご褒美演出
-    }
-
-    function closeModal(){
-      dom.modalBack.style.display = "none";
-      stopConfetti();
-    }
-
-    dom.modalClose.addEventListener("click", closeModal);
-    dom.modalBack.addEventListener("click", (e)=>{
-      if (e.target === dom.modalBack) closeModal();
-    });
-
-    dom.modalPause.addEventListener("click", ()=>{
-      closeModal();
-      setView("hero");
-    });
-
-    dom.modalContinue.addEventListener("click", ()=>{
-      closeModal();
-      // 次の章の最初へ
-      const nextCh = Math.min(state.lastChapterCleared + 1, CHAPTERS);
-      state.index = clamp(chapterStart(nextCh), 0, TOTAL-1);
-      applyThemeByIndex(state.index);
-      save();
-      setView("questions");
-    });
-
-    /***********************
-     * Confetti（軽量）
-     ***********************/
-    const conf = {
-      running:false,
-      parts:[],
-      raf:0,
-      ctx:null,
-      w:0,h:0
-    };
-
-    function resizeConfetti(){
-      conf.w = window.innerWidth;
-      conf.h = window.innerHeight;
-      dom.confettiCanvas.width = Math.floor(conf.w * devicePixelRatio);
-      dom.confettiCanvas.height = Math.floor(conf.h * devicePixelRatio);
-      dom.confettiCanvas.style.width = conf.w + "px";
-      dom.confettiCanvas.style.height = conf.h + "px";
-      conf.ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
-    }
-
-    function spawnConfetti(n=120){
-      conf.parts.length = 0;
-      const colors = [getComputedStyle(document.documentElement).getPropertyValue("--accent1").trim(),
-                      getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim(),
-                      getComputedStyle(document.documentElement).getPropertyValue("--accent3").trim(),
-                      "#ffffff"];
-      for (let i=0;i<n;i++){
-        conf.parts.push({
-          x: Math.random()*conf.w,
-          y: -20 - Math.random()*conf.h*0.2,
-          vx: (Math.random()-0.5)*4,
-          vy: 3 + Math.random()*6,
-          r: 3 + Math.random()*4,
-          rot: Math.random()*Math.PI,
-          vr: (Math.random()-0.5)*0.25,
-          c: colors[Math.floor(Math.random()*colors.length)],
-          life: 80 + Math.random()*80,
+    function seedAscentParticles(k){
+      ascent.particles = [];
+      for (let i=0;i<k;i++){
+        ascent.particles.push({
+          x: 40 + Math.random()*240,
+          y: 30 + Math.random()*170,
+          r: 1.2 + Math.random()*2.1,
+          a: 0.22 + Math.random()*0.35,
+          ph: Math.random()*Math.PI*2
         });
       }
+      drawAscentParticles(0);
     }
 
-    function confettiTick(){
-      if (!conf.running) return;
-      const ctx = conf.ctx;
-      ctx.clearRect(0,0,conf.w,conf.h);
-
-      for (const p of conf.parts){
-        p.x += p.vx;
-        p.y += p.vy;
-        p.rot += p.vr;
-        p.vy *= 0.995; // ほんの少し空気抵抗
-        p.life -= 1;
-
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = p.c;
-        ctx.globalAlpha = Math.max(0, Math.min(1, p.life/120));
-        ctx.fillRect(-p.r, -p.r, p.r*2.2, p.r*1.4);
-        ctx.restore();
-
-        if (p.y > conf.h + 40) p.life = 0;
+    function drawAscentParticles(time){
+      dom.ascentParticles.innerHTML = "";
+      for (const p of ascent.particles){
+        const yy = p.y + Math.sin(time*0.0012 + p.ph) * 6;
+        const xx = p.x + Math.cos(time*0.0010 + p.ph) * 6;
+        const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        c.setAttribute("cx", xx.toFixed(2));
+        c.setAttribute("cy", yy.toFixed(2));
+        c.setAttribute("r", p.r.toFixed(2));
+        c.setAttribute("fill", "rgba(255,255,255,.65)");
+        c.setAttribute("opacity", p.a.toFixed(2));
+        dom.ascentParticles.appendChild(c);
       }
-      conf.parts = conf.parts.filter(p => p.life > 0);
-
-      if (conf.parts.length === 0){
-        stopConfetti();
-        return;
-      }
-      conf.raf = requestAnimationFrame(confettiTick);
     }
 
-    function startConfetti(){
-      if (!conf.ctx){
-        conf.ctx = dom.confettiCanvas.getContext("2d");
-        window.addEventListener("resize", ()=>{ if(conf.running) resizeConfetti(); });
-      }
-      dom.confettiCanvas.style.display = "block";
-      conf.running = true;
-      resizeConfetti();
-      spawnConfetti(160);
-      cancelAnimationFrame(conf.raf);
-      conf.raf = requestAnimationFrame(confettiTick);
-      // 4秒で終了
-      setTimeout(()=> stopConfetti(), 4200);
+    function ascentAnimate(t){
+      drawAscentParticles(t);
+
+      // マーカーを微小に浮遊
+      const wob = Math.sin(t*0.002) * 0.6;
+      dom.ascentHalo.setAttribute("opacity", String(0.22 + 0.06*Math.sin(t*0.003)));
+      dom.ascentDot.style.transform = `translateY(${wob}px)`;
+
+      ascent.raf = requestAnimationFrame(ascentAnimate);
     }
 
-    function stopConfetti(){
-      conf.running = false;
-      cancelAnimationFrame(conf.raf);
-      if (conf.ctx) conf.ctx.clearRect(0,0,conf.w,conf.h);
-      dom.confettiCanvas.style.display = "none";
+    function updateAscent(doneCount){
+      if (!dom.ascentPathProg) return;
+
+      dom.ascentNodeText.textContent = String(doneCount);
+
+      const pct = doneCount / 100;
+      const offset = ascent.pathLen * (1 - pct);
+      dom.ascentPathProg.style.strokeDashoffset = String(offset);
+
+      const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen * pct);
+      dom.ascentHalo.setAttribute("cx", pt.x);
+      dom.ascentHalo.setAttribute("cy", pt.y);
+      dom.ascentDot.setAttribute("cx", pt.x);
+      dom.ascentDot.setAttribute("cy", pt.y);
+
+      dom.ascentRunes.querySelectorAll("g[data-node]").forEach(g=>{
+        const n = Number(g.getAttribute("data-node"));
+        const on = (doneCount >= n);
+        g.style.opacity = on ? "1" : ".45";
+        g.style.filter = on ? "url(#softGlow)" : "none";
+      });
+
+      let cap = "まずは1問。光が道を描き始めます。";
+      if (doneCount >= 10) cap = "巡礼路が見えてきました。直感でテンポ良く。";
+      if (doneCount >= 20) cap = "第1章突破。色が変わり、次のステージへ。";
+      if (doneCount >= 50) cap = "半分到達。尖塔が近づいています。";
+      if (doneCount >= 80) cap = "残りわずか。精度は“迷い”で落ちます。";
+      if (doneCount >= 100) cap = "到達。尖塔の頂で結果が統合されます。";
+      dom.ascentCaption.textContent = cap;
+
+      if (doneCount > ascent.lastDone){
+        dom.ascentDot.classList.remove("ascentPulse");
+        void dom.ascentDot.offsetWidth;
+        dom.ascentDot.classList.add("ascentPulse");
+        ascent.lastDone = doneCount;
+      }
+    }
+
+    /***********************
+     * Chapter clear modal
+     ***********************/
+    function maybeShowChapterClear(){
+      const done = answeredDoneCount();
+      const milestones = [20,40,60,80,100];
+      const hit = milestones.find(m => done >= m && state.lastChapterShown < m);
+      if (!hit) return;
+
+      state.lastChapterShown = hit;
+      save();
+
+      const chapIdx = Math.min(4, Math.floor((hit-1)/20)); // 20->0,40->1...
+      const nextIdx = Math.min(4, chapIdx+1);
+
+      dom.chapterModalTitle.textContent = `CHAPTER CLEAR（${hit}/100）`;
+      dom.chapterModalBody.textContent =
+        (hit === 100)
+          ? "最終章を突破しました。結果表示へ進めます。"
+          : `章を突破しました。次の章（${THEMES[nextIdx].name}）へ移行します。`;
+
+      dom.reward1.textContent = `報酬：巡礼路のルーンが点灯（${hit}到達）。`;
+      dom.reward2.textContent = (hit === 100)
+        ? "ボーナス：結果の統合処理が解放されます。"
+        : "ボーナス：画面の配色が変化し、集中が続きやすくなります。";
+
+      dom.chapterModal.style.display = "flex";
+      dom.chapterModal.setAttribute("aria-hidden","false");
+
+      // 触覚（対応端末のみ）
+      try{ navigator.vibrate?.([30, 60, 30]); }catch{}
+    }
+
+    function closeChapterModal(){
+      dom.chapterModal.style.display = "none";
+      dom.chapterModal.setAttribute("aria-hidden","true");
+      // 色は updateMeter() で自然に反映される
     }
 
     /***********************
@@ -1930,54 +1747,29 @@
       dom.viewResult.hidden = true;
     }
 
-    function updateTopProgress(){
-      const a = answeredCount();
-      dom.answeredText.textContent = String(a);
+    function renderAll(){
+      hideAllViews();
 
-      const ch = chapterOfIndex(state.index);
-      dom.chapterText.textContent = String(ch);
+      // bottom nav visibility
+      dom.bottomNav.style.display = (state.view === "questions") ? "block" : "none";
 
-      // 水位（回答数で増える）
-      const pct = (a / TOTAL) * 100;
-      dom.waterFill.style.width = pct.toFixed(1) + "%";
-    }
-
-    function renderChapters(){
-      dom.chapterList.innerHTML = "";
-      const currentCh = chapterOfIndex(state.index);
-
-      for (let ch=1; ch<=CHAPTERS; ch++){
-        const done = (chapterAnsweredCount(ch) >= CHUNK);
-        const item = document.createElement("div");
-        item.className = "chapterItem" + (ch===currentCh ? " active" : "") + (done ? " done" : "");
-        const left = document.createElement("div");
-        left.innerHTML = `<b>第${ch}章</b><div style="font-size:12px; opacity:.84; margin-top:2px;">Q${chapterStart(ch)+1}〜Q${chapterEnd(ch)+1}</div>`;
-        const right = document.createElement("span");
-        right.textContent = done ? "完了" : (chapterAnsweredCount(ch) + "/20");
-        item.appendChild(left);
-        item.appendChild(right);
-
-        item.addEventListener("click", ()=>{
-          // 章ジャンプ（未完でもOK）：その章の最初へ
-          state.index = chapterStart(ch);
-          applyThemeByIndex(state.index);
-          save();
-          setView("questions");
-        });
-
-        dom.chapterList.appendChild(item);
+      if (state.view === "hero"){
+        dom.viewHero.hidden = false;
+      } else if (state.view === "profile"){
+        dom.viewProfile.hidden = false;
+        renderProfile();
+      } else if (state.view === "questions"){
+        dom.viewQuestions.hidden = false;
+        renderQuestion();
+      } else if (state.view === "worry"){
+        dom.viewWorry.hidden = false;
+        renderWorry();
+      } else if (state.view === "result"){
+        dom.viewResult.hidden = false;
+        renderResult();
       }
 
-      const nowLabel = `第${currentCh}章 / Q${state.index+1}`;
-      dom.sideNow.textContent = nowLabel;
-    }
-
-    function renderMomentum(){
-      const m = momentumValue();
-      dom.momentumFill.style.width = m.toFixed(1) + "%";
-      dom.momentumPct.textContent = Math.round(m) + "%";
-      dom.momentumText.textContent = momentumCopy(m);
-      dom.streak.textContent = String(state.streak);
+      updateMeter();
     }
 
     function renderProfile(){
@@ -1987,401 +1779,226 @@
       dom.userId.value = state.userId || "";
     }
 
+    function renderTicks(current){
+      dom.tickRow.innerHTML = "";
+      for (let v=1; v<=7; v++){
+        const b = document.createElement("button");
+        b.className = "tickBtn" + (v===current ? " on" : "");
+        b.type = "button";
+        b.textContent = String(v);
+        b.dataset.v = String(v);
+        b.addEventListener("click", ()=>{
+          setAnswerValue(v, true);
+        });
+        dom.tickRow.appendChild(b);
+      }
+    }
+
+    function setAnswerValue(v, markDone){
+      const i = state.currentIndex;
+      const val = clamp(Number(v),1,7);
+
+      state.answers[i] = val;
+
+      if (markDone) state.done[i] = true;
+
+      save();
+
+      dom.range.value = String(val);
+      applyRangePaint(val);
+
+      dom.doneCountText.textContent = String(answeredDoneCount());
+      updateMeter();
+    }
+
     function renderQuestion(){
-      const i = state.index;
+      hideToast(dom.qToast);
+
+      const i = state.currentIndex;
       const q = QUESTIONS[i];
-      const ch = chapterOfIndex(i);
-      const inChapterIndex = (i - chapterStart(ch)) + 1;
 
-      dom.qMeta.textContent = `第${ch}章（${inChapterIndex}/20） / Q${i+1}`;
-      dom.qTag.textContent = q.tag;
       dom.qText.textContent = q.text;
+      dom.qTagChip.textContent = q.tag;
+      dom.qIndexChip.textContent = `Q ${i+1} / 100`;
 
-      dom.btnPrev.disabled = (i === 0);
-      dom.btnNext.textContent = (i === TOTAL-1) ? "次へ（悩み入力）" : "次へ";
+      const done = answeredDoneCount();
+      dom.doneCountText.textContent = String(done);
 
-      // 章内回答数
-      dom.chapterAnswered.textContent = String(chapterAnsweredCount(ch));
+      const current = Number.isInteger(state.answers[i]) ? state.answers[i] : 4;
 
-      // slider
-      dom.scaleHost.innerHTML = "";
-      const a = state.answers[i];
-      const isSet = (a >= 1);
-      const shown = isSet ? a : 4;
+      // range 初期描画
+      dom.range.value = String(current);
+      renderTicks(current);
+      applyRangePaint(current);
 
-      const slider = buildSevenSlider({
-        value: shown,
-        isSet,
-        onChange: (v)=>{
-          const beforeSet = (state.answers[i] >= 1);
-          state.answers[i] = v;
+      // current value text
+      dom.currentValueText.textContent = String(current);
 
-          // streak & praiseは「初回選択」と「変更」両方でも良いが、
-          // “やった感”は初回に強く出す
-          updateStreakOnAnswer();
-          save();
-
-          // 未選択→選択になった瞬間に軽く褒める
-          if (!beforeSet){
-            microPraise(i);
-          }else{
-            // 変更は小さめの褒め
-            dom.microPraise.textContent = pick([
-              "調整できている。あなたの感覚が精度を上げています。",
-              "いい微調整。ここまで来たら“自分の直感”が正解です。",
-              "その選び方でOK。次へ進むほど輪郭が出ます。"
-            ]);
-          }
-
-          // UI更新
-          dom.unsetNote.style.display = "none";
-          updateTopProgress();
-          renderChapters();
-          renderMomentum();
-
-          // 章クリア判定（章の最後の問題を“選択”したタイミングが気持ち良い）
-          maybeChapterClear();
-        }
-      });
-      dom.scaleHost.appendChild(slider.node);
-
-      // 未選択警告
-      dom.unsetNote.style.display = (state.answers[i] >= 1) ? "none" : "block";
+      // prev/next label
+      dom.btnPrevQ.disabled = (i === 0);
+      dom.btnNextQ.textContent = (i === 99) ? "次へ（悩み入力）" : "次へ";
     }
 
     function renderWorry(){
       dom.worryText.value = state.worryText || "";
-      dom.worryCount.textContent = `${dom.worryText.value.length} / 2000`;
+      updateWorryCount();
     }
 
-    function axisCard(label, leftName, rightName, score){
-      const leftPct = axisPercent(score);
-      const rightPct = 100 - leftPct;
-      const wrap = document.createElement("div");
-      wrap.style.borderRadius = "18px";
-      wrap.style.border = "1px solid rgba(255,255,255,.12)";
-      wrap.style.background = "rgba(0,0,0,.18)";
-      wrap.style.padding = "12px";
-
-      const top = document.createElement("div");
-      top.style.display = "flex";
-      top.style.justifyContent = "space-between";
-      top.style.gap = "10px";
-      top.style.flexWrap = "wrap";
-      top.style.fontSize = "12px";
-      top.style.opacity = ".90";
-      top.innerHTML = `<span>${label}</span><span>${leftName} ${leftPct.toFixed(1)}% / ${rightName} ${rightPct.toFixed(1)}%</span>`;
-
-      const bar = document.createElement("div");
-      bar.style.marginTop = "8px";
-      bar.style.height = "12px";
-      bar.style.borderRadius = "999px";
-      bar.style.border = "1px solid rgba(255,255,255,.12)";
-      bar.style.background = "rgba(255,255,255,.08)";
-      bar.style.overflow = "hidden";
-
-      const fill = document.createElement("div");
-      fill.style.height = "100%";
-      fill.style.width = leftPct.toFixed(1) + "%";
-      fill.style.borderRadius = "999px";
-      fill.style.background = "linear-gradient(90deg, var(--accent1), var(--accent2))";
-      bar.appendChild(fill);
-
-      const small = document.createElement("div");
-      small.style.marginTop = "8px";
-      small.style.fontSize = "12px";
-      small.style.opacity = ".85";
-      small.textContent = `軸スコア：${score} / ${AXIS_MAX}`;
-
-      wrap.appendChild(top);
-      wrap.appendChild(bar);
-      wrap.appendChild(small);
-      return wrap;
+    function updateWorryCount(){
+      const len = dom.worryText.value.length;
+      dom.worryCount.textContent = `${len} / 2000`;
     }
 
     function renderResult(){
-      hideToast();
+      hideToast(dom.resultToast);
       dom.jsonPreviewWrap.style.display = "none";
+
+      let payload;
+      try{
+        payload = buildPayload();
+        state.lastPayload = payload;
+        save();
+      }catch(e){
+        showToast(dom.resultToast, "bad", "結果表示前のチェックに失敗しました： " + (e?.message || e));
+        return;
+      }
 
       const scores = computeScores();
       const t = computeType(scores);
-      dom.typeCode.textContent = t.typeCode;
-      dom.typeTitle.textContent = TYPE_TITLES[t.typeCode] || "—";
-      dom.typeSub.textContent = t.isBAL ? "均衡型（BAL）— 4軸が拮抗しているため、状況に応じて最適化しやすいタイプです。" : "—";
-      dom.balChip.style.display = t.isBAL ? "inline-flex" : "none";
-
-      dom.axisGrid.innerHTML = "";
-      dom.axisGrid.appendChild(axisCard("E/I", "E", "I", scores.E));
-      dom.axisGrid.appendChild(axisCard("S/N", "S", "N", scores.S));
-      dom.axisGrid.appendChild(axisCard("T/F", "T", "F", scores.T));
-      dom.axisGrid.appendChild(axisCard("J/P", "J", "P", scores.J));
-
       const typeCode = t.typeCode;
+
+      const title = TYPE_TITLES[typeCode] || "（未定義）";
       const tarot = TAROT_MAJOR[typeCode] || "—";
-      const zm = zodiacMode(scores, t.isBAL);
-      const five = fiveElements(typeCode);
 
-      const layers = [
-        { title:"タロット（大アルカナ）", body:`対応カード：${tarot}\n\n象徴：意思決定の癖を“物語”で捉えるための比喩です。` },
-        { title:"星座モード（象徴）", body:`モード：${zm}\n\n象徴：実星座の断定ではなく、行動テンポの比喩です。` },
-        { title:"五行（象徴）", body:`象徴：${five}\n\n象徴：気質を元素で表した比喩です。` },
-        { title:"手相（象徴）", body: palmistryText(typeCode) },
-        { title:"姓名判断（象徴）", body: nameologyText(typeCode) },
-      ];
-
-      dom.layers.innerHTML = "";
-      for (const L of layers){
-        const d = document.createElement("details");
-        d.style.borderRadius = "18px";
-        d.style.border = "1px solid rgba(255,255,255,.12)";
-        d.style.background = "rgba(0,0,0,.18)";
-        d.style.padding = "12px";
-
-        const s = document.createElement("summary");
-        s.style.cursor = "pointer";
-        s.style.listStyle = "none";
-        s.style.display = "flex";
-        s.style.alignItems = "center";
-        s.style.justifyContent = "space-between";
-        s.style.fontSize = "13px";
-        s.style.opacity = ".95";
-        s.innerHTML = `<span>${escapeHtml(L.title)}</span><span style="opacity:.8;">▼</span>`;
-
-        const p = document.createElement("div");
-        p.style.marginTop = "10px";
-        p.style.fontSize = "12px";
-        p.style.lineHeight = "1.7";
-        p.style.opacity = ".88";
-        p.style.whiteSpace = "pre-wrap";
-        p.textContent = L.body;
-
-        d.appendChild(s);
-        d.appendChild(p);
-        dom.layers.appendChild(d);
-      }
-    }
-
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    function render(){
-      hideAllViews();
-
-      // テーマ（今のindexに合わせる）
-      applyThemeByIndex(state.index);
-
-      updateTopProgress();
-      renderChapters();
-      renderMomentum();
-
-      if (state.view === "hero"){
-        dom.viewHero.hidden = false;
-      }
-      if (state.view === "profile"){
-        dom.viewProfile.hidden = false;
-        renderProfile();
-      }
-      if (state.view === "questions"){
-        dom.viewQuestions.hidden = false;
-        renderQuestion();
-      }
-      if (state.view === "worry"){
-        dom.viewWorry.hidden = false;
-        renderWorry();
-      }
-      if (state.view === "result"){
-        dom.viewResult.hidden = false;
-        renderResult();
-      }
-    }
-
-    /***********************
-     * Micro praise（答えたくなる）
-     ***********************/
-    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-
-    function microPraise(i){
-      const ch = chapterOfIndex(i);
-      const inCh = (i - chapterStart(ch)) + 1;
-      const a = answeredCount();
-
-      const msgs = [
-        `いいスタート。水が溜まり始めた（${a}/100）。`,
-        `ナイス。第${ch}章の${inCh}/20。章クリアは近い。`,
-        `今の選択は効いてる。迷ったら直感でOK。`,
-        `いい感じ。あと少しで色が切り替わる。`,
-        `その回答、精度が上がる。次へ。`,
-      ];
-      dom.microPraise.textContent = pick(msgs);
-    }
-
-    /***********************
-     * Chapter clear detection
-     ***********************/
-    function maybeChapterClear(){
-      const ch = chapterOfIndex(state.index);
-      const done = (chapterAnsweredCount(ch) >= CHUNK);
-      if (!done) return;
-
-      // すでにこの章までクリア済みなら出さない
-      if (ch <= state.lastChapterCleared) return;
-
-      // 章クリアを記録
-      state.lastChapterCleared = ch;
-      save();
-
-      // 次章テーマに切り替える前に、演出としてモーダル
-      openModalForChapter(ch);
-    }
-
-    /***********************
-     * Navigation rules
-     ***********************/
-    function canGoNext(){
-      return state.answers[state.index] >= 1;
-    }
-
-    function next(){
-      if (!canGoNext()){
-        dom.unsetNote.style.display = "block";
-        dom.microPraise.textContent = "未選択のまま進めません。数字を一度選んでください。";
-        return;
-      }
-
-      if (state.index === TOTAL-1){
-        setView("worry");
-        return;
-      }
-      state.index++;
-      applyThemeByIndex(state.index);
-      save();
-      render();
-    }
-
-    function prev(){
-      if (state.index === 0) return;
-      state.index--;
-      applyThemeByIndex(state.index);
-      save();
-      render();
+      showToast(dom.resultToast, "ok",
+        `判定：${typeCode} ｜ ${title}\n（象徴）タロット：${tarot}\n\n※この画面は送信ボタンで Make へ連携できます。`
+      );
     }
 
     /***********************
      * Events
      ***********************/
     dom.btnStart.addEventListener("click", ()=> setView("profile"));
-
-    dom.btnSample.addEventListener("click", ()=>{
-      state.profile = { name:"太郎", gender:"male", birthday:"2003-05-01" };
-      state.userId = "";
-      // テスト：全部4で埋める（すぐ結果へ行ける）
-      state.answers = new Array(TOTAL).fill(4);
-      state.worryText = "（テスト）サンプル悩み：今後の方向性と強みが知りたい。";
-      state.index = 0;
-      state.streak = 0;
-      state.lastAnsweredAt = 0;
-      state.lastChapterCleared = 5;
-      save();
-      setView("profile");
-    });
-
-    dom.btnResetAll.addEventListener("click", clearAll);
-    dom.btnResetFromQ.addEventListener("click", clearAll);
-    dom.btnResetFromW.addEventListener("click", clearAll);
-    dom.btnResetFromR.addEventListener("click", clearAll);
-
-    dom.btnBackHero.addEventListener("click", ()=> setView("hero"));
-    dom.btnSampleProfile.addEventListener("click", ()=>{
-      dom.name.value = "太郎";
-      dom.gender.value = "male";
-      dom.birthday.value = "2003-05-01";
-      dom.userId.value = state.userId || "";
-      syncProfile();
-    });
+    dom.btnBackToHero.addEventListener("click", ()=> setView("hero"));
 
     dom.btnToQuestions.addEventListener("click", ()=>{
       if (!validateProfile()) return;
-      syncProfile();
+      syncProfileFromInputs();
       setView("questions");
     });
 
-    dom.name.addEventListener("input", syncProfile);
-    dom.gender.addEventListener("change", syncProfile);
-    dom.birthday.addEventListener("change", syncProfile);
-    dom.userId.addEventListener("input", syncProfile);
+    dom.name.addEventListener("input", syncProfileFromInputs);
+    dom.gender.addEventListener("change", syncProfileFromInputs);
+    dom.birthday.addEventListener("change", syncProfileFromInputs);
+    dom.userId.addEventListener("input", syncProfileFromInputs);
 
-    dom.btnPrev.addEventListener("click", prev);
-    dom.btnNext.addEventListener("click", next);
+    dom.btnSample.addEventListener("click", ()=>{
+      state.profile.name = "太郎";
+      state.profile.gender = "male";
+      state.profile.birthday = "2003-05-01";
+      state.userId = state.userId || "";
+      state.answers = new Array(100).fill(4);
+      state.done = new Array(100).fill(false);
+      state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
+      state.currentIndex = 0;
+      state.lastChapterShown = 0;
+      save();
+      setView("profile");
+      dom.profileRestoreNote.style.display = "block";
+      setTimeout(()=> dom.profileRestoreNote.style.display="none", 3500);
+    });
 
-    dom.btnSkipToProfile.addEventListener("click", ()=>{
-      syncProfile();
+    dom.btnResetFromHero.addEventListener("click", clearAll);
+    dom.btnResetFromQuestions.addEventListener("click", clearAll);
+    dom.btnResetFromResult.addEventListener("click", clearAll);
+
+    dom.btnJumpProfile.addEventListener("click", ()=>{
+      syncProfileFromInputs();
       setView("profile");
     });
 
-    dom.btnGoHero.addEventListener("click", ()=> setView("hero"));
-    dom.btnGoProfile.addEventListener("click", ()=> setView("profile"));
-    dom.btnGoResult.addEventListener("click", ()=>{
-      // 全回答必須
-      if (!state.answers.every(a => a>=1 && a<=7)){
-        alert("未回答があります。全100問に回答してから結果へ進めます。");
-        setView("questions");
+    // range: ドラッグで変わる（スマホOK）
+    dom.range.addEventListener("input", ()=>{
+      const v = clamp(Number(dom.range.value),1,7);
+      // ドラッグした＝本人の意思が入ったので done にも反映
+      setAnswerValue(v, true);
+    });
+
+    dom.btnPrevQ.addEventListener("click", ()=>{
+      if (state.currentIndex > 0){
+        state.currentIndex--;
+        save();
+        renderQuestion();
+        updateMeter();
+      }
+    });
+
+    dom.btnNextQ.addEventListener("click", ()=>{
+      const i = state.currentIndex;
+
+      // 「4でも回答済み扱い」＝未入力ガードは不要
+      // ただし進捗（done）は“次へ押した”時点で完了にする（積み上がり体験）
+      state.done[i] = true;
+
+      if (i === 99){
+        save();
+        updateMeter();
+        maybeShowChapterClear(); // 100到達のモーダルも出る
+        setView("worry");
         return;
       }
-      setView("worry");
+
+      state.currentIndex++;
+      save();
+      renderQuestion();
+      updateMeter();
+
+      // 章クリア（20問ごと）
+      maybeShowChapterClear();
+    });
+
+    dom.btnChapterContinue.addEventListener("click", ()=>{
+      closeChapterModal();
+      updateMeter();
+      // 100到達なら結果へ誘導したい場合はここで自動遷移も可能
+    });
+
+    dom.chapterModal.addEventListener("click", (e)=>{
+      if (e.target === dom.chapterModal) closeChapterModal();
     });
 
     dom.worryText.addEventListener("input", ()=>{
-      state.worryText = dom.worryText.value.slice(0,2000);
-      dom.worryCount.textContent = `${state.worryText.length} / 2000`;
+      state.worryText = dom.worryText.value.slice(0, 2000);
+      updateWorryCount();
       save();
     });
 
-    dom.btnBackToQ.addEventListener("click", ()=> setView("questions"));
-
-    dom.btnToResult.addEventListener("click", ()=>{
-      if (!state.answers.every(a => a>=1 && a<=7)){
-        alert("未回答があります。設問に戻って全100問に回答してください。");
-        setView("questions");
-        return;
-      }
+    dom.btnShowResult.addEventListener("click", ()=>{
       setView("result");
     });
-
-    dom.btnBackToW.addEventListener("click", ()=> setView("worry"));
 
     dom.btnFinalSubmit.addEventListener("click", finalSubmit);
 
     dom.btnCopyJson.addEventListener("click", async ()=>{
-      hideToast();
-      let payload;
-      try{
-        payload = buildPayload();
-      }catch(e){
-        toast("bad", "JSON生成に失敗： " + (e?.message || e));
-        return;
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){ showToast(dom.resultToast, "bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
       }
-      const text = JSON.stringify(payload, null, 2);
+      const text = safeJsonStringify(payload);
       const ok = await copyToClipboard(text);
-      toast(ok ? "ok" : "bad", ok ? "JSONをコピーしました。" : "コピーに失敗しました。");
+      showToast(dom.resultToast, ok ? "ok" : "bad", ok ? "JSONをコピーしました。" : "コピーに失敗しました。");
     });
 
     dom.btnDownloadJson.addEventListener("click", ()=>{
-      hideToast();
-      let payload;
-      try{
-        payload = buildPayload();
-      }catch(e){
-        toast("bad", "JSON生成に失敗： " + (e?.message || e));
-        return;
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){ showToast(dom.resultToast, "bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
       }
-      downloadText("fortuneai_final_submit.json", JSON.stringify(payload, null, 2));
-      toast("ok", "JSONをダウンロードしました。");
+      const text = safeJsonStringify(payload);
+      downloadText("fortuneai_final_submit.json", text);
+      showToast(dom.resultToast, "ok", "JSONをダウンロードしました。");
     });
 
     /***********************
@@ -2392,16 +2009,20 @@
       if (q.userId) state.userId = q.userId;
 
       const restored = load();
-      if (restored && q.userId) state.userId = q.userId;
+      if (restored){
+        if (q.userId) state.userId = q.userId;
+        dom.profileRestoreNote.style.display = "block";
+        setTimeout(()=> dom.profileRestoreNote.style.display="none", 3500);
+      }
 
-      // 最低限の整合
-      state.view = ["hero","profile","questions","worry","result"].includes(state.view) ? state.view : "hero";
-      state.index = clamp(state.index, 0, TOTAL-1);
+      if (!Array.isArray(QUESTIONS) || QUESTIONS.length !== 100){
+        alert("設問データが不正です（100問必要）。QUESTIONSを確認してください。");
+      }
 
-      // テーマ適用
-      applyThemeByIndex(state.index);
+      initAscent();
 
-      render();
+      // 初回レンダ
+      renderAll();
     })();
   </script>
 </body>
