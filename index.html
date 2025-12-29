@@ -23,6 +23,8 @@
 
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeTop: env(safe-area-inset-top, 0px);
+
+      --chapterPulse: 0; /* 章クリア演出の強度（0..1） */
     }
 
     *{box-sizing:border-box}
@@ -38,16 +40,35 @@
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
       touch-action: pan-y;
+      position:relative;
+    }
+
+    /* 章クリア演出：背景だけを強くする（文字は崩さない） */
+    body::before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index: 5;
+      opacity: calc(var(--chapterPulse) * .85);
+      background:
+        radial-gradient(900px 520px at 20% 20%, color-mix(in oklab, var(--accent1) 45%, transparent), transparent 62%),
+        radial-gradient(900px 520px at 80% 30%, color-mix(in oklab, var(--accent2) 35%, transparent), transparent 65%),
+        radial-gradient(900px 520px at 60% 85%, color-mix(in oklab, var(--accent3) 30%, transparent), transparent 68%);
+      mix-blend-mode: screen;
+      transition: opacity .45s ease;
     }
 
     .wrap{
       max-width:1180px;
       margin:0 auto;
       padding: 14px 14px calc(90px + var(--safeBottom));
+      position:relative;
+      z-index:10;
     }
 
+    /* ===== Header (スマホ2段化) ===== */
     .topbar{
-      position:sticky; top:0; z-index:50;
+      position:sticky; top:0; z-index:90;
       padding-top: var(--safeTop);
       background: linear-gradient(180deg, rgba(7,11,26,.92), rgba(11,18,49,.65));
       backdrop-filter: blur(10px);
@@ -56,12 +77,30 @@
     .topbarInner{
       max-width:1180px;
       margin:0 auto;
-      padding: 12px 14px 14px;
+      padding: 12px 14px 12px;
       display:flex;
       gap:12px;
       align-items:center;
       justify-content:space-between;
     }
+
+    /* スマホ：縦積み（2段） */
+    @media (max-width: 680px){
+      .topbarInner{
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .meter{
+        width: 100% !important;
+        min-width: unset !important;
+        justify-content: space-between !important;
+      }
+      .subtitle{
+        max-width: 92vw !important;
+      }
+    }
+
     .brand{display:flex; gap:12px; align-items:center; min-width: 220px;}
     .orb{
       width:44px; height:44px; border-radius:999px;
@@ -227,6 +266,9 @@
     }
     .qText{margin:10px 0 0; font-size:15px; letter-spacing:.02em; line-height:1.7;}
 
+    /* qTagは非表示（データ保持） */
+    #qTagChip{ display:none !important; }
+
     .scaleWrap{
       margin-top: 14px;
       border-radius: 18px;
@@ -315,29 +357,6 @@
       color: rgba(234,240,255,.96);
     }
 
-    .ascentWrap{
-      margin-top: 10px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-      padding: 10px;
-      overflow:hidden;
-      position:relative;
-    }
-    .ascentCaption{
-      margin-top:10px;
-      font-size:12px;
-      line-height:1.6;
-      color: rgba(234,240,255,.88);
-    }
-    #ascentPathProg{transition: stroke-dashoffset .38s ease;}
-    .ascentPulse{animation: ascentPulse .9s ease-out 1; transform-origin:center;}
-    @keyframes ascentPulse{
-      0%{ transform: scale(1); }
-      40%{ transform: scale(1.16); }
-      100%{ transform: scale(1); }
-    }
-
     .bottomNav{
       position: fixed; left:0; right:0; bottom:0; z-index:60;
       padding: 10px 12px calc(10px + var(--safeBottom));
@@ -351,6 +370,7 @@
     }
     .navLeft, .navRight{display:flex; gap:10px; align-items:center;}
 
+    /* ===== Modals ===== */
     .modalBack{
       position: fixed; inset:0; z-index:200;
       background: rgba(0,0,0,.55);
@@ -358,7 +378,7 @@
       padding: 18px;
     }
     .modal{
-      width: min(520px, 96vw);
+      width: min(560px, 96vw);
       border-radius: 22px;
       border:1px solid rgba(255,255,255,.16);
       background:
@@ -395,7 +415,7 @@
       line-height:1.6;
     }
 
-    /* 結果画面の称号カード */
+    /* ===== Badges ===== */
     .badgeGrid{
       display:grid;
       grid-template-columns: 1fr;
@@ -429,6 +449,69 @@
       white-space:nowrap;
     }
 
+    /* ===== Mini Map (常時表示) ===== */
+    .miniMap{
+      position: fixed;
+      right: 12px;
+      bottom: calc(78px + var(--safeBottom));
+      z-index: 88;
+      width: 120px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(10,14,36,.62);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 14px 46px rgba(0,0,0,.45);
+      overflow:hidden;
+      cursor:pointer;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+      display:none;
+    }
+    .miniMapHeader{
+      padding: 8px 10px 6px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+    .miniMapTitle{
+      font-size:11px;
+      letter-spacing:.08em;
+      opacity:.90;
+      white-space:nowrap;
+    }
+    .miniMapPct{
+      font-size:11px;
+      opacity:.92;
+      font-weight:700;
+    }
+    .miniMapBody{
+      padding: 6px 8px 10px;
+    }
+    .miniHint{
+      font-size:10px;
+      opacity:.72;
+      padding: 0 10px 10px;
+      line-height:1.4;
+    }
+
+    /* 画面が狭いときは少し小さく */
+    @media (max-width: 380px){
+      .miniMap{ width: 106px; right: 10px; }
+    }
+
+    .mapModal{
+      width: min(720px, 96vw);
+    }
+    .mapModalSvgWrap{
+      margin-top: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
   </style>
@@ -441,7 +524,7 @@
         <div class="orb" aria-hidden="true"></div>
         <div>
           <h1 class="title">FortuneAI式 17タイプ診断</h1>
-          <div class="subtitle" id="topSubtitle">100問×9段階スライダーで17タイプに分類。神秘の巡礼路で上昇</div>
+          <div class="subtitle" id="topSubtitle">100問×7段階で17タイプに分類。巡礼路で上昇</div>
         </div>
       </div>
 
@@ -454,17 +537,31 @@
     </div>
   </header>
 
+  <!-- Mini Map (常時表示) -->
+  <div class="miniMap" id="miniMap" title="タップで地図を開く">
+    <div class="miniMapHeader">
+      <div class="miniMapTitle">巡礼路</div>
+      <div class="miniMapPct" id="miniMapPct">0%</div>
+    </div>
+    <div class="miniMapBody">
+      <svg id="miniMapSvg" viewBox="0 0 320 220" width="100%" height="110">
+        <!-- JSで描画 -->
+      </svg>
+    </div>
+    <div class="miniHint">タップで詳細</div>
+  </div>
+
   <div class="wrap">
     <section class="card" id="viewHero">
       <h2 class="h1">診断を開始</h2>
       <p class="lead">
-        20問ごとに章が切り替わり、配色が変化します。進捗は“水が溜まるゲージ”と“神秘の巡礼路”で上昇します。
+        20問ごとに章が切り替わり、ミニマップの建物が点灯します。進捗は右下の巡礼路で常に確認できます。
       </p>
       <div class="pillRow">
-        <div class="pill">9段階（1〜9）</div>
-        <div class="pill">20問ごとに演出</div>
-        <div class="pill">値で色が変わる</div>
-        <div class="pill">単一HTMLで完結</div>
+        <div class="pill">7段階（1〜7）</div>
+        <div class="pill">ミニマップ常時</div>
+        <div class="pill">章クリア演出</div>
+        <div class="pill">単一HTML</div>
       </div>
       <div class="btnRow">
         <button class="btn primary" id="btnStart">開始</button>
@@ -519,11 +616,11 @@
             <h3 class="h1" style="font-size:14px;">Make連携</h3>
             <p class="lead muted small">
               最終送信で <code>final_submit</code> JSON を生成し、WEBHOOK_URL が設定されていればPOSTします。<br>
-              送信payloadに <code>typeCode</code> と <code>scores</code>（E/S/T/J）も含みます。
+              payloadに <code>typeCode</code> と <code>scores(E,S,T,J)</code> を同梱します。
             </p>
             <div class="miniLine"></div>
             <p class="lead muted small" style="margin:0;">
-              「次へ」で回答済みを飛ばし、未回答へ自動ジャンプします（離脱対策）。
+              「次へ」は未回答を自動追跡（離脱防止）。
             </p>
           </div>
         </div>
@@ -537,11 +634,11 @@
             <div class="qMeta">
               <span class="chip chapterBadge" id="chapterChip">CHAPTER 1 / 5</span>
               <span class="chip" id="qIndexChip">Q 1 / 100</span>
-              <span class="chip" id="qTagChip">[E+]</span>
+              <span class="chip" id="qTagChip">[S+]</span> <!-- 非表示 -->
             </div>
             <div class="qMeta">
               <span class="chip">完了 <strong id="doneCountText">0</strong></span>
-              <span class="chip">現在 <strong id="currentValueText">5</strong></span>
+              <span class="chip">現在 <strong id="currentValueText">4</strong></span>
               <span class="chip">状態 <strong id="answerStateText">未</strong></span>
             </div>
           </div>
@@ -551,11 +648,11 @@
           <div class="scaleWrap">
             <div class="scaleHead">
               <span id="leftScaleLabel">1 = まったくそう思わない</span>
-              <span class="valuePill" id="valuePill">5</span>
-              <span id="rightScaleLabel">9 = 非常にそう思う</span>
+              <span class="valuePill" id="valuePill">4</span>
+              <span id="rightScaleLabel">7 = 非常にそう思う</span>
             </div>
 
-            <input id="range" class="range" type="range" min="1" max="9" step="1" value="5" />
+            <input id="range" class="range" type="range" min="1" max="7" step="1" value="4" />
 
             <div class="tickRow" id="tickRow"></div>
           </div>
@@ -565,6 +662,7 @@
           <div class="sep"></div>
 
           <div class="btnRow">
+            <button class="btn ghost" id="btnOpenMap">地図（詳細）</button>
             <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
             <button class="btn ghost" id="btnJumpFirstUnanswered">未回答へ移動</button>
             <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
@@ -573,102 +671,12 @@
 
         <div class="sideStack">
           <section class="card" style="margin:0; box-shadow:none;">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-              <h2 class="h1" style="font-size:14px; margin:0;">神秘の巡礼路</h2>
-              <span class="chip">到達 <strong id="ascentNodeText">0</strong>/100</span>
-            </div>
-            <div class="muted small" style="margin-top:8px; line-height:1.6;">
-              回答が進むほど、光の道が伸び、あなたの位置が上昇します。
-            </div>
-
-            <div class="miniLine"></div>
-
-            <div class="ascentWrap">
-              <svg id="ascentSvg" viewBox="0 0 320 220" width="100%" height="220">
-                <defs>
-                  <radialGradient id="ascentGlow" cx="50%" cy="40%" r="70%">
-                    <stop offset="0%" stop-color="rgba(255,255,255,.12)"/>
-                    <stop offset="60%" stop-color="rgba(255,255,255,.03)"/>
-                    <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-                  </radialGradient>
-
-                  <linearGradient id="ascentStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="var(--accent1)"/>
-                    <stop offset="55%" stop-color="var(--accent3)"/>
-                    <stop offset="100%" stop-color="var(--accent2)"/>
-                  </linearGradient>
-
-                  <filter id="softGlow">
-                    <feGaussianBlur stdDeviation="2.2" result="b"/>
-                    <feMerge>
-                      <feMergeNode in="b"/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
-
-                <rect x="0" y="0" width="320" height="220" fill="url(#ascentGlow)"/>
-
-                <g opacity=".95">
-                  <path d="M160 18 L176 58 L160 48 L144 58 Z" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.16)"/>
-                  <circle cx="160" cy="18" r="6" fill="rgba(255,255,255,.22)" stroke="rgba(255,255,255,.22)"/>
-                  <text x="160" y="14" text-anchor="middle" font-size="10" fill="rgba(234,240,255,.85)" style="letter-spacing:.12em;">GOAL</text>
-                </g>
-
-                <path id="ascentPathBase"
-                  d="M42 190
-                     C 72 176, 88 172, 106 160
-                     C 126 146, 120 128, 140 118
-                     C 158 109, 166 128, 184 112
-                     C 202 96, 180 78, 200 68
-                     C 224 56, 236 84, 258 58
-                     C 274 38, 230 32, 196 40
-                     C 172 46, 168 34, 160 24"
-                  fill="none"
-                  stroke="rgba(255,255,255,.14)"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-
-                <path id="ascentPathProg"
-                  d="M42 190
-                     C 72 176, 88 172, 106 160
-                     C 126 146, 120 128, 140 118
-                     C 158 109, 166 128, 184 112
-                     C 202 96, 180 78, 200 68
-                     C 224 56, 236 84, 258 58
-                     C 274 38, 230 32, 196 40
-                     C 172 46, 168 34, 160 24"
-                  fill="none"
-                  stroke="url(#ascentStroke)"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  filter="url(#softGlow)"/>
-
-                <g id="ascentRunes" opacity=".95"></g>
-
-                <g id="ascentMarker" filter="url(#softGlow)">
-                  <circle id="ascentHalo" cx="42" cy="190" r="10" fill="rgba(255,255,255,.10)"/>
-                  <circle id="ascentDot" cx="42" cy="190" r="5.5" fill="rgba(255,255,255,.92)" stroke="rgba(255,255,255,.22)"/>
-                </g>
-
-                <g id="ascentParticles" opacity=".9"></g>
-
-                <text x="42" y="206" text-anchor="start" font-size="10" fill="rgba(234,240,255,.70)" style="letter-spacing:.12em;">START</text>
-              </svg>
-
-              <div class="ascentCaption" id="ascentCaption">まずは1問。光が道を描き始めます。</div>
-            </div>
-          </section>
-
-          <section class="card" style="margin:0; box-shadow:none;">
-            <h3 class="h1" style="font-size:14px; margin:0;">操作のコツ</h3>
+            <h3 class="h1" style="font-size:14px; margin:0;">仕様</h3>
             <div class="muted small" style="margin-top:8px; line-height:1.7;">
-              ・スライダーはドラッグ可能（スマホOK）<br>
-              ・数字ボタンで即選択（誤操作が減る）<br>
-              ・「次へ」は回答済みを自動で飛ばし、未回答へ移動<br>
-              ・未回答が残る限り、最後まで行こうとしても戻されます
+              ・7段階（1〜7）<br>
+              ・ミニマップ常時表示（右下）<br>
+              ・章クリア（20問ごと）で演出と称号獲得<br>
+              ・未回答が残る限り、次へは未回答へ誘導
             </div>
           </section>
         </div>
@@ -703,6 +711,7 @@
         <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
         <button class="btn ghost" id="btnCopyJson">JSONをコピー</button>
         <button class="btn ghost" id="btnDownloadJson">JSONをダウンロード</button>
+        <button class="btn ghost" id="btnOpenMap2">地図（詳細）</button>
         <button class="btn danger" id="btnResetFromResult">最初からやり直す（保存を消去）</button>
       </div>
 
@@ -727,6 +736,7 @@
     </div>
   </div>
 
+  <!-- 章クリアモーダル -->
   <div class="modalBack" id="chapterModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalGlow" aria-hidden="true"></div>
@@ -744,6 +754,23 @@
     </div>
   </div>
 
+  <!-- 地図詳細モーダル -->
+  <div class="modalBack" id="mapModal" aria-hidden="true">
+    <div class="modal mapModal" role="dialog" aria-modal="true">
+      <div class="modalGlow" aria-hidden="true"></div>
+      <h3 class="modalTitle">巡礼路（詳細）</h3>
+      <div class="modalBody" id="mapModalBody">精霊は現在位置。建物は20問ごとの章ポイント（点灯で到達）。</div>
+
+      <div class="mapModalSvgWrap">
+        <svg id="mapModalSvg" viewBox="0 0 320 220" width="100%" height="320"></svg>
+      </div>
+
+      <div class="btnRow" style="justify-content:flex-end;">
+        <button class="btn primary" id="btnCloseMap">閉じる</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /***********************
      * ここだけ編集（MakeのWebhook）
@@ -752,13 +779,13 @@
     const STORAGE_KEY = "fortuneai_17type_mystic_ascent_singlefile";
 
     /***********************
-     * 9段階スケール設定
+     * 7段階スケール（1..7）
      ***********************/
     const SCALE_MIN = 1;
-    const SCALE_MAX = 9;
-    const SCALE_MID = 5; // 中央（中立）
-    const AXIS_MAX = 100; // 25問×最大4 = 100
-    const BAL_THRESHOLD = 12; // “均衡”の閾値（好みで調整）
+    const SCALE_MAX = 7;
+    const SCALE_MID = 4; // 中央（中立）
+    const AXIS_MAX = 75; // 25問×最大3 = 75
+    const BAL_THRESHOLD = 10; // “均衡”の閾値（7段階用）
 
     const THEMES = [
       { name:"CHAPTER 1 / 5", a1:"#7c4dff", a2:"#cfa76e", a3:"#43d3ff", bg0:"#070b1a", bg1:"#0b1231" },
@@ -793,7 +820,6 @@
       "ISTJ":"教皇","ISFJ":"節制","ESTJ":"戦車","ESFJ":"女帝","ISTP":"力","ISFP":"恋人","ESTP":"運命の輪","ESFP":"世界","BAL":"審判"
     };
 
-    // 章クリア報酬（保存＆結果に表示）
     const BADGE_DEFS = [
       { milestone:20, title:"第一章の証印", meta:"CHAPTER 1 CLEAR（20/100）", desc:"巡礼路が定着。あなたの意志が軌道に乗り始める。", tags:["ルーン点灯","集中+1"] },
       { milestone:40, title:"第二章の紋章", meta:"CHAPTER 2 CLEAR（40/100）", desc:"判断が研ぎ澄まされる。躊躇が減り、反応が速くなる。", tags:["安定化","決断+1"] },
@@ -966,6 +992,7 @@
       btnJumpProfile:$("btnJumpProfile"),
       btnJumpFirstUnanswered:$("btnJumpFirstUnanswered"),
       btnResetFromQuestions:$("btnResetFromQuestions"),
+      btnOpenMap:$("btnOpenMap"),
 
       bottomNav:$("bottomNav"),
 
@@ -977,6 +1004,7 @@
       btnCopyJson:$("btnCopyJson"),
       btnDownloadJson:$("btnDownloadJson"),
       btnResetFromResult:$("btnResetFromResult"),
+      btnOpenMap2:$("btnOpenMap2"),
       resultToast:$("resultToast"),
       jsonPreviewWrap:$("jsonPreviewWrap"),
       jsonPreview:$("jsonPreview"),
@@ -995,19 +1023,18 @@
       reward1:$("reward1"),
       reward2:$("reward2"),
 
-      ascentNodeText:$("ascentNodeText"),
-      ascentCaption:$("ascentCaption"),
-      ascentPathProg:$("ascentPathProg"),
-      ascentRunes:$("ascentRunes"),
-      ascentHalo:$("ascentHalo"),
-      ascentDot:$("ascentDot"),
-      ascentParticles:$("ascentParticles"),
-      ascentSvg:$("ascentSvg"),
-
       leftScaleLabel:$("leftScaleLabel"),
       rightScaleLabel:$("rightScaleLabel"),
-
       answerStateText:$("answerStateText"),
+
+      miniMap:$("miniMap"),
+      miniMapSvg:$("miniMapSvg"),
+      miniMapPct:$("miniMapPct"),
+
+      mapModal:$("mapModal"),
+      mapModalSvg:$("mapModalSvg"),
+      mapModalBody:$("mapModalBody"),
+      btnCloseMap:$("btnCloseMap"),
     };
 
     const state = {
@@ -1016,23 +1043,20 @@
       profile:{ name:"", gender:"", birthday:"" },
       userId:"",
       answers:new Array(100).fill(SCALE_MID),
-      done:new Array(100).fill(false),   // 触った/確定したか
+      done:new Array(100).fill(false),
       worryText:"",
       lastPayload:null,
       lastChapterShown:0,
-      badges:[] // {milestone,title,meta,desc,tags,at}
+      badges:[],
+      mapReady:false
     };
 
-    // 初期ラベル・range属性をJSでも確定（保険）
+    // range属性を強制確定
     dom.range.min = String(SCALE_MIN);
     dom.range.max = String(SCALE_MAX);
     dom.range.step = "1";
     dom.leftScaleLabel.textContent = `${SCALE_MIN} = まったくそう思わない`;
     dom.rightScaleLabel.textContent = `${SCALE_MAX} = 非常にそう思う`;
-
-    document.addEventListener("gesturestart", (e)=>e.preventDefault(), { passive:false });
-    document.addEventListener("gesturechange",(e)=>e.preventDefault(), { passive:false });
-    document.addEventListener("gestureend",  (e)=>e.preventDefault(), { passive:false });
 
     const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
 
@@ -1055,6 +1079,21 @@
       }));
     }
 
+    // 9段階→7段階の自動マイグレーション
+    function migrateAnswersIfNeeded(arr){
+      let maxV = 0;
+      for (const v of arr) maxV = Math.max(maxV, Number(v || 0));
+      if (maxV <= SCALE_MAX) return arr.map(v => clamp(Number(v ?? SCALE_MID), SCALE_MIN, SCALE_MAX));
+
+      // 1..9 を 1..7 に圧縮（丸め）
+      // new = round((old-1)*(6/8)+1)
+      return arr.map(v=>{
+        const ov = clamp(Number(v ?? 5), 1, 9);
+        const nv = Math.round((ov - 1) * (6/8) + 1);
+        return clamp(nv, SCALE_MIN, SCALE_MAX);
+      });
+    }
+
     function load(){
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
@@ -1073,7 +1112,7 @@
         };
         state.userId = String(data.userId || "");
 
-        state.answers = data.answers.map(v => clamp(Number(v ?? SCALE_MID), SCALE_MIN, SCALE_MAX));
+        state.answers = migrateAnswersIfNeeded(data.answers);
 
         if (Array.isArray(data.done) && data.done.length === 100){
           state.done = data.done.map(Boolean);
@@ -1127,28 +1166,16 @@
       window.scrollTo({top:0, behavior:"smooth"});
     }
 
-    function answeredDoneCount(){
-      return state.done.reduce((a,b)=>a+(b?1:0),0);
-    }
-    function unansweredCount(){
-      return state.done.reduce((a,b)=>a+(b?0:1),0);
-    }
-    function firstUnansweredIndex(){
-      return state.done.findIndex(x=>!x);
-    }
+    function answeredDoneCount(){ return state.done.reduce((a,b)=>a+(b?1:0),0); }
+    function unansweredCount(){ return state.done.reduce((a,b)=>a+(b?0:1),0); }
+    function firstUnansweredIndex(){ return state.done.findIndex(x=>!x); }
     function nextUnansweredIndex(from){
-      for (let i=from+1;i<100;i++){
-        if (!state.done[i]) return i;
-      }
+      for (let i=from+1;i<100;i++){ if (!state.done[i]) return i; }
       return -1;
     }
-    function allAnswered(){
-      return answeredDoneCount() === 100;
-    }
+    function allAnswered(){ return answeredDoneCount() === 100; }
 
-    function currentChapterByDone(doneCount){
-      return clamp(Math.floor(doneCount/20), 0, 4);
-    }
+    function currentChapterByDone(doneCount){ return clamp(Math.floor(doneCount/20), 0, 4); }
 
     function applyThemeByDone(doneCount){
       const th = THEMES[currentChapterByDone(doneCount)];
@@ -1158,7 +1185,7 @@
       document.documentElement.style.setProperty("--bg0", th.bg0);
       document.documentElement.style.setProperty("--bg1", th.bg1);
       dom.chapterChip.textContent = th.name;
-      dom.topSubtitle.textContent = `章：${th.name}｜巡礼路で上昇`;
+      dom.topSubtitle.textContent = `章：${th.name}｜巡礼路で上昇（7段階）`;
     }
 
     function updateMeter(){
@@ -1168,27 +1195,36 @@
       dom.meterText.textContent = `${done} / 100`;
       dom.waterFill.parentElement.setAttribute("aria-valuenow", String(done));
       applyThemeByDone(done);
-      updateAscent(done);
+
+      // mini map
+      dom.miniMapPct.textContent = `${Math.round(pct)}%`;
+      updateMapAll(done);
+      updateMiniMapVisibility();
+    }
+
+    function updateMiniMapVisibility(){
+      // hero以外（プロフィール以降）で常時表示
+      const show = (state.view !== "hero");
+      dom.miniMap.style.display = show ? "block" : "none";
     }
 
     function valueColor(v){
       const vv = clamp(v, SCALE_MIN, SCALE_MAX);
+      // 7段階の色分け（中心=4）
       const map = {
-        1: "color-mix(in oklab, var(--accent1) 78%, black 18%)",
-        2: "color-mix(in oklab, var(--accent1) 72%, var(--accent3) 18%)",
-        3: "color-mix(in oklab, var(--accent1) 56%, var(--accent3) 30%)",
-        4: "color-mix(in oklab, var(--accent3) 64%, var(--accent1) 18%)",
-        5: "color-mix(in oklab, var(--accent3) 52%, rgba(255,255,255,.12) 0%)",
-        6: "color-mix(in oklab, var(--accent2) 48%, var(--accent3) 30%)",
-        7: "color-mix(in oklab, var(--accent2) 62%, var(--accent3) 18%)",
-        8: "color-mix(in oklab, var(--accent2) 76%, var(--accent3) 10%)",
-        9: "color-mix(in oklab, var(--accent2) 88%, white 6%)",
+        1: "color-mix(in oklab, var(--accent1) 84%, black 12%)",
+        2: "color-mix(in oklab, var(--accent1) 68%, var(--accent3) 18%)",
+        3: "color-mix(in oklab, var(--accent3) 62%, var(--accent1) 22%)",
+        4: "color-mix(in oklab, var(--accent3) 54%, rgba(255,255,255,.10) 0%)",
+        5: "color-mix(in oklab, var(--accent2) 52%, var(--accent3) 26%)",
+        6: "color-mix(in oklab, var(--accent2) 72%, var(--accent3) 12%)",
+        7: "color-mix(in oklab, var(--accent2) 88%, white 6%)",
       };
       return map[vv] || map[SCALE_MID];
     }
 
     function applyThumbScale(v){
-      const dist = Math.abs(v - SCALE_MID); // 0..4
+      const dist = Math.abs(v - SCALE_MID); // 0..3
       const t = dist / (SCALE_MAX - SCALE_MID); // 0..1
       dom.range.style.setProperty("--thumbScale", String(1 + t*0.42));
     }
@@ -1234,12 +1270,13 @@
       const i = state.currentIndex;
       const val = clamp(Number(v), SCALE_MIN, SCALE_MAX);
       state.answers[i] = val;
-      if (markDone) state.done[i] = true;   // 触ったら「回答済み」
+      if (markDone) state.done[i] = true;
       save();
       dom.range.value = String(val);
       applyRangePaint(val);
       dom.doneCountText.textContent = String(answeredDoneCount());
       updateMeter();
+      maybeShowChapterClear();
     }
 
     function validateProfile(){
@@ -1261,7 +1298,7 @@
       save();
     }
 
-    // 9段階: 1..9 を -4..+4 に変換（中立=5）
+    // 7段階: 1..7 -> -3..+3（中心=4）
     function answerToValue(ans){ return (Number(ans) - SCALE_MID); }
 
     function applyTagToAxis(tag, val, scores){
@@ -1406,127 +1443,267 @@
     }
 
     /***********************
-     * 巡礼路（進捗で上昇）
+     * Map（ミニ＋詳細）
+     * ・精霊（現在位置）
+     * ・建物（20/40/60/80/100）
      ***********************/
-    const ascent = { pathLen:0, lastDone:0, raf:0, particles:[] };
+    const MAP_PATH = "M42 190 C 72 176, 88 172, 106 160 C 126 146, 120 128, 140 118 C 158 109, 166 128, 184 112 C 202 96, 180 78, 200 68 C 224 56, 236 84, 258 58 C 274 38, 230 32, 196 40 C 172 46, 168 34, 160 24";
 
-    function initAscent(){
-      const p = dom.ascentPathProg;
-      ascent.pathLen = p.getTotalLength();
-      p.style.strokeDasharray = `${ascent.pathLen} ${ascent.pathLen}`;
-      p.style.strokeDashoffset = `${ascent.pathLen}`;
-      renderAscentRunes();
-      seedAscentParticles(20);
-      cancelAnimationFrame(ascent.raf);
-      ascent.raf = requestAnimationFrame(ascentAnimate);
+    const mapState = {
+      pathLen: 0,
+      initDone: false
+    };
+
+    function createMapSvg(targetSvg){
+      targetSvg.innerHTML = "";
+      const NS = "http://www.w3.org/2000/svg";
+
+      const defs = document.createElementNS(NS, "defs");
+
+      const glow = document.createElementNS(NS, "filter");
+      glow.setAttribute("id", "mapGlow");
+      const blur = document.createElementNS(NS, "feGaussianBlur");
+      blur.setAttribute("stdDeviation", "2.0");
+      blur.setAttribute("result", "b");
+      const merge = document.createElementNS(NS, "feMerge");
+      const m1 = document.createElementNS(NS, "feMergeNode");
+      m1.setAttribute("in", "b");
+      const m2 = document.createElementNS(NS, "feMergeNode");
+      m2.setAttribute("in", "SourceGraphic");
+      merge.appendChild(m1); merge.appendChild(m2);
+      glow.appendChild(blur); glow.appendChild(merge);
+
+      const lg = document.createElementNS(NS, "linearGradient");
+      lg.setAttribute("id","mapStroke");
+      lg.setAttribute("x1","0%"); lg.setAttribute("y1","0%");
+      lg.setAttribute("x2","100%"); lg.setAttribute("y2","0%");
+      const s1 = document.createElementNS(NS,"stop"); s1.setAttribute("offset","0%"); s1.setAttribute("stop-color","var(--accent1)");
+      const s2 = document.createElementNS(NS,"stop"); s2.setAttribute("offset","55%"); s2.setAttribute("stop-color","var(--accent3)");
+      const s3 = document.createElementNS(NS,"stop"); s3.setAttribute("offset","100%"); s3.setAttribute("stop-color","var(--accent2)");
+      lg.appendChild(s1); lg.appendChild(s2); lg.appendChild(s3);
+
+      defs.appendChild(glow);
+      defs.appendChild(lg);
+      targetSvg.appendChild(defs);
+
+      const bg = document.createElementNS(NS,"rect");
+      bg.setAttribute("x","0"); bg.setAttribute("y","0"); bg.setAttribute("width","320"); bg.setAttribute("height","220");
+      bg.setAttribute("fill","rgba(255,255,255,.02)");
+      targetSvg.appendChild(bg);
+
+      const base = document.createElementNS(NS,"path");
+      base.setAttribute("d", MAP_PATH);
+      base.setAttribute("fill","none");
+      base.setAttribute("stroke","rgba(255,255,255,.14)");
+      base.setAttribute("stroke-width","6");
+      base.setAttribute("stroke-linecap","round");
+      base.setAttribute("stroke-linejoin","round");
+      targetSvg.appendChild(base);
+
+      const prog = document.createElementNS(NS,"path");
+      prog.setAttribute("id", targetSvg.id + "_prog");
+      prog.setAttribute("d", MAP_PATH);
+      prog.setAttribute("fill","none");
+      prog.setAttribute("stroke","url(#mapStroke)");
+      prog.setAttribute("stroke-width","6");
+      prog.setAttribute("stroke-linecap","round");
+      prog.setAttribute("stroke-linejoin","round");
+      prog.setAttribute("filter","url(#mapGlow)");
+      targetSvg.appendChild(prog);
+
+      // 建物ポイント（20刻み）
+      const buildings = document.createElementNS(NS,"g");
+      buildings.setAttribute("id", targetSvg.id + "_buildings");
+      targetSvg.appendChild(buildings);
+
+      // 精霊（現在位置）
+      const spirit = document.createElementNS(NS,"g");
+      spirit.setAttribute("id", targetSvg.id + "_spirit");
+      spirit.setAttribute("filter","url(#mapGlow)");
+      targetSvg.appendChild(spirit);
+
+      // スタート/ゴール目印
+      const goalText = document.createElementNS(NS,"text");
+      goalText.setAttribute("x","160"); goalText.setAttribute("y","14");
+      goalText.setAttribute("text-anchor","middle");
+      goalText.setAttribute("font-size","10");
+      goalText.setAttribute("fill","rgba(234,240,255,.78)");
+      goalText.style.letterSpacing = ".12em";
+      goalText.textContent = "GOAL";
+      targetSvg.appendChild(goalText);
+
+      const startText = document.createElementNS(NS,"text");
+      startText.setAttribute("x","42"); startText.setAttribute("y","206");
+      startText.setAttribute("text-anchor","start");
+      startText.setAttribute("font-size","10");
+      startText.setAttribute("fill","rgba(234,240,255,.68)");
+      startText.style.letterSpacing = ".12em";
+      startText.textContent = "START";
+      targetSvg.appendChild(startText);
     }
 
-    function renderAscentRunes(){
-      dom.ascentRunes.innerHTML = "";
-      for (let n=5; n<=100; n+=5){
-        const t = n/100;
-        const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen*t);
+    function ensureMapInit(){
+      if (mapState.initDone) return;
+      createMapSvg(dom.miniMapSvg);
+      createMapSvg(dom.mapModalSvg);
 
-        const g = document.createElementNS("http://www.w3.org/2000/svg","g");
-        g.setAttribute("data-node", String(n));
-        const is20 = (n%20===0), is10=(n%10===0);
+      // path length はどちらでも同じなので modal の path で取得
+      const prog = document.getElementById(dom.mapModalSvg.id + "_prog");
+      mapState.pathLen = prog.getTotalLength();
 
-        if (is20){
-          const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
-          ring.setAttribute("cx", pt.x); ring.setAttribute("cy", pt.y);
-          ring.setAttribute("r", 9);
-          ring.setAttribute("fill","rgba(255,255,255,.06)");
-          ring.setAttribute("stroke","rgba(255,255,255,.18)");
-          ring.setAttribute("stroke-width","1.2");
-          g.appendChild(ring);
-        } else if (is10){
-          const diamond = document.createElementNS("http://www.w3.org/2000/svg","path");
-          diamond.setAttribute("d", `M ${pt.x} ${pt.y-6} L ${pt.x+6} ${pt.y} L ${pt.x} ${pt.y+6} L ${pt.x-6} ${pt.y} Z`);
-          diamond.setAttribute("fill","rgba(255,255,255,.06)");
-          diamond.setAttribute("stroke","rgba(255,255,255,.16)");
-          g.appendChild(diamond);
-        } else {
-          const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
-          dot.setAttribute("cx", pt.x); dot.setAttribute("cy", pt.y);
-          dot.setAttribute("r", 3.6);
-          dot.setAttribute("fill","rgba(255,255,255,.06)");
-          dot.setAttribute("stroke","rgba(255,255,255,.14)");
-          g.appendChild(dot);
+      // dash設定（進捗線）
+      for (const svg of [dom.miniMapSvg, dom.mapModalSvg]){
+        const p = document.getElementById(svg.id + "_prog");
+        p.style.strokeDasharray = `${mapState.pathLen} ${mapState.pathLen}`;
+        p.style.strokeDashoffset = `${mapState.pathLen}`;
+      }
+
+      mapState.initDone = true;
+      state.mapReady = true;
+    }
+
+    function pointAt(t){
+      // t: 0..1
+      const prog = document.getElementById(dom.mapModalSvg.id + "_prog");
+      return prog.getPointAtLength(mapState.pathLen * t);
+    }
+
+    function drawBuildings(svg, doneCount){
+      const NS = "http://www.w3.org/2000/svg";
+      const g = document.getElementById(svg.id + "_buildings");
+      g.innerHTML = "";
+
+      const milestones = [20,40,60,80,100];
+      for (const m of milestones){
+        const t = m/100;
+        const pt = pointAt(t);
+
+        const lit = doneCount >= m;
+
+        // 建物（小さな神殿）
+        const temple = document.createElementNS(NS,"g");
+        temple.setAttribute("transform", `translate(${pt.x},${pt.y})`);
+
+        const roof = document.createElementNS(NS,"path");
+        roof.setAttribute("d", "M -10 6 L 0 -6 L 10 6 Z");
+        roof.setAttribute("fill", lit ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.06)");
+        roof.setAttribute("stroke", lit ? "rgba(255,255,255,.30)" : "rgba(255,255,255,.14)");
+        roof.setAttribute("stroke-width","1");
+
+        const body = document.createElementNS(NS,"rect");
+        body.setAttribute("x","-8"); body.setAttribute("y","6");
+        body.setAttribute("width","16"); body.setAttribute("height","12");
+        body.setAttribute("rx","2");
+        body.setAttribute("fill", lit ? "rgba(255,255,255,.10)" : "rgba(255,255,255,.04)");
+        body.setAttribute("stroke", lit ? "rgba(255,255,255,.22)" : "rgba(255,255,255,.12)");
+        body.setAttribute("stroke-width","1");
+
+        const door = document.createElementNS(NS,"rect");
+        door.setAttribute("x","-2.5"); door.setAttribute("y","10");
+        door.setAttribute("width","5"); door.setAttribute("height","8");
+        door.setAttribute("rx","1.5");
+        door.setAttribute("fill", lit ? "rgba(207,167,110,.35)" : "rgba(255,255,255,.06)");
+        door.setAttribute("stroke", lit ? "rgba(207,167,110,.55)" : "rgba(255,255,255,.12)");
+        door.setAttribute("stroke-width","1");
+
+        // ベースリング（点灯）
+        const ring = document.createElementNS(NS,"circle");
+        ring.setAttribute("cx","0"); ring.setAttribute("cy","10");
+        ring.setAttribute("r","14");
+        ring.setAttribute("fill", "rgba(0,0,0,0)");
+        ring.setAttribute("stroke", lit ? "rgba(255,255,255,.26)" : "rgba(255,255,255,.10)");
+        ring.setAttribute("stroke-width","1");
+        ring.setAttribute("opacity", lit ? "1" : ".75");
+
+        temple.appendChild(ring);
+        temple.appendChild(roof);
+        temple.appendChild(body);
+        temple.appendChild(door);
+
+        // ラベルは詳細マップだけ表示
+        if (svg.id === "mapModalSvg"){
+          const label = document.createElementNS(NS,"text");
+          label.setAttribute("x","0"); label.setAttribute("y","-12");
+          label.setAttribute("text-anchor","middle");
+          label.setAttribute("font-size","10");
+          label.setAttribute("fill", lit ? "rgba(234,240,255,.88)" : "rgba(234,240,255,.55)");
+          label.textContent = `${m}`;
+          temple.appendChild(label);
         }
 
-        dom.ascentRunes.appendChild(g);
+        g.appendChild(temple);
       }
     }
 
-    function seedAscentParticles(k){
-      ascent.particles = [];
-      for (let i=0;i<k;i++){
-        ascent.particles.push({
-          x: 40 + Math.random()*240,
-          y: 30 + Math.random()*170,
-          r: 1.2 + Math.random()*2.1,
-          a: 0.22 + Math.random()*0.35,
-          ph: Math.random()*Math.PI*2
-        });
-      }
-      drawAscentParticles(0);
+    function drawSpirit(svg, doneCount){
+      const NS = "http://www.w3.org/2000/svg";
+      const g = document.getElementById(svg.id + "_spirit");
+      g.innerHTML = "";
+
+      const t = doneCount/100;
+      const pt = pointAt(t);
+
+      // 精霊本体（光球＋翼）
+      const halo = document.createElementNS(NS,"circle");
+      halo.setAttribute("cx", pt.x);
+      halo.setAttribute("cy", pt.y);
+      halo.setAttribute("r", "10");
+      halo.setAttribute("fill", "rgba(255,255,255,.10)");
+
+      const orb = document.createElementNS(NS,"circle");
+      orb.setAttribute("cx", pt.x);
+      orb.setAttribute("cy", pt.y);
+      orb.setAttribute("r", "5.5");
+      orb.setAttribute("fill", "rgba(255,255,255,.92)");
+      orb.setAttribute("stroke", "rgba(255,255,255,.22)");
+
+      const wingL = document.createElementNS(NS,"path");
+      wingL.setAttribute("d", `M ${pt.x-5} ${pt.y-1} C ${pt.x-18} ${pt.y-10}, ${pt.x-22} ${pt.y+8}, ${pt.x-8} ${pt.y+6}`);
+      wingL.setAttribute("fill","none");
+      wingL.setAttribute("stroke","rgba(255,255,255,.22)");
+      wingL.setAttribute("stroke-width","1.6");
+      wingL.setAttribute("stroke-linecap","round");
+
+      const wingR = document.createElementNS(NS,"path");
+      wingR.setAttribute("d", `M ${pt.x+5} ${pt.y-1} C ${pt.x+18} ${pt.y-10}, ${pt.x+22} ${pt.y+8}, ${pt.x+8} ${pt.y+6}`);
+      wingR.setAttribute("fill","none");
+      wingR.setAttribute("stroke","rgba(255,255,255,.22)");
+      wingR.setAttribute("stroke-width","1.6");
+      wingR.setAttribute("stroke-linecap","round");
+
+      g.appendChild(halo);
+      g.appendChild(wingL);
+      g.appendChild(wingR);
+      g.appendChild(orb);
     }
 
-    function drawAscentParticles(time){
-      dom.ascentParticles.innerHTML = "";
-      for (const p of ascent.particles){
-        const yy = p.y + Math.sin(time*0.0012 + p.ph) * 6;
-        const xx = p.x + Math.cos(time*0.0010 + p.ph) * 6;
-        const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
-        c.setAttribute("cx", xx.toFixed(2));
-        c.setAttribute("cy", yy.toFixed(2));
-        c.setAttribute("r", p.r.toFixed(2));
-        c.setAttribute("fill", "rgba(255,255,255,.65)");
-        c.setAttribute("opacity", p.a.toFixed(2));
-        dom.ascentParticles.appendChild(c);
-      }
-    }
-
-    function ascentAnimate(t){
-      drawAscentParticles(t);
-      dom.ascentHalo.setAttribute("opacity", String(0.22 + 0.06*Math.sin(t*0.003)));
-      ascent.raf = requestAnimationFrame(ascentAnimate);
-    }
-
-    function updateAscent(doneCount){
-      dom.ascentNodeText.textContent = String(doneCount);
+    function updateProgressStroke(svg, doneCount){
       const pct = doneCount/100;
-      const offset = ascent.pathLen * (1 - pct);
-      dom.ascentPathProg.style.strokeDashoffset = String(offset);
+      const offset = mapState.pathLen * (1 - pct);
+      const p = document.getElementById(svg.id + "_prog");
+      p.style.strokeDashoffset = String(offset);
+    }
 
-      const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen * pct);
-      dom.ascentHalo.setAttribute("cx", pt.x);
-      dom.ascentHalo.setAttribute("cy", pt.y);
-      dom.ascentDot.setAttribute("cx", pt.x);
-      dom.ascentDot.setAttribute("cy", pt.y);
-
-      dom.ascentRunes.querySelectorAll("g[data-node]").forEach(g=>{
-        const n = Number(g.getAttribute("data-node"));
-        const on = (doneCount >= n);
-        g.style.opacity = on ? "1" : ".45";
-        g.style.filter = on ? "url(#softGlow)" : "none";
-      });
-
-      let cap = "まずは1問。光が道を描き始めます。";
-      if (doneCount >= 10) cap = "巡礼路が見えてきました。直感でテンポ良く。";
-      if (doneCount >= 20) cap = "第1章突破。色が変わり、次のステージへ。";
-      if (doneCount >= 50) cap = "半分到達。尖塔が近づいています。";
-      if (doneCount >= 80) cap = "残りわずか。最後まで一気に。";
-      if (doneCount >= 100) cap = "到達。尖塔の頂で結果が統合されます。";
-      dom.ascentCaption.textContent = cap;
-
-      if (doneCount > ascent.lastDone){
-        dom.ascentDot.classList.remove("ascentPulse");
-        void dom.ascentDot.offsetWidth;
-        dom.ascentDot.classList.add("ascentPulse");
-        ascent.lastDone = doneCount;
-        try{ navigator.vibrate?.([20]); }catch{}
+    function updateMapAll(doneCount){
+      ensureMapInit();
+      for (const svg of [dom.miniMapSvg, dom.mapModalSvg]){
+        updateProgressStroke(svg, doneCount);
+        drawBuildings(svg, doneCount);
+        drawSpirit(svg, doneCount);
       }
+    }
+
+    /***********************
+     * 章クリア演出（本気版）
+     * ・テーマ切替
+     * ・背景バースト（--chapterPulse）
+     * ・振動
+     * ・モーダル
+     ***********************/
+    function pulseChapter(){
+      document.documentElement.style.setProperty("--chapterPulse", "1");
+      setTimeout(()=>document.documentElement.style.setProperty("--chapterPulse","0"), 520);
+      try{ navigator.vibrate?.([25, 70, 25]); }catch{}
     }
 
     function ensureBadge(milestone){
@@ -1555,6 +1732,9 @@
       ensureBadge(hit);
       save();
 
+      // 演出
+      pulseChapter();
+
       const chapIdx = Math.min(4, Math.floor((hit-1)/20));
       const nextIdx = Math.min(4, chapIdx+1);
 
@@ -1567,17 +1747,29 @@
       dom.reward1.textContent = `称号獲得：${def ? def.title : "ルーン点灯"}`;
       dom.reward2.textContent = (hit === 100)
         ? "ボーナス：結果の統合処理が解放されます。"
-        : "ボーナス：配色が変化し、集中が続きやすくなります。";
+        : "ボーナス：配色が切り替わり、集中の持続が上がります。";
 
       dom.chapterModal.style.display = "flex";
       dom.chapterModal.setAttribute("aria-hidden","false");
-      try{ navigator.vibrate?.([30, 60, 30]); }catch{}
     }
 
     function closeChapterModal(){
       dom.chapterModal.style.display = "none";
       dom.chapterModal.setAttribute("aria-hidden","true");
       updateMeter();
+    }
+
+    function openMapModal(){
+      ensureMapInit();
+      const done = answeredDoneCount();
+      updateMapAll(done);
+      dom.mapModalBody.textContent = `進捗：${done}/100　｜　精霊＝現在位置　｜　建物＝章ポイント（20ごと）`;
+      dom.mapModal.style.display="flex";
+      dom.mapModal.setAttribute("aria-hidden","false");
+    }
+    function closeMapModal(){
+      dom.mapModal.style.display="none";
+      dom.mapModal.setAttribute("aria-hidden","true");
     }
 
     function hideAllViews(){
@@ -1599,7 +1791,8 @@
       const i = state.currentIndex;
       const q = QUESTIONS[i];
       dom.qText.textContent = q.text;
-      dom.qTagChip.textContent = q.tag;
+
+      dom.qTagChip.textContent = q.tag; // 表示はCSSで非表示、データは保持
       dom.qIndexChip.textContent = `Q ${i+1} / 100`;
 
       const done = answeredDoneCount();
@@ -1612,9 +1805,8 @@
 
       dom.btnPrevQ.disabled = (i===0);
 
-      const u = unansweredCount();
-      if (u > 0){
-        dom.btnNextQ.textContent = (allAnswered()) ? "次へ（完了）" : "次へ（未回答へ）";
+      if (!allAnswered()){
+        dom.btnNextQ.textContent = "次へ（未回答へ）";
       } else {
         dom.btnNextQ.textContent = (i===99) ? "次へ（悩み入力）" : "次へ";
       }
@@ -1679,16 +1871,14 @@
 
       renderBadges();
 
-      // 未回答がある限り結果に行かせない（計算が歪むため）
       if (!allAnswered()){
         const idx = firstUnansweredIndex();
         dom.resultToast.className="toast bad";
         dom.resultToast.textContent=`未回答があります（Q${idx+1}）。未回答を埋めてから結果を表示します。`;
         dom.resultToast.style.display="block";
-        // 自動で未回答へ戻す
         state.currentIndex = idx >= 0 ? idx : 0;
         save();
-        setTimeout(()=> setView("questions"), 400);
+        setTimeout(()=> setView("questions"), 350);
         return;
       }
 
@@ -1731,7 +1921,6 @@
     function goNext(){
       const i = state.currentIndex;
 
-      // 全問回答済みなら、1回で最後へ寄せる（テンポ）
       if (allAnswered()){
         if (i < 99){
           state.currentIndex = 99;
@@ -1741,31 +1930,26 @@
           showQToast("全問回答済み。最後へ移動します。", "ok");
           return;
         }
-        // i==99 なら悩み入力へ
         setView("worry");
         return;
       }
 
-      // 未回答がある：次の未回答へ
       const nxt = nextUnansweredIndex(i);
       if (nxt !== -1){
         state.currentIndex = nxt;
         save();
         renderQuestion();
         updateMeter();
-        maybeShowChapterClear();
         showQToast(`未回答へ移動：Q${nxt+1}`, "warn");
         return;
       }
 
-      // 現在より後に未回答がない場合、先頭の未回答へ
       const first = firstUnansweredIndex();
       if (first !== -1){
         state.currentIndex = first;
         save();
         renderQuestion();
         updateMeter();
-        maybeShowChapterClear();
         showQToast(`未回答が残っています：Q${first+1}へ`, "warn");
         return;
       }
@@ -1778,6 +1962,7 @@
     dom.btnToQuestions.addEventListener("click", ()=>{
       if (!validateProfile()) return;
       syncProfileFromInputs();
+      ensureMapInit();
       setView("questions");
     });
 
@@ -1816,7 +2001,6 @@
         updateMeter();
       }
     });
-
     dom.btnNextQ.addEventListener("click", goNext);
 
     dom.btnChapterContinue.addEventListener("click", closeChapterModal);
@@ -1829,7 +2013,6 @@
     });
 
     dom.btnShowResult.addEventListener("click", ()=>{
-      // 念のため、未回答があれば先に戻す
       if (!allAnswered()){
         const idx = firstUnansweredIndex();
         state.currentIndex = idx >= 0 ? idx : 0;
@@ -1876,6 +2059,13 @@
       dom.resultToast.style.display="block";
     });
 
+    // 地図：常時（ミニ）＋詳細（モーダル）
+    dom.miniMap.addEventListener("click", openMapModal);
+    dom.btnOpenMap.addEventListener("click", openMapModal);
+    dom.btnOpenMap2.addEventListener("click", openMapModal);
+    dom.btnCloseMap.addEventListener("click", closeMapModal);
+    dom.mapModal.addEventListener("click", (e)=>{ if (e.target===dom.mapModal) closeMapModal(); });
+
     /***********************
      * Boot
      ***********************/
@@ -1890,7 +2080,7 @@
         setTimeout(()=> dom.profileRestoreNote.style.display="none", 2500);
       }
 
-      initAscent();
+      ensureMapInit();
       renderAll();
     })();
   </script>
