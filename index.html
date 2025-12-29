@@ -2,91 +2,166 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <!-- 固定：ズーム抑止（iOS含む） -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>FortuneAI式 17タイプ診断</title>
+  <title>FortuneAI式 17タイプ診断（章クリアUI）</title>
   <style>
     :root{
-      --bg0:#070b1a;
+      /* 動的テーマ（JSで章ごとに更新） */
+      --accent1: #7c4dff;
+      --accent2: #cfa76e;
+      --accent3: #2fe6ff;
+
+      --bg0:#060916;
       --bg1:#0b1231;
-      --card: rgba(255,255,255,.06);
-      --line: rgba(255,255,255,.14);
+
       --text:#eaf0ff;
       --muted: rgba(234,240,255,.78);
-      --gold:#cfa76e;
-      --purple:#7c4dff;
+
+      --card: rgba(255,255,255,.06);
+      --line: rgba(255,255,255,.12);
+
+      --shadow: 0 20px 70px rgba(0,0,0,.40);
+      --r: 20px;
+
+      --danger:#ff6b6b;
       --ok:#41d18a;
       --warn:#ffcc66;
-      --bad:#ff6b6b;
-      --shadow: 0 18px 60px rgba(0,0,0,.38);
-      --r: 18px;
     }
+
     *{box-sizing:border-box}
-    html, body{height:100%; overscroll-behavior: none;}
+    html, body{height:100%; overscroll-behavior:none;}
     body{
       margin:0;
       color:var(--text);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
       background:
-        radial-gradient(1200px 650px at 15% 5%, rgba(124,77,255,.26), transparent 62%),
-        radial-gradient(900px 540px at 85% 25%, rgba(207,167,110,.20), transparent 62%),
+        radial-gradient(1200px 650px at 18% 8%, color-mix(in oklab, var(--accent1) 35%, transparent), transparent 62%),
+        radial-gradient(900px 540px at 85% 30%, color-mix(in oklab, var(--accent2) 30%, transparent), transparent 62%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
-      touch-action: pan-y; /* ページは縦スクロールのみ */
+      touch-action: pan-y;
       -webkit-text-size-adjust: 100%;
     }
-    a{color:inherit}
-    .wrap{max-width:980px; margin:0 auto; padding:18px 14px 40px;}
+
+    .wrap{max-width:1180px; margin:0 auto; padding:16px 14px 40px;}
     .topbar{
-      position:sticky; top:0; z-index:20;
-      background: linear-gradient(180deg, rgba(7,11,26,.92), rgba(11,18,49,.68));
-      backdrop-filter: blur(10px);
+      position:sticky; top:0; z-index:40;
+      background: linear-gradient(180deg, rgba(6,9,22,.94), rgba(11,18,49,.70));
       border:1px solid rgba(255,255,255,.08);
-      border-radius: 20px;
-      padding: 14px 14px;
+      border-radius: 22px;
+      padding: 12px 12px;
       box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
     }
-    .topbarRow{
-      display:flex; gap:12px; align-items:center; justify-content:space-between;
-      flex-wrap:wrap;
+
+    .topbarGrid{
+      display:grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap:12px;
+      align-items:center;
     }
+    @media(max-width:860px){
+      .topbarGrid{grid-template-columns:1fr; gap:10px;}
+    }
+
     .brand{
       display:flex; gap:12px; align-items:center;
-      min-width: 220px;
+      min-width: 240px;
     }
     .orb{
-      width:42px; height:42px; border-radius:999px;
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.92), rgba(255,255,255,.06) 45%, rgba(124,77,255,.32) 72%, rgba(207,167,110,.20));
+      width:44px; height:44px; border-radius:999px;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.10) 45%, rgba(124,77,255,.35) 72%, rgba(207,167,110,.22));
       border:1px solid rgba(255,255,255,.18);
-      box-shadow: 0 0 24px rgba(124,77,255,.25), 0 0 18px rgba(207,167,110,.18);
-      flex: 0 0 auto;
+      box-shadow: 0 0 24px rgba(124,77,255,.22), 0 0 18px rgba(207,167,110,.14);
+      flex:0 0 auto;
     }
     .title{font-size:14px; letter-spacing:.06em; margin:0; line-height:1.2;}
     .subtitle{font-size:12px; opacity:.86; margin-top:4px; line-height:1.35;}
-    .progressWrap{
-      display:flex; align-items:center; gap:10px;
-      min-width: 240px;
-      flex: 1 1 auto;
-      justify-content:flex-end;
+
+    .topRight{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      justify-items:end;
     }
-    .bar{
-      height:10px;
-      width:min(380px, 56vw);
-      background: rgba(255,255,255,.10);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:999px;
+    @media(max-width:860px){
+      .topRight{justify-items:stretch;}
+    }
+
+    /* ===== 水ゲージ（常に波が動く） ===== */
+    .waterCard{
+      width:100%;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius: 18px;
+      padding: 10px 12px;
+      position:relative;
       overflow:hidden;
     }
-    .bar > i{
-      display:block; height:100%; width:0%;
-      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
-      border-radius:999px;
-      transition: width .25s ease;
+    .waterTop{
+      display:flex; justify-content:space-between; align-items:center;
+      gap:10px; flex-wrap:wrap;
+      font-size:12px; opacity:.92;
+      position:relative; z-index:2;
     }
-    .stepText{font-size:12px; opacity:.90; white-space:nowrap; min-width:72px; text-align:right;}
+    .waterTop b{letter-spacing:.03em;}
+    .waterTank{
+      margin-top:8px;
+      height:16px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      position:relative;
+    }
+    .waterFill{
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:0%;
+      border-radius:999px;
+      /* ベース色（章のテーマに寄せる） */
+      background:
+        linear-gradient(90deg,
+          color-mix(in oklab, var(--accent1) 85%, #ffffff 0%),
+          color-mix(in oklab, var(--accent2) 85%, #ffffff 0%));
+      transition: width .35s ease;
+      overflow:hidden;
+    }
+    .waterWave{
+      position:absolute;
+      left:-40px; top:-10px;
+      width: calc(100% + 80px);
+      height: 40px;
+      background:
+        radial-gradient(circle at 10px 18px, rgba(255,255,255,.18) 0 6px, transparent 7px),
+        radial-gradient(circle at 30px 22px, rgba(255,255,255,.14) 0 7px, transparent 8px),
+        radial-gradient(circle at 60px 18px, rgba(255,255,255,.16) 0 6px, transparent 7px),
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.02));
+      opacity:.95;
+      filter: blur(.2px);
+      animation: waveMove 1.8s linear infinite;
+      transform: translateY(0);
+      pointer-events:none;
+    }
+    @keyframes waveMove{
+      from{ transform: translateX(0); }
+      to{ transform: translateX(40px); }
+    }
+
+    /* ===== 全体レイアウト ===== */
+    .layout{
+      margin-top:14px;
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:14px;
+      align-items:start;
+    }
+    @media(max-width:980px){
+      .layout{grid-template-columns:1fr; }
+    }
 
     .card{
-      margin-top:14px;
       border:1px solid var(--line);
       background: var(--card);
       border-radius: var(--r);
@@ -95,36 +170,272 @@
       backdrop-filter: blur(12px);
     }
 
-    .hero{display:grid; grid-template-columns: 1fr; gap:12px;}
-    @media(min-width:820px){ .hero{grid-template-columns: 1.2fr .8fr;} }
-
-    .h1{font-size:20px; margin:0 0 8px; letter-spacing:.05em; line-height:1.25;}
-    .lead{margin:0; font-size:13px; opacity:.88; line-height:1.7;}
-    .disclaimer{
-      margin-top:10px; padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      font-size:12px; line-height:1.6;
-      color: rgba(234,240,255,.86);
+    /* 右固定パネル */
+    .side{
+      position:sticky;
+      top:92px;
+      display:grid;
+      gap:12px;
     }
-    .pillRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
-    .pill{
+    @media(max-width:980px){
+      .side{position:static; top:auto;}
+    }
+
+    .sideTitle{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin:0 0 6px;
+    }
+    .sideTitle h2{margin:0; font-size:14px; letter-spacing:.05em;}
+    .chip{
       display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
+      padding: 6px 10px;
       border-radius: 999px;
-      border:1px solid rgba(207,167,110,.30);
-      background: rgba(207,167,110,.10);
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
       font-size:12px;
       opacity:.95;
+      white-space:nowrap;
     }
-    .mini{font-size:12px; opacity:.84; margin:0; line-height:1.5;}
+    .chip strong{letter-spacing:.03em;}
 
-    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
+    .miniLine{height:1px; background: rgba(255,255,255,.10); margin:10px 0;}
+
+    /* 章ステッパー */
+    .chapters{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:8px;
+      margin-top:8px;
+    }
+    .chapterItem{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 10px 10px;
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      opacity:.85;
+    }
+    .chapterItem.active{
+      opacity:1;
+      border-color: color-mix(in oklab, var(--accent1) 40%, rgba(255,255,255,.14));
+      background: linear-gradient(90deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent1) 18%, transparent);
+    }
+    .chapterItem.done{
+      opacity:.95;
+      border-color: rgba(65,209,138,.35);
+      background: rgba(65,209,138,.06);
+    }
+    .chapterItem b{font-size:12px; letter-spacing:.03em;}
+    .chapterItem span{font-size:12px; opacity:.88;}
+
+    /* モメンタム（答えたくなる仕掛け） */
+    .momentumBox{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      padding: 12px;
+    }
+    .momentumTop{
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+      font-size:12px; opacity:.90;
+    }
+    .momentumBar{
+      margin-top:8px;
+      height:12px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.08);
+      overflow:hidden;
+      position:relative;
+    }
+    .momentumFill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg,
+        color-mix(in oklab, var(--accent1) 90%, white 0%),
+        color-mix(in oklab, var(--accent2) 90%, white 0%));
+      transition: width .28s ease;
+    }
+    .momentumGlow{
+      position:absolute; inset:-20px -60px;
+      background: radial-gradient(circle at 20% 50%, rgba(255,255,255,.10), transparent 62%);
+      animation: glowMove 2.6s ease-in-out infinite alternate;
+      pointer-events:none;
+      opacity:.9;
+    }
+    @keyframes glowMove{
+      from{ transform: translateX(-12px); }
+      to{ transform: translateX(12px); }
+    }
+    .praise{
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.6;
+      color: rgba(234,240,255,.88);
+    }
+
+    /* ===== メイン設問カード ===== */
+    .qHead{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .qHeadLeft{min-width:240px;}
+    .qLabel{
+      font-size:12px; opacity:.86; letter-spacing:.08em;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
+    .tagBadge{
+      font-size:12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+      opacity:.92;
+      white-space:nowrap;
+    }
+    .qTitle{
+      margin:8px 0 0;
+      font-size:18px;
+      line-height:1.45;
+      letter-spacing:.02em;
+    }
+
+    /* 章テーマ切替の演出（設問カード上部にグラデ帯） */
+    .themeRibbon{
+      height:10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      box-shadow: 0 0 18px color-mix(in oklab, var(--accent1) 22%, transparent);
+      opacity:.95;
+      margin-bottom:12px;
+    }
+
+    /* ===== 7段階スライダー（カスタム） ===== */
+    .scaleWrap{
+      margin-top: 12px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      padding: 14px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .scaleHead{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      font-size:12px; opacity:.92;
+    }
+    .scaleHead b{
+      font-size:16px;
+      letter-spacing:.04em;
+      min-width: 30px;
+      text-align:center;
+      opacity:1;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
+    }
+    .scaleHint{
+      margin-top:8px;
+      font-size:12px;
+      opacity:.84;
+      line-height:1.6;
+    }
+
+    .sliderBox{
+      margin-top: 12px;
+      position: relative;
+      height: 28px;
+      user-select:none;
+      touch-action: none; /* 重要：ここだけジェスチャ抑止（ズーム/横ズレ防止） */
+      -webkit-user-select:none;
+    }
+    .sliderTrack{
+      position:absolute; left:0; right:0;
+      top:50%; transform: translateY(-50%);
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      overflow:hidden;
+    }
+    .sliderFill{
+      position:absolute; left:0;
+      top:50%; transform: translateY(-50%);
+      height: 12px;
+      border-radius: 999px;
+      width: 0px;
+      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
+      transition: width .22s ease;
+    }
+
+    .sliderThumb{
+      position:absolute;
+      top:50%;
+      transform: translate(-50%, -50%);
+      width: 24px; height: 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.26);
+      background: rgba(255,255,255,.92); /* ★透明すぎない */
+      box-shadow: 0 0 18px rgba(0,0,0,.22);
+      transition: transform .08s linear, box-shadow .18s ease;
+    }
+    .sliderThumb::after{
+      content:"";
+      position:absolute; inset:4px;
+      border-radius:999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.90), rgba(255,255,255,.10));
+      opacity:.95;
+    }
+
+    .tickRow{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      align-items:center;
+    }
+    .tickBtn{
+      appearance:none;
+      border:none;
+      background: rgba(255,255,255,.04);
+      color: rgba(234,240,255,.88);
+      font-size: 12px;
+      padding: 10px 0;
+      border-radius: 14px;
+      cursor:pointer;
+      border: 1px solid rgba(255,255,255,.12);
+      user-select:none;
+      transition: transform .08s ease, border-color .18s ease, background .18s ease;
+    }
+    .tickBtn:active{transform: translateY(1px);}
+    .tickBtn.sel{
+      border-color: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 0 0 3px rgba(255,255,255,.05);
+    }
+
+    .unsetNote{
+      margin-top:10px;
+      font-size:12px;
+      line-height:1.6;
+      color: rgba(255,204,102,.92);
+      display:none;
+    }
+
+    /* ===== ボタン ===== */
+    .btnRow{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-top: 14px;
+    }
+    .btnGroup{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
     .btn{
       appearance:none; border:none;
       padding: 12px 14px;
-      border-radius: 14px;
+      border-radius: 16px;
       cursor:pointer;
       color: var(--text);
       background: rgba(255,255,255,.06);
@@ -132,475 +443,482 @@
       transition: transform .08s ease, border-color .2s ease, background .2s ease;
       user-select:none;
     }
-    .btn:hover{border-color: rgba(207,167,110,.45);}
+    .btn:hover{border-color: color-mix(in oklab, var(--accent1) 45%, rgba(255,255,255,.14));}
     .btn:active{transform: translateY(1px) scale(.995);}
     .btn.primary{
-      background: linear-gradient(90deg, rgba(124,77,255,.85), rgba(207,167,110,.85));
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
       border-color: rgba(255,255,255,.18);
     }
-    .btn.danger{background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.40);}
     .btn.ghost{background: rgba(255,255,255,.03);}
+    .btn.danger{background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.38);}
     .btn:disabled{opacity:.45; cursor:not-allowed;}
-    .hint{font-size:12px; opacity:.82; line-height:1.6; margin:10px 0 0;}
 
-    .grid{display:grid; grid-template-columns: 1fr; gap:12px;}
-    @media(min-width:820px){ .grid{grid-template-columns: 1fr 1fr;} }
+    .tiny{
+      font-size:12px;
+      opacity:.86;
+      line-height:1.6;
+      margin-top: 10px;
+    }
 
+    /* ===== プロフィール/悩み/結果 ===== */
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px;}
+    @media(max-width:860px){ .grid2{grid-template-columns:1fr;} }
     label{display:block; font-size:12px; opacity:.88; margin-bottom:6px;}
     .field{
       width:100%;
       padding: 12px 12px;
-      border-radius: 14px;
+      border-radius: 16px;
       border:1px solid rgba(255,255,255,.14);
       background: rgba(0,0,0,.18);
       color: var(--text);
       outline:none;
     }
     .field:focus{
-      border-color: rgba(207,167,110,.50);
-      box-shadow: 0 0 0 3px rgba(207,167,110,.12);
+      border-color: color-mix(in oklab, var(--accent2) 50%, rgba(255,255,255,.14));
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 16%, transparent);
     }
-    .err{color: var(--bad); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
-    .ok{color: var(--ok); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
+    .err{color: var(--danger); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
 
-    .qHeader{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
-    .qTitle{margin:0; font-size:14px; letter-spacing:.03em; line-height:1.55;}
-    .tagBadge{
-      font-size:12px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
-      opacity:.90;
-      white-space:nowrap;
-    }
-
-    .textarea{min-height:140px; resize: vertical; line-height: 1.6;}
+    .textarea{min-height:160px; resize: vertical; line-height: 1.6;}
     .counter{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12px; opacity:.85;}
 
-    .resultHeader{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
-    .badge{
-      display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border:1px solid rgba(207,167,110,.35);
-      background: rgba(207,167,110,.10);
-      font-size:12px;
-      opacity:.98;
+    /* ===== モーダル（章クリア演出） ===== */
+    .modalBack{
+      position:fixed; inset:0; z-index:100;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center; justify-content:center;
+      padding:16px;
+      backdrop-filter: blur(10px);
     }
-    .bigTitle{font-size:18px; margin:10px 0 0; letter-spacing:.03em; line-height:1.35;}
-    .subNote{margin:6px 0 0; font-size:12px; opacity:.86; line-height:1.6;}
-
-    .bars{margin-top:12px; display:grid; grid-template-columns:1fr; gap:10px;}
-    @media(min-width:820px){ .bars{grid-template-columns: 1fr 1fr;} }
-    .barBox{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      padding: 12px;
-    }
-    .barTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12px; opacity:.90;}
-    .barLine{
-      margin-top:8px;
-      height:10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.08);
+    .modal{
+      width:min(720px, 100%);
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 380px at 20% 10%, color-mix(in oklab, var(--accent1) 25%, transparent), transparent 62%),
+        radial-gradient(780px 340px at 90% 30%, color-mix(in oklab, var(--accent2) 22%, transparent), transparent 62%),
+        rgba(10,14,32,.92);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      position:relative;
       overflow:hidden;
     }
-    .barLine > i{
-      display:block; height:100%;
-      width:50%;
-      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
-      border-radius:999px;
-      transition: width .3s ease;
+    .modalTop{
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;
     }
-    .confidence{
-      margin-top:12px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      padding:12px;
+    .modalTop h3{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.03em;
+      line-height:1.35;
     }
-    .confRow{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:12px; opacity:.90;}
-
-    details{border-radius:16px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); padding:12px;}
-    details summary{
+    .modalTop p{
+      margin:6px 0 0;
+      font-size:12px;
+      opacity:.88;
+      line-height:1.6;
+    }
+    .closeX{
+      appearance:none; border:none;
+      width:40px; height:40px;
+      border-radius: 14px;
       cursor:pointer;
-      font-size:13px; letter-spacing:.02em; opacity:.95;
-      list-style:none;
-      display:flex; align-items:center; justify-content:space-between;
-      user-select:none;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      font-size:18px;
+      line-height:1;
     }
-    details summary::-webkit-details-marker{display:none}
-    details summary .chev{
-      width:10px; height:10px;
-      border-right:2px solid rgba(234,240,255,.75);
-      border-bottom:2px solid rgba(234,240,255,.75);
-      transform: rotate(-45deg);
-      transition: transform .2s ease;
-      margin-left:8px;
-      opacity:.9;
-    }
-    details[open] summary .chev{transform: rotate(45deg);}
-    .layerText{margin:10px 0 0; font-size:12px; line-height:1.7; opacity:.88; white-space: pre-wrap;}
-
-    .jsonBox{
+    .modalGrid{
       margin-top:12px;
-      border-radius:16px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    @media(max-width:860px){ .modalGrid{grid-template-columns:1fr;} }
+    .miniCard{
+      border-radius: 18px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.22);
-      padding:12px;
-      overflow:auto;
-      max-height:320px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size:11.5px;
-      line-height:1.55;
-      color: rgba(234,240,255,.92);
-      white-space: pre;
+      padding: 12px;
+    }
+    .miniCard b{font-size:12px; letter-spacing:.03em;}
+    .miniCard p{margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;}
+
+    .modalBtns{
+      margin-top: 14px;
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;
     }
 
+    /* ===== トースト ===== */
     .toast{
-      margin-top:10px;
+      margin-top: 12px;
       padding:10px 12px;
-      border-radius:14px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
       font-size:12px;
       line-height:1.6;
       opacity:.92;
+      display:none;
     }
-    .toast.ok{border-color: rgba(65,209,138,.35); background: rgba(65,209,138,.08); color: rgba(234,240,255,.95);}
-    .toast.bad{border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08); color: rgba(234,240,255,.95);}
-    .toast.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08); color: rgba(234,240,255,.95);}
+    .toast.ok{border-color: rgba(65,209,138,.35); background: rgba(65,209,138,.08);}
+    .toast.bad{border-color: rgba(255,107,107,.35); background: rgba(255,107,107,.08);}
+    .toast.warn{border-color: rgba(255,204,102,.35); background: rgba(255,204,102,.08);}
 
-    .sep{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
-    .muted{opacity:.84}
-    .small{font-size:12px}
-
-    /* ===== 7段階：カスタムスライダー（スマホでドラッグ可 / ページ固定） ===== */
-    .scaleWrap{
-      margin-top: 12px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      padding: 14px 12px;
-    }
-    .scaleHead{
-      margin-top: 2px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap: 10px;
-      font-size:12px;
-      opacity:.92;
-    }
-    .scaleHead b{
-      font-size:14px;
-      letter-spacing:.03em;
-      min-width: 20px;
+    .footerNote{
       text-align:center;
-      opacity:1;
+      margin-top:18px;
+      font-size:12px;
+      opacity:.80;
     }
 
-    .sliderBox{
-      margin-top: 10px;
-      position: relative;
-      height: 26px;
-      user-select:none;
-      touch-action: none;             /* 重要：ここだけジェスチャを止めて、ページのズーム/横ズレを防止 */
-      -webkit-user-select:none;
-    }
-    .sliderTrack{
-      position:absolute;
-      left: 0; right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-    }
-    .sliderFill{
-      position:absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      height: 10px;
-      border-radius: 999px;
-      width: 0px;
-      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
-      box-shadow: 0 0 18px rgba(124,77,255,.14), 0 0 16px rgba(207,167,110,.10);
-    }
-    .sliderThumb{
-      position:absolute;
-      top: 50%;
-      transform: translate(-50%, -50%) scale(1);
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
-      box-shadow: 0 0 16px rgba(124,77,255,.22), 0 0 14px rgba(207,167,110,.14);
-      transition: transform .08s linear;
-    }
-    .sliderThumb:focus{
-      outline:none;
-      box-shadow: 0 0 0 3px rgba(207,167,110,.18), 0 0 18px rgba(124,77,255,.18);
-    }
-
-    .tickRow{
-      margin-top: 10px;
-      display:grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-    }
-    .tickBtn{
-      appearance:none;
-      border:none;
-      background: transparent;
-      color: rgba(234,240,255,.82);
-      font-size: 11px;
-      padding: 6px 0;
-      border-radius: 10px;
-      cursor:pointer;
-      border: 1px solid transparent;
-      user-select:none;
-    }
-    .tickBtn:active{transform: translateY(1px);}
-    .tickBtn.sel{
-      color: rgba(234,240,255,.96);
-      border-color: rgba(255,255,255,.14);
-      background: rgba(255,255,255,.04);
+    /* Confetti canvas */
+    #confettiCanvas{
+      position:fixed; inset:0;
+      z-index:120;
+      pointer-events:none;
+      display:none;
     }
   </style>
 </head>
 <body>
+  <canvas id="confettiCanvas"></canvas>
+
   <div class="wrap">
     <div class="topbar">
-      <div class="topbarRow">
+      <div class="topbarGrid">
         <div class="brand">
           <div class="orb" aria-hidden="true"></div>
           <div>
             <h1 class="title">FortuneAI式 17タイプ診断</h1>
-            <div class="subtitle">100の質問×7段階スライダーで17タイプに分類。占い5種類の象徴レイヤー付き</div>
+            <div class="subtitle">100問を20問×5章に分割。章ごとに色と演出が変わる“続けたくなる”診断</div>
           </div>
         </div>
-        <div class="progressWrap" aria-label="進捗">
-          <div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-            <i id="progressBar"></i>
+
+        <div class="topRight">
+          <div class="waterCard" aria-label="進捗（水ゲージ）">
+            <div class="waterTop">
+              <span>進捗：<b id="answeredText">0</b> / 100</span>
+              <span>章：<b id="chapterText">1</b> / 5</span>
+            </div>
+            <div class="waterTank">
+              <div class="waterFill" id="waterFill">
+                <div class="waterWave"></div>
+              </div>
+            </div>
           </div>
-          <div class="stepText" id="progressText">0%</div>
         </div>
       </div>
     </div>
 
-    <!-- VIEW: HERO -->
+    <!-- HERO -->
     <section class="card" id="viewHero">
-      <div class="hero">
-        <div>
-          <p class="lead">
-            100問の回答（1〜7）から、E/I・S/N・T/F・J/Pの4軸スコアを算出し、16タイプ＋均衡（BAL）を判定します。<br>
-            さらにタロット・星座モード・五行・手相・姓名判断の「象徴レイヤー」を結果として表示します。
+      <div class="themeRibbon"></div>
+      <p style="margin:0; font-size:13px; line-height:1.7; opacity:.90;">
+        100問×7段階で4軸（E/I・S/N・T/F・J/P）をスコア化し、16タイプ＋均衡（BAL）を判定します。<br>
+        20問ごとに章クリア演出が入り、色も変わります。途中保存・再開も可能です。
+      </p>
+      <div style="margin-top:10px; border-radius:16px; border:1px solid rgba(255,255,255,.10); background: rgba(255,255,255,.03); padding:10px 12px;">
+        <div style="font-size:12px; line-height:1.6; opacity:.90;">
+          免責：本コンテンツは娯楽・自己理解目的です。医療/法律/投資などの専門助言ではありません。
+        </div>
+      </div>
+
+      <div class="btnRow" style="justify-content:flex-start;">
+        <div class="btnGroup">
+          <button class="btn primary" id="btnStart">開始</button>
+          <button class="btn ghost" id="btnSample">サンプル入力（テスト）</button>
+          <button class="btn danger" id="btnResetAll">最初からやり直す（保存を消去）</button>
+        </div>
+      </div>
+
+      <div class="tiny">
+        ヒント：右側の「章ステッパー」で今どこまで進んだかが一目で分かります。章クリアごとに“気持ちよく次へ”進めます。
+      </div>
+    </section>
+
+    <div class="layout">
+      <!-- MAIN -->
+      <main>
+        <!-- PROFILE -->
+        <section class="card" id="viewProfile" hidden>
+          <div class="themeRibbon"></div>
+          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">プロフィール</h2>
+          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
+            送信payloadの <code>profile</code> に反映されます。必須は（名前/性別/生年月日）。
           </p>
-          <div class="disclaimer">
-            免責：本コンテンツは娯楽・自己理解を目的とした情報提供です。医療・法律・投資等の専門助言ではありません。
-            重要な意思決定は、必要に応じて専門家へご相談ください。
+
+          <div class="grid2">
+            <div>
+              <label for="name">表示名（必須）</label>
+              <input class="field" id="name" type="text" autocomplete="name" placeholder="例：太郎" />
+              <div class="err" id="errName">表示名を入力してください。</div>
+            </div>
+            <div>
+              <label for="gender">性別（必須）</label>
+              <select class="field" id="gender">
+                <option value="">選択してください</option>
+                <option value="male">male（男性）</option>
+                <option value="female">female（女性）</option>
+                <option value="other">other（その他）</option>
+              </select>
+              <div class="err" id="errGender">性別を選択してください。</div>
+            </div>
+            <div>
+              <label for="birthday">生年月日（必須）</label>
+              <input class="field" id="birthday" type="date" />
+              <div class="err" id="errBirthday">生年月日を入力してください（YYYY-MM-DD）。</div>
+            </div>
+            <div>
+              <label for="userId">userId（任意 / LINE userId等）</label>
+              <input class="field" id="userId" type="text" autocomplete="off" placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
+              <div style="margin-top:8px; font-size:12px; opacity:.82; line-height:1.6;">
+                URLに <code>?userId=...</code> があれば自動入力します（外部SDKなし）。
+              </div>
+            </div>
           </div>
 
-          <div class="pillRow" aria-label="特徴">
-            <div class="pill">✅ 自動保存（localStorage）</div>
-            <div class="pill">✅ 7段階スライダー（初期値4=回答済み）</div>
-            <div class="pill">✅ 17タイプ判定（BALあり）</div>
-            <div class="pill">✅ Make連携payload生成</div>
+          <div class="btnRow" style="justify-content:flex-start;">
+            <div class="btnGroup">
+              <button class="btn ghost" id="btnBackHero">戻る</button>
+              <button class="btn primary" id="btnToQuestions">設問へ進む</button>
+              <button class="btn ghost" id="btnSampleProfile">サンプルプロフィール</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- QUESTIONS -->
+        <section class="card" id="viewQuestions" hidden>
+          <div class="themeRibbon"></div>
+
+          <div class="qHead">
+            <div class="qHeadLeft">
+              <div class="qLabel">
+                <span id="qMeta">第1章 / Q1</span>
+                <span class="tagBadge" id="qTag">[E+]</span>
+              </div>
+              <h3 class="qTitle" id="qText">Q1. （設問）</h3>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <span class="chip">この章：<strong id="chapterAnswered">0</strong>/20</span>
+              <span class="chip">連続回答：<strong id="streak">0</strong></span>
+            </div>
+          </div>
+
+          <div id="scaleHost"></div>
+          <div class="unsetNote" id="unsetNote">未選択です。数字をタップするか、ドラッグで選んでください。</div>
+
+          <div class="btnRow">
+            <div class="btnGroup">
+              <button class="btn ghost" id="btnPrev">前へ</button>
+              <button class="btn ghost" id="btnSkipToProfile">プロフィールへ</button>
+              <button class="btn danger" id="btnResetFromQ">最初からやり直す</button>
+            </div>
+            <div class="btnGroup">
+              <button class="btn primary" id="btnNext">次へ</button>
+            </div>
+          </div>
+
+          <div class="tiny" id="microPraise" style="margin-top:10px;">
+            小さく進めばOK。20問ごとに区切るので、負担が増えません。
+          </div>
+        </section>
+
+        <!-- WORRY -->
+        <section class="card" id="viewWorry" hidden>
+          <div class="themeRibbon"></div>
+          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">悩み入力</h2>
+          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
+            最終送信payloadの <code>worryText</code> に入ります（最大2000文字）。
+          </p>
+
+          <label for="worryText" style="margin-top:12px;">悩み（最大2000文字）</label>
+          <textarea class="field textarea" id="worryText" maxlength="2000" placeholder="例：仕事の方向性が定まらず不安です。強みの活かし方が知りたい…"></textarea>
+          <div class="counter">
+            <span style="opacity:.84;">入力内容は自動保存されます。</span>
+            <span id="worryCount">0 / 2000</span>
           </div>
 
           <div class="btnRow">
-            <button class="btn primary" id="btnStart">開始</button>
-            <button class="btn ghost" id="btnSample">サンプル回答で自動入力（テスト）</button>
-            <button class="btn danger" id="btnResetFromHero">最初からやり直す（保存を消去）</button>
+            <div class="btnGroup">
+              <button class="btn ghost" id="btnBackToQ">設問へ戻る</button>
+              <button class="btn danger" id="btnResetFromW">最初からやり直す</button>
+            </div>
+            <div class="btnGroup">
+              <button class="btn primary" id="btnToResult">結果を見る</button>
+            </div>
           </div>
-          <p class="hint">
-            ヒント：Makeテスト用に「サンプル回答」を入れると、名前/性別/誕生日/回答/悩みが自動で埋まります。
+        </section>
+
+        <!-- RESULT -->
+        <section class="card" id="viewResult" hidden>
+          <div class="themeRibbon"></div>
+          <h2 style="margin:0; font-size:16px; letter-spacing:.03em;">結果</h2>
+
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <span class="chip">判定：<strong id="typeCode">----</strong></span>
+            <span class="chip" id="balChip" style="display:none;">BAL（均衡型）</span>
+          </div>
+
+          <h3 style="margin:10px 0 0; font-size:18px; letter-spacing:.02em;" id="typeTitle">FortuneAI：----</h3>
+          <p style="margin:6px 0 0; font-size:12px; opacity:.88; line-height:1.7;" id="typeSub">—</p>
+
+          <div style="margin-top:12px; display:grid; grid-template-columns: 1fr 1fr; gap:10px;" id="axisGrid"></div>
+
+          <div class="miniLine"></div>
+
+          <h3 style="margin:0; font-size:14px; letter-spacing:.03em;">占い5種類の象徴レイヤー</h3>
+          <p style="margin:8px 0 0; font-size:12px; opacity:.88; line-height:1.6;">
+            ※実在の占術を断定するものではなく、象徴（比喩）として表示します。
           </p>
-        </div>
+          <div style="margin-top:12px; display:grid; gap:10px;" id="layers"></div>
 
-        <div class="card" style="margin:0; box-shadow:none;">
-          <p class="mini"><b>Make連携について</b></p>
-          <p class="mini muted">
-            最終送信（final_submit）時に、以下の形式のJSON payloadを生成します。<br>
-            本番：WEBHOOK_URLを設定するとfetch()でPOST送信。<br>
-            テスト：WEBHOOK_URLが空なら、送信せずJSONプレビュー/コピー/ダウンロードを提供します。
-          </p>
-          <div class="sep"></div>
-          <p class="mini"><b>注意（userId）</b></p>
-          <p class="mini muted">
-            外部ライブラリ禁止のため、LIFF SDKなしでLINEのuserIdは自動取得できません。<br>
-            そのため userId は「手入力」または「URLクエリ（?userId=...）」等で渡してください。
-          </p>
-        </div>
-      </div>
-    </section>
+          <div class="miniLine"></div>
 
-    <!-- VIEW: PROFILE -->
-    <section class="card" id="viewProfile" hidden>
-      <h2 class="h1">プロフィール入力</h2>
-      <p class="lead">送信payloadの profile に直結します。必須項目は未入力のまま進めません。</p>
+          <div class="btnRow" style="justify-content:space-between;">
+            <div class="btnGroup">
+              <button class="btn ghost" id="btnBackToW">悩みへ戻る</button>
+              <button class="btn danger" id="btnResetFromR">最初からやり直す</button>
+            </div>
+            <div class="btnGroup">
+              <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
+              <button class="btn ghost" id="btnCopyJson">JSONコピー</button>
+              <button class="btn ghost" id="btnDownloadJson">JSONDL</button>
+            </div>
+          </div>
 
-      <div class="grid" style="margin-top:12px;">
+          <div class="toast" id="submitToast"></div>
+
+          <div id="jsonPreviewWrap" style="display:none;">
+            <div class="miniLine"></div>
+            <div style="font-size:12px; opacity:.90;"><b>テストモード（WEBHOOK_URL未設定）：JSONプレビュー</b></div>
+            <pre style="margin:10px 0 0; border-radius:16px; border:1px solid rgba(255,255,255,.12); background: rgba(0,0,0,.22); padding:12px; overflow:auto; max-height:320px; font-size:11.5px; line-height:1.55;"
+                 id="jsonPreview"></pre>
+          </div>
+        </section>
+      </main>
+
+      <!-- SIDE -->
+      <aside class="side">
+        <section class="card">
+          <div class="sideTitle">
+            <h2>ナビ</h2>
+            <span class="chip">今：<strong id="sideNow">—</strong></span>
+          </div>
+          <div style="font-size:12px; opacity:.88; line-height:1.6;">
+            20問で1章。章を超えるたびに色と演出が変わり、“次へ行きたくなる”設計です。
+          </div>
+
+          <div class="miniLine"></div>
+
+          <div style="font-size:12px; opacity:.90; letter-spacing:.03em;"><b>章ステッパー</b></div>
+          <div class="chapters" id="chapterList"></div>
+        </section>
+
+        <section class="momentumBox">
+          <div class="momentumTop">
+            <span>モメンタム（今の勢い）</span>
+            <b id="momentumPct">0%</b>
+          </div>
+          <div class="momentumBar">
+            <div class="momentumFill" id="momentumFill"></div>
+            <div class="momentumGlow"></div>
+          </div>
+          <div class="praise" id="momentumText">まずは1問。水が溜まり始めます。</div>
+        </section>
+
+        <section class="card">
+          <div class="sideTitle">
+            <h2>ショートカット</h2>
+            <span class="chip">保存：<strong>ON</strong></span>
+          </div>
+          <div class="btnRow" style="justify-content:flex-start; margin-top:10px;">
+            <div class="btnGroup">
+              <button class="btn ghost" id="btnGoHero">トップ</button>
+              <button class="btn ghost" id="btnGoProfile">プロフィール</button>
+              <button class="btn ghost" id="btnGoResult" title="※未回答があると結果に行けません">結果</button>
+            </div>
+          </div>
+          <div style="margin-top:10px; font-size:12px; opacity:.86; line-height:1.6;">
+            userId は <code>?userId=</code> で渡すと自動入力できます（LIFF SDK不要）。
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="footerNote">© FortuneAI / 単一ファイル構成（外部ライブラリ不使用）</div>
+  </div>
+
+  <!-- 章クリアモーダル -->
+  <div class="modalBack" id="modalBack" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalTop">
         <div>
-          <label for="name">表示名（必須）</label>
-          <input class="field" id="name" type="text" inputmode="text" autocomplete="name" placeholder="例：太郎" />
-          <div class="err" id="errName">表示名を入力してください。</div>
+          <h3 id="modalTitle">第1章 クリア</h3>
+          <p id="modalDesc">素晴らしい。次の章はテーマカラーが切り替わります。</p>
         </div>
-        <div>
-          <label for="gender">性別（必須）</label>
-          <select class="field" id="gender" aria-label="性別">
-            <option value="">選択してください</option>
-            <option value="male">male（男性）</option>
-            <option value="female">female（女性）</option>
-            <option value="other">other（その他）</option>
-          </select>
-          <div class="err" id="errGender">性別を選択してください。</div>
+        <button class="closeX" id="modalClose" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="modalGrid">
+        <div class="miniCard">
+          <b>この章の進捗</b>
+          <p id="modalChapterStats">20/20 完了</p>
         </div>
-        <div>
-          <label for="birthday">生年月日（必須）</label>
-          <input class="field" id="birthday" type="date" />
-          <div class="err" id="errBirthday">生年月日を入力してください（YYYY-MM-DD）。</div>
+        <div class="miniCard">
+          <b>全体の進捗</b>
+          <p id="modalAllStats">20/100（20%）</p>
         </div>
-        <div>
-          <label for="userId">userId（任意 / LINE userId等）</label>
-          <input class="field" id="userId" type="text" inputmode="text" autocomplete="off" placeholder="例：Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" />
-          <p class="mini muted" style="margin:8px 0 0;">※URLに <code>?userId=...</code> があれば自動で入ります。</p>
+        <div class="miniCard">
+          <b>次の一言</b>
+          <p id="modalNudge">次の20問は“テンポよく”。直感でOK。</p>
+        </div>
+        <div class="miniCard">
+          <b>ごほうび</b>
+          <p id="modalReward">テーマカラー変更 + コンフェッティ + モメンタム上昇</p>
         </div>
       </div>
 
-      <div class="btnRow">
-        <button class="btn ghost" id="btnBackToHero">戻る</button>
-        <button class="btn primary" id="btnToQuestions">回答へ進む</button>
-        <button class="btn ghost" id="btnSampleProfileOnly">サンプルプロフィール入力</button>
-      </div>
-
-      <div class="toast warn" id="profileRestoreNote" style="display:none;">
-        保存データを検出しました。プロフィール・回答・進捗を復元しています。
-      </div>
-    </section>
-
-    <!-- VIEW: QUESTIONS -->
-    <section class="card" id="viewQuestions" hidden>
-      <div class="qHeader">
-        <div>
-          <h2 class="h1" style="margin:0;">設問回答</h2>
-          <p class="lead" id="qProgress">1 / 100</p>
+      <div class="modalBtns">
+        <div class="btnGroup">
+          <button class="btn ghost" id="modalPause">ここで止める（保存して終了）</button>
         </div>
-        <div class="tagBadge" id="qTag">[E+]</div>
-      </div>
-
-      <p class="qTitle" id="qText" style="margin-top:10px;">Q1. （設問）</p>
-
-      <!-- スライダーがここに入る -->
-      <div id="scaleGrid" aria-label="7段階スライダー"></div>
-
-      <div class="btnRow" style="justify-content:space-between;">
-        <button class="btn ghost" id="btnPrevQ">前へ</button>
-        <div class="muted small" id="qGuard" style="opacity:0;">未回答のまま次へ進めません。</div>
-        <button class="btn primary" id="btnNextQ">次へ</button>
-      </div>
-
-      <div class="sep"></div>
-
-      <div class="btnRow">
-        <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
-        <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
-      </div>
-    </section>
-
-    <!-- VIEW: WORRY -->
-    <section class="card" id="viewWorry" hidden>
-      <h2 class="h1">悩み入力</h2>
-      <p class="lead">最終送信payloadの <code>worryText</code> に入ります（最大2000文字）。</p>
-
-      <label for="worryText" style="margin-top:12px;">悩み（最大2000文字）</label>
-      <textarea class="field textarea" id="worryText" maxlength="2000" placeholder="例：仕事の方向性が定まらず不安です。今後の強みの活かし方が知りたい…"></textarea>
-      <div class="counter">
-        <span class="muted">入力内容は自動保存されます。</span>
-        <span id="worryCount">0 / 2000</span>
-      </div>
-
-      <div class="btnRow">
-        <button class="btn ghost" id="btnBackToQuestions">回答へ戻る</button>
-        <button class="btn primary" id="btnShowResult">結果を見る</button>
-      </div>
-    </section>
-
-    <!-- VIEW: RESULT -->
-    <section class="card" id="viewResult" hidden>
-      <div class="resultHeader">
-        <div>
-          <div class="badge">判定タイプ：<b id="typeCode">----</b></div>
-          <h2 class="bigTitle" id="typeTitle">FortuneAI：----</h2>
-          <p class="subNote" id="typeSub">（----）</p>
+        <div class="btnGroup">
+          <button class="btn primary" id="modalContinue">次の章へ進む</button>
         </div>
-        <div class="badge" id="balanceNote" style="display:none;">BAL判定（均衡型）</div>
       </div>
-
-      <div class="bars" id="axisBars"></div>
-
-      <div class="confidence">
-        <div class="confRow">
-          <span>信頼度（4軸平均）</span>
-          <b id="confOverall">--%</b>
-        </div>
-        <div class="barLine" aria-label="信頼度">
-          <i id="confBar" style="width:0%;"></i>
-        </div>
-        <p class="hint" style="margin:8px 0 0;">
-          信頼度は各軸の絶対値（0〜100%換算）を%に換算し、4軸平均で算出します。
-        </p>
-      </div>
-
-      <div class="sep"></div>
-
-      <h3 class="h1" style="font-size:16px; margin:0;">占い5種類の象徴レイヤー</h3>
-      <p class="lead">※あくまで象徴（比喩）として表示します。実在の占術の断定ではありません。</p>
-
-      <div style="display:grid; gap:10px; margin-top:12px;" id="layers"></div>
-
-      <div class="sep"></div>
-
-      <div class="btnRow">
-        <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
-        <button class="btn ghost" id="btnCopyJson">JSONをコピー</button>
-        <button class="btn ghost" id="btnDownloadJson">JSONをダウンロード</button>
-        <button class="btn danger" id="btnResetFromResult">最初からやり直す（保存を消去）</button>
-      </div>
-
-      <div class="toast" id="submitStatus" style="display:none;"></div>
-
-      <div id="jsonPreviewWrap" style="display:none;">
-        <div class="sep"></div>
-        <p class="lead"><b>JSONプレビュー（テストモード：WEBHOOK_URL未設定）</b></p>
-        <div class="jsonBox" id="jsonPreview"></div>
-      </div>
-    </section>
-
-    <p class="hint" style="text-align:center; margin-top:18px;">
-      © FortuneAI / 本ページは単一ファイル構成（外部ライブラリ不使用）
-    </p>
+    </div>
   </div>
 
   <script>
     /***********************
-     * 設定（ここだけ編集）
+     * 設定（必要ならここだけ編集）
      ***********************/
     const WEBHOOK_URL = "https://hook.eu2.make.com/7ac62r32ffup0cl0d1kr9h3dpbf8dz3h";
-    const STORAGE_KEY = "fortuneai_17type_v1";
+    const STORAGE_KEY = "fortuneai_17type_chapters_v1";
 
-    // 1..7（中心4）での軸最大値：25問×3 = 75
+    // 章設定：20問×5章
+    const CHUNK = 20;
+    const TOTAL = 100;
+    const CHAPTERS = 5;
+
+    // 4軸最大値：各軸25問×3=75
     const AXIS_MAX = 75;
 
+    // 章ごとのテーマ（背景に効く/ボタン/水/アクセント）
+    const THEMES = [
+      { name: "星雲パープル", a1:"#7c4dff", a2:"#cfa76e", a3:"#2fe6ff", nudge:"良いペース。次は“直感でサクサク”。" },
+      { name: "深海シアン",   a1:"#2fe6ff", a2:"#7c4dff", a3:"#cfa76e", nudge:"深呼吸してOK。迷ったら“中庸→微調整”。" },
+      { name: "黎明ゴールド", a1:"#cfa76e", a2:"#2fe6ff", a3:"#7c4dff", nudge:"ここから加速。テンポを崩さず行ける。" },
+      { name: "紅玉ピンク",   a1:"#ff5bd6", a2:"#cfa76e", a3:"#2fe6ff", nudge:"疲れたら1分休憩。戻ればすぐ続きから。" },
+      { name: "翠光グリーン", a1:"#41d18a", a2:"#2fe6ff", a3:"#cfa76e", nudge:"最後の章。水位が上がるほど“終わりが近い”。" },
+    ];
+
     /***********************
-     * 17タイプ称号データ（固定）
+     * 17タイプ称号
      ***********************/
     const TYPE_TITLES = {
       "INTJ":"FortuneAI：黒曜アーキテクト（戦略設計者）",
@@ -612,7 +930,7 @@
       "ENFJ":"FortuneAI：旭日メンター（覚醒導師）",
       "ENFP":"FortuneAI：虹彩オラクル（可能性点火者）",
       "ISTJ":"FortuneAI：鉄律マーシャル（秩序監督者）",
-      "ISFJ":"FortuneAI：守灯スチュワード（献身支援者）",
+      "ISFJ":"守灯スチュワード（献身支援者）",
       "ESTJ":"FortuneAI：白鋼マーシャル（現場統制者）",
       "ESFJ":"FortuneAI：祝祭ホスト（調和演出者）",
       "ISTP":"FortuneAI：影刃スミス（実務解体者）",
@@ -628,10 +946,9 @@
     };
 
     /***********************
-     * 設問データ（100問）
+     * 設問（100問）※必要なら文言差し替えOK
      ***********************/
     const QUESTIONS = buildDefaultQuestions();
-
     function buildDefaultQuestions(){
       const out = [];
       const mk = (id, text, tag) => ({ id, text, tag });
@@ -753,109 +1070,133 @@
       for (const [t, tag] of S) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of T) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
       for (const [t, tag] of J) out.push(mk(id++, `Q${id-1}. ${t}`, tag));
-
-      if (out.length !== 100) throw new Error("QUESTIONS length must be 100. Current=" + out.length);
+      if (out.length !== 100) throw new Error("QUESTIONS length must be 100");
       return out;
     }
 
     /***********************
-     * UI Elements
+     * DOM
      ***********************/
-    const el = {
-      progressBar: document.getElementById("progressBar"),
-      progressText: document.getElementById("progressText"),
+    const $ = (id)=>document.getElementById(id);
+    const dom = {
+      viewHero: $("viewHero"),
+      viewProfile: $("viewProfile"),
+      viewQuestions: $("viewQuestions"),
+      viewWorry: $("viewWorry"),
+      viewResult: $("viewResult"),
 
-      viewHero: document.getElementById("viewHero"),
-      viewProfile: document.getElementById("viewProfile"),
-      viewQuestions: document.getElementById("viewQuestions"),
-      viewWorry: document.getElementById("viewWorry"),
-      viewResult: document.getElementById("viewResult"),
+      answeredText: $("answeredText"),
+      chapterText: $("chapterText"),
+      waterFill: $("waterFill"),
 
-      btnStart: document.getElementById("btnStart"),
-      btnSample: document.getElementById("btnSample"),
-      btnResetFromHero: document.getElementById("btnResetFromHero"),
+      btnStart: $("btnStart"),
+      btnSample: $("btnSample"),
+      btnResetAll: $("btnResetAll"),
 
-      btnBackToHero: document.getElementById("btnBackToHero"),
-      btnToQuestions: document.getElementById("btnToQuestions"),
-      btnSampleProfileOnly: document.getElementById("btnSampleProfileOnly"),
-      profileRestoreNote: document.getElementById("profileRestoreNote"),
+      btnBackHero: $("btnBackHero"),
+      btnToQuestions: $("btnToQuestions"),
+      btnSampleProfile: $("btnSampleProfile"),
 
-      name: document.getElementById("name"),
-      gender: document.getElementById("gender"),
-      birthday: document.getElementById("birthday"),
-      userId: document.getElementById("userId"),
-      errName: document.getElementById("errName"),
-      errGender: document.getElementById("errGender"),
-      errBirthday: document.getElementById("errBirthday"),
+      name: $("name"),
+      gender: $("gender"),
+      birthday: $("birthday"),
+      userId: $("userId"),
+      errName: $("errName"),
+      errGender: $("errGender"),
+      errBirthday: $("errBirthday"),
 
-      qProgress: document.getElementById("qProgress"),
-      qTag: document.getElementById("qTag"),
-      qText: document.getElementById("qText"),
-      scaleGrid: document.getElementById("scaleGrid"),
-      btnPrevQ: document.getElementById("btnPrevQ"),
-      btnNextQ: document.getElementById("btnNextQ"),
-      btnJumpProfile: document.getElementById("btnJumpProfile"),
-      btnResetFromQuestions: document.getElementById("btnResetFromQuestions"),
-      qGuard: document.getElementById("qGuard"),
+      qMeta: $("qMeta"),
+      qTag: $("qTag"),
+      qText: $("qText"),
+      scaleHost: $("scaleHost"),
+      unsetNote: $("unsetNote"),
 
-      worryText: document.getElementById("worryText"),
-      worryCount: document.getElementById("worryCount"),
-      btnBackToQuestions: document.getElementById("btnBackToQuestions"),
-      btnShowResult: document.getElementById("btnShowResult"),
+      btnPrev: $("btnPrev"),
+      btnNext: $("btnNext"),
+      btnSkipToProfile: $("btnSkipToProfile"),
+      btnResetFromQ: $("btnResetFromQ"),
+      microPraise: $("microPraise"),
 
-      typeCode: document.getElementById("typeCode"),
-      typeTitle: document.getElementById("typeTitle"),
-      typeSub: document.getElementById("typeSub"),
-      balanceNote: document.getElementById("balanceNote"),
-      axisBars: document.getElementById("axisBars"),
-      confOverall: document.getElementById("confOverall"),
-      confBar: document.getElementById("confBar"),
-      layers: document.getElementById("layers"),
+      chapterAnswered: $("chapterAnswered"),
+      streak: $("streak"),
 
-      btnFinalSubmit: document.getElementById("btnFinalSubmit"),
-      btnCopyJson: document.getElementById("btnCopyJson"),
-      btnDownloadJson: document.getElementById("btnDownloadJson"),
-      btnResetFromResult: document.getElementById("btnResetFromResult"),
-      submitStatus: document.getElementById("submitStatus"),
+      sideNow: $("sideNow"),
+      chapterList: $("chapterList"),
 
-      jsonPreviewWrap: document.getElementById("jsonPreviewWrap"),
-      jsonPreview: document.getElementById("jsonPreview"),
+      momentumFill: $("momentumFill"),
+      momentumPct: $("momentumPct"),
+      momentumText: $("momentumText"),
+
+      btnGoHero: $("btnGoHero"),
+      btnGoProfile: $("btnGoProfile"),
+      btnGoResult: $("btnGoResult"),
+
+      worryText: $("worryText"),
+      worryCount: $("worryCount"),
+      btnBackToQ: $("btnBackToQ"),
+      btnResetFromW: $("btnResetFromW"),
+      btnToResult: $("btnToResult"),
+
+      typeCode: $("typeCode"),
+      typeTitle: $("typeTitle"),
+      typeSub: $("typeSub"),
+      balChip: $("balChip"),
+      axisGrid: $("axisGrid"),
+      layers: $("layers"),
+
+      btnBackToW: $("btnBackToW"),
+      btnResetFromR: $("btnResetFromR"),
+      btnFinalSubmit: $("btnFinalSubmit"),
+      btnCopyJson: $("btnCopyJson"),
+      btnDownloadJson: $("btnDownloadJson"),
+      submitToast: $("submitToast"),
+      jsonPreviewWrap: $("jsonPreviewWrap"),
+      jsonPreview: $("jsonPreview"),
+
+      modalBack: $("modalBack"),
+      modalClose: $("modalClose"),
+      modalTitle: $("modalTitle"),
+      modalDesc: $("modalDesc"),
+      modalChapterStats: $("modalChapterStats"),
+      modalAllStats: $("modalAllStats"),
+      modalNudge: $("modalNudge"),
+      modalReward: $("modalReward"),
+      modalPause: $("modalPause"),
+      modalContinue: $("modalContinue"),
+
+      confettiCanvas: $("confettiCanvas"),
     };
 
     /***********************
      * State
+     * answers: 0=未選択 / 1..7=選択済
      ***********************/
     const state = {
       view: "hero",
-      currentIndex: 0,
-      profile: { name: "", gender: "", birthday: "" },
+      index: 0,
+      profile: { name:"", gender:"", birthday:"" },
       userId: "",
-      answers: new Array(100).fill(4),  // ★初期値4＝回答済み扱い
+      answers: new Array(TOTAL).fill(0),
       worryText: "",
+      streak: 0,
+      lastAnsweredAt: 0,
       lastPayload: null,
+      lastChapterCleared: 0, // 0..5
     };
 
     /***********************
-     * Utilities
+     * Utils
      ***********************/
-    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+    const now = ()=>Date.now();
 
     function parseQuery(){
       const q = new URLSearchParams(location.search);
-      const userId = q.get("userId") || "";
-      return { userId };
+      return { userId: q.get("userId") || "" };
     }
 
     function save(){
-      const data = {
-        view: state.view,
-        currentIndex: state.currentIndex,
-        profile: state.profile,
-        userId: state.userId,
-        answers: state.answers,
-        worryText: state.worryText,
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
 
     function load(){
@@ -864,10 +1205,10 @@
       try{
         const data = JSON.parse(raw);
         if (!data || typeof data !== "object") return false;
-        if (!Array.isArray(data.answers) || data.answers.length !== 100) return false;
+        if (!Array.isArray(data.answers) || data.answers.length !== TOTAL) return false;
 
-        state.view = data.view || "hero";
-        state.currentIndex = clamp(Number(data.currentIndex || 0), 0, 99);
+        state.view = String(data.view || "hero");
+        state.index = clamp(Number(data.index || 0), 0, TOTAL-1);
         state.profile = {
           name: String(data.profile?.name || ""),
           gender: String(data.profile?.gender || ""),
@@ -875,10 +1216,15 @@
         };
         state.userId = String(data.userId || "");
         state.answers = data.answers.map(v => {
-          if (v===null || v===undefined || v==="") return 4;
-          return clamp(Number(v), 1, 7);
+          const n = Number(v);
+          if (!Number.isFinite(n)) return 0;
+          if (n === 0) return 0;
+          return clamp(Math.round(n), 1, 7);
         });
         state.worryText = String(data.worryText || "");
+        state.streak = clamp(Number(data.streak || 0), 0, 9999);
+        state.lastAnsweredAt = Number(data.lastAnsweredAt || 0);
+        state.lastChapterCleared = clamp(Number(data.lastChapterCleared || 0), 0, CHAPTERS);
         return true;
       }catch{
         return false;
@@ -888,42 +1234,73 @@
     function clearAll(){
       localStorage.removeItem(STORAGE_KEY);
       state.view = "hero";
-      state.currentIndex = 0;
+      state.index = 0;
       state.profile = { name:"", gender:"", birthday:"" };
       state.userId = "";
-      state.answers = new Array(100).fill(4);
+      state.answers = new Array(TOTAL).fill(0);
       state.worryText = "";
+      state.streak = 0;
+      state.lastAnsweredAt = 0;
       state.lastPayload = null;
-      renderAll();
+      state.lastChapterCleared = 0;
+      applyThemeByIndex(0);
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
     }
 
     function setView(v){
       state.view = v;
       save();
-      renderAll();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
     }
 
-    function setProgress(pct, text){
-      const p = clamp(pct, 0, 100);
-      el.progressBar.style.width = p.toFixed(0) + "%";
-      el.progressText.textContent = text ?? (p.toFixed(0) + "%");
-      el.progressBar.parentElement.setAttribute("aria-valuenow", String(p));
+    function answeredCount(){
+      let c = 0;
+      for (const a of state.answers) if (a >= 1 && a <= 7) c++;
+      return c;
+    }
+
+    function chapterOfIndex(i){
+      return Math.floor(i / CHUNK) + 1; // 1..5
+    }
+    function chapterStart(ch){
+      return (ch - 1) * CHUNK;
+    }
+    function chapterEnd(ch){
+      return Math.min(ch * CHUNK - 1, TOTAL - 1);
+    }
+    function chapterAnsweredCount(ch){
+      const s = chapterStart(ch), e = chapterEnd(ch);
+      let c = 0;
+      for (let i=s; i<=e; i++) if (state.answers[i] >= 1) c++;
+      return c;
+    }
+    function allChaptersCleared(){
+      for (let ch=1; ch<=CHAPTERS; ch++){
+        if (chapterAnsweredCount(ch) < CHUNK) return false;
+      }
+      return true;
+    }
+
+    function applyTheme(theme){
+      document.documentElement.style.setProperty("--accent1", theme.a1);
+      document.documentElement.style.setProperty("--accent2", theme.a2);
+      document.documentElement.style.setProperty("--accent3", theme.a3);
+    }
+
+    function applyThemeByIndex(i){
+      const ch = chapterOfIndex(i);
+      const theme = THEMES[ch-1] || THEMES[0];
+      applyTheme(theme);
     }
 
     function toast(kind, msg){
-      el.submitStatus.className = "toast " + (kind || "");
-      el.submitStatus.textContent = msg;
-      el.submitStatus.style.display = "block";
+      dom.submitToast.className = "toast " + (kind || "");
+      dom.submitToast.textContent = msg;
+      dom.submitToast.style.display = "block";
     }
-
-    function hideToast(){
-      el.submitStatus.style.display = "none";
-    }
-
-    function safeJsonStringify(obj){
-      return JSON.stringify(obj, null, 2);
-    }
+    function hideToast(){ dom.submitToast.style.display = "none"; }
 
     async function copyToClipboard(text){
       try{
@@ -934,23 +1311,20 @@
         ta.value = text;
         ta.style.position = "fixed";
         ta.style.left = "-9999px";
-        ta.style.top = "0";
         document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
+        ta.focus(); ta.select();
         let ok = false;
         try{ ok = document.execCommand("copy"); }catch{ ok = false; }
-        document.body.removeChild(ta);
+        ta.remove();
         return ok;
       }
     }
 
     function downloadText(filename, text){
-      const blob = new Blob([text], { type: "application/json;charset=utf-8" });
+      const blob = new Blob([text], {type:"application/json;charset=utf-8"});
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
+      a.href = url; a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -958,36 +1332,225 @@
     }
 
     /***********************
-     * Validation
+     * Slider colors by value（数字で分かりやすく）
+     ***********************/
+    // 1..7 に対応する色（視認性優先）
+    const VALUE_COLORS = {
+      1: "#ff4d6d", // 赤
+      2: "#ff7a45", // 橙
+      3: "#ffcc66", // 黄
+      4: "#b6c0ff", // 中庸（淡い青紫）
+      5: "#2fe6ff", // シアン
+      6: "#7c4dff", // 紫
+      7: "#cfa76e", // ゴールド
+    };
+
+    function mix(a,b,t){
+      const pa = hexToRgb(a), pb = hexToRgb(b);
+      const r = Math.round(pa.r + (pb.r-pa.r)*t);
+      const g = Math.round(pa.g + (pb.g-pa.g)*t);
+      const bb= Math.round(pa.b + (pb.b-pa.b)*t);
+      return `rgb(${r},${g},${bb})`;
+    }
+    function hexToRgb(hex){
+      const h = hex.replace("#","");
+      const v = parseInt(h.length===3 ? h.split("").map(x=>x+x).join("") : h, 16);
+      return { r:(v>>16)&255, g:(v>>8)&255, b:v&255 };
+    }
+
+    /***********************
+     * Custom 7-step slider (ドラッグOK)
+     * - 未選択のときは「中庸表示」だがカウントしない
+     ***********************/
+    function buildSevenSlider({ value, isSet, onChange }){
+      const wrap = document.createElement("div");
+      wrap.className = "scaleWrap";
+
+      const head = document.createElement("div");
+      head.className = "scaleHead";
+      const left = document.createElement("span");
+      left.textContent = "1 = まったくそう思わない";
+      const mid = document.createElement("b");
+      mid.textContent = isSet ? String(value) : "—";
+      const right = document.createElement("span");
+      right.textContent = "7 = 非常にそう思う";
+      head.appendChild(left); head.appendChild(mid); head.appendChild(right);
+
+      const hint = document.createElement("div");
+      hint.className = "scaleHint";
+      hint.textContent = "数字をタップ、または丸をドラッグ。未選択のまま次へは進めません。";
+
+      const slider = document.createElement("div");
+      slider.className = "sliderBox";
+      slider.setAttribute("role","slider");
+      slider.setAttribute("aria-valuemin","1");
+      slider.setAttribute("aria-valuemax","7");
+      slider.setAttribute("tabindex","0");
+
+      const track = document.createElement("div");
+      track.className = "sliderTrack";
+
+      const fill = document.createElement("div");
+      fill.className = "sliderFill";
+
+      const thumb = document.createElement("div");
+      thumb.className = "sliderThumb";
+
+      slider.appendChild(track);
+      slider.appendChild(fill);
+      slider.appendChild(thumb);
+
+      const ticks = document.createElement("div");
+      ticks.className = "tickRow";
+      const tickBtns = [];
+
+      for (let i=1; i<=7; i++){
+        const b = document.createElement("button");
+        b.type="button";
+        b.className="tickBtn";
+        b.textContent = String(i);
+        b.addEventListener("click", ()=> setValue(i, true));
+        ticks.appendChild(b);
+        tickBtns.push(b);
+      }
+
+      wrap.appendChild(head);
+      wrap.appendChild(slider);
+      wrap.appendChild(ticks);
+      wrap.appendChild(hint);
+
+      let current = clamp(Number(value || 4), 1, 7);
+      let setFlag = !!isSet;
+
+      function updateUI(){
+        // 中央表示
+        mid.textContent = setFlag ? String(current) : "—";
+        slider.setAttribute("aria-valuenow", String(current));
+
+        // thumb位置
+        const rect = slider.getBoundingClientRect();
+        const thumbW = 24;
+        const pad = thumbW/2;
+        const usable = Math.max(1, rect.width - pad*2);
+        const p = (current - 1) / 6;
+        const x = pad + usable * p;
+
+        thumb.style.left = x + "px";
+        fill.style.width = x + "px";
+
+        // value色
+        const c = VALUE_COLORS[current] || "#b6c0ff";
+        const c2 = mix(c, getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim() || "#cfa76e", 0.35);
+
+        // 未選択は淡く（でもカーソルは見える）
+        const alpha = setFlag ? 1.0 : 0.35;
+
+        fill.style.background = `linear-gradient(90deg, ${c}, ${c2})`;
+        fill.style.opacity = alpha;
+
+        thumb.style.background = setFlag ? c : "rgba(255,255,255,.70)";
+        thumb.style.borderColor = setFlag ? "rgba(255,255,255,.32)" : "rgba(255,255,255,.18)";
+        thumb.style.boxShadow = setFlag
+          ? `0 0 0 3px ${mix(c,"#000000",0.0).replace("rgb","rgba").replace(")",", .18)")} , 0 12px 28px rgba(0,0,0,.28)`
+          : "0 10px 26px rgba(0,0,0,.26)";
+
+        // tick
+        tickBtns.forEach((btn, idx)=>{
+          const v = idx+1;
+          btn.classList.toggle("sel", setFlag && v===current);
+          btn.style.borderColor = "rgba(255,255,255,.12)";
+          btn.style.background = "rgba(255,255,255,.04)";
+          if (setFlag && v===current){
+            btn.style.borderColor = "rgba(255,255,255,.18)";
+            btn.style.background = "rgba(255,255,255,.08)";
+          }
+        });
+      }
+
+      function setValue(v, emit){
+        const nv = clamp(Math.round(Number(v)), 1, 7);
+        current = nv;
+        setFlag = true;
+        updateUI();
+        if (emit) onChange(current);
+      }
+
+      function valueFromClientX(clientX){
+        const rect = slider.getBoundingClientRect();
+        const thumbW = 24;
+        const pad = thumbW/2;
+        const usable = Math.max(1, rect.width - pad*2);
+        const x = clamp(clientX - rect.left, pad, rect.width - pad);
+        const p = (x - pad) / usable;
+        const raw = 1 + p*6;
+        return clamp(Math.round(raw), 1, 7);
+      }
+
+      slider.addEventListener("click", (e)=>{
+        if (slider._dragging) return;
+        setValue(valueFromClientX(e.clientX), true);
+      });
+
+      slider.addEventListener("pointerdown", (e)=>{
+        slider._dragging = true;
+        slider.setPointerCapture(e.pointerId);
+        setValue(valueFromClientX(e.clientX), true);
+      });
+      slider.addEventListener("pointermove", (e)=>{
+        if (!slider._dragging) return;
+        setValue(valueFromClientX(e.clientX), true);
+      });
+      function endDrag(){ slider._dragging = false; }
+      slider.addEventListener("pointerup", endDrag);
+      slider.addEventListener("pointercancel", endDrag);
+      slider.addEventListener("lostpointercapture", endDrag);
+
+      slider.addEventListener("keydown", (e)=>{
+        if (e.key==="ArrowLeft"||e.key==="ArrowDown"){ e.preventDefault(); setValue(current-1,true); }
+        if (e.key==="ArrowRight"||e.key==="ArrowUp"){ e.preventDefault(); setValue(current+1,true); }
+        if (e.key==="Home"){ e.preventDefault(); setValue(1,true); }
+        if (e.key==="End"){ e.preventDefault(); setValue(7,true); }
+      });
+
+      const ro = new ResizeObserver(()=> updateUI());
+      ro.observe(slider);
+
+      // 初期表示（未選択なら4を基準に位置だけ出す）
+      updateUI();
+
+      return { node: wrap, destroy: ()=>ro.disconnect() };
+    }
+
+    /***********************
+     * Profile validation
      ***********************/
     function validateProfile(){
       let ok = true;
-      el.errName.style.display = "none";
-      el.errGender.style.display = "none";
-      el.errBirthday.style.display = "none";
+      dom.errName.style.display = "none";
+      dom.errGender.style.display = "none";
+      dom.errBirthday.style.display = "none";
 
-      const name = el.name.value.trim();
-      const gender = el.gender.value;
-      const birthday = el.birthday.value;
+      const name = dom.name.value.trim();
+      const gender = dom.gender.value;
+      const birthday = dom.birthday.value;
 
-      if (!name){ el.errName.style.display = "block"; ok = false; }
-      if (!gender){ el.errGender.style.display = "block"; ok = false; }
+      if (!name){ dom.errName.style.display="block"; ok=false; }
+      if (!gender){ dom.errGender.style.display="block"; ok=false; }
       if (!birthday || !/^\d{4}-\d{2}-\d{2}$/.test(birthday)){
-        el.errBirthday.style.display = "block"; ok = false;
+        dom.errBirthday.style.display="block"; ok=false;
       }
       return ok;
     }
-
-    function syncProfileFromInputs(){
-      state.profile.name = el.name.value.trim();
-      state.profile.gender = el.gender.value;
-      state.profile.birthday = el.birthday.value;
-      state.userId = el.userId.value.trim();
+    function syncProfile(){
+      state.profile.name = dom.name.value.trim();
+      state.profile.gender = dom.gender.value;
+      state.profile.birthday = dom.birthday.value;
+      state.userId = dom.userId.value.trim();
       save();
     }
 
     /***********************
-     * Scoring & Typing (1..7中心4)
+     * Score & type
      ***********************/
     function answerToValue(ans){ return (Number(ans) - 4); } // 1..7 -> -3..+3
 
@@ -997,7 +1560,6 @@
       const axis = m[1];
       const sign = m[2];
       const v = (sign === "+") ? val : -val;
-
       if (axis === "E") scores.E += v;
       if (axis === "S") scores.S += v;
       if (axis === "T") scores.T += v;
@@ -1006,8 +1568,10 @@
 
     function computeScores(){
       const scores = { E:0, S:0, T:0, J:0 };
-      for (let i=0; i<100; i++){
-        const val = answerToValue(state.answers[i]);
+      for (let i=0; i<TOTAL; i++){
+        const a = state.answers[i];
+        if (a < 1) continue; // 未選択はスコア計算しない
+        const val = answerToValue(a);
         applyTagToAxis(QUESTIONS[i].tag, val, scores);
       }
       scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
@@ -1034,19 +1598,12 @@
     }
 
     function axisPercent(score){
-      const p = ((score + AXIS_MAX) / (2 * AXIS_MAX)) * 100;
+      const p = ((score + AXIS_MAX) / (2*AXIS_MAX)) * 100;
       return clamp(p, 0, 100);
-    }
-    function confidence(score){
-      const p = (Math.abs(score) / AXIS_MAX) * 100;
-      return clamp(p, 0, 100);
-    }
-    function overallConfidence(scores){
-      return (confidence(scores.E) + confidence(scores.S) + confidence(scores.T) + confidence(scores.J)) / 4;
     }
 
     /***********************
-     * Symbolic Layers
+     * Symbolic layers
      ***********************/
     function zodiacMode(scores, isBAL){
       if (isBAL) return "柔軟宮モード（バランスと適応）";
@@ -1112,33 +1669,29 @@
     }
 
     /***********************
-     * Payload Builder
+     * Make payload
      ***********************/
     function buildPayload(){
-      const userId = (state.userId || "").trim();
       const payload = {
         action: "final_submit",
-        userId: userId || "",
+        userId: (state.userId || "").trim(),
         step: 999,
         profile: {
           gender: state.profile.gender,
           name: state.profile.name,
           birthday: state.profile.birthday
         },
-        answers: state.answers.map(v => Number(v)),
+        answers: state.answers.map(v => Number(v)), // 0あり得るが送信前にチェック
         worryText: state.worryText || ""
       };
 
-      if (!Array.isArray(payload.answers) || payload.answers.length !== 100) {
-        throw new Error("answers must be array length 100");
+      // 必須
+      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday){
+        throw new Error("プロフィールが未入力です");
       }
-      for (const a of payload.answers){
-        if (!Number.isInteger(a) || a < 1 || a > 7) {
-          throw new Error("answers must be integers 1..7");
-        }
-      }
-      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) {
-        throw new Error("profile is incomplete");
+      // 全回答必須
+      if (payload.answers.some(a => !Number.isInteger(a) || a<1 || a>7)){
+        throw new Error("未回答があります（全100問に回答してください）");
       }
       if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0, 2000);
       return payload;
@@ -1154,434 +1707,457 @@
       try{
         payload = buildPayload();
       }catch(e){
-        toast("bad", "送信前チェックに失敗しました： " + (e?.message || e));
+        toast("bad", "送信前チェックに失敗： " + (e?.message || e));
         return;
       }
       state.lastPayload = payload;
       save();
 
-      const jsonText = safeJsonStringify(payload);
+      const json = JSON.stringify(payload, null, 2);
 
       if (!WEBHOOK_URL){
-        el.jsonPreviewWrap.style.display = "block";
-        el.jsonPreview.textContent = jsonText;
-        toast("warn", "テストモード：WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
+        dom.jsonPreviewWrap.style.display = "block";
+        dom.jsonPreview.textContent = json;
+        toast("warn", "WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
         return;
       }
 
-      el.jsonPreviewWrap.style.display = "none";
+      dom.jsonPreviewWrap.style.display = "none";
       toast("", "送信中…");
+
       try{
         const res = await fetch(WEBHOOK_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: jsonText
+          headers: {"Content-Type":"application/json"},
+          body: json
         });
         if (!res.ok){
           const txt = await safeReadText(res);
-          toast("bad", "送信失敗：HTTP " + res.status + " / " + (txt ? "body=" + txt.slice(0, 400) : "no body"));
+          toast("bad", "送信失敗：HTTP " + res.status + " / " + (txt ? txt.slice(0,400) : "no body"));
           return;
         }
         const body = await safeReadText(res);
-        toast("ok", "送信成功：HTTP " + res.status + (body ? " / response=" + body.slice(0, 400) : ""));
+        toast("ok", "送信成功：HTTP " + res.status + (body ? " / " + body.slice(0,250) : ""));
       }catch(e){
         toast("bad", "送信エラー： " + (e?.message || e));
       }
     }
 
     /***********************
-     * 7段階カスタムスライダー
-     * - ドラッグ可（スマホOK）
-     * - ページは固定（ズーム/横ズレしない）
-     * - 端に行くほどカーソルが大きく
-     * - 色が徐々に変化（紫→金）
+     * “答えたくなる”モメンタム
+     * - 直近で回答すると上がる（放置で少し落ちる）
      ***********************/
-    function lerp(a,b,t){ return a + (b-a)*t; }
-    function lerpColorRGB(c1, c2, t){
-      const r = Math.round(lerp(c1[0], c2[0], t));
-      const g = Math.round(lerp(c1[1], c2[1], t));
-      const b = Math.round(lerp(c1[2], c2[2], t));
-      return `rgb(${r},${g},${b})`;
+    function updateStreakOnAnswer(){
+      const t = now();
+      const dt = t - state.lastAnsweredAt;
+      // 2分以内なら連続扱い
+      if (dt > 0 && dt <= 120000) state.streak += 1;
+      else state.streak = 1;
+
+      state.lastAnsweredAt = t;
+      save();
     }
-    const PURPLE = [124, 77, 255];
-    const GOLD   = [207,167,110];
 
-    function buildSevenSlider(opts){
-      const { value, onChange } = opts;
+    function momentumValue(){
+      // 回答数 + 連続回答 を適度に混ぜる
+      const a = answeredCount();
+      const base = (a / TOTAL) * 70;          // 0..70
+      const streakBoost = Math.min(state.streak, 30) * 1.0; // 0..30
+      let m = base + streakBoost;             // 0..100
+      // 長時間放置で少し落ちる（視覚上の演出）
+      const dt = now() - state.lastAnsweredAt;
+      if (state.lastAnsweredAt && dt > 180000){
+        const decay = Math.min((dt - 180000) / 600000, 1) * 12; // 最大12%
+        m = Math.max(0, m - decay);
+      }
+      return clamp(m, 0, 100);
+    }
 
-      const wrap = document.createElement("div");
-      wrap.className = "scaleWrap";
+    function momentumCopy(m){
+      if (m < 10) return "まずは1問。水が溜まり始めます。";
+      if (m < 30) return "いい感じ。『次へ』で流れに乗れます。";
+      if (m < 55) return "ペースが乗ってきました。20問はすぐ終わります。";
+      if (m < 75) return "集中状態。今のまま章クリアまで行けます。";
+      if (m < 90) return "ほぼゾーン。迷ったら直感でOK。";
+      return "仕上がってます。最後まで一気に回収できます。";
+    }
 
-      const head = document.createElement("div");
-      head.className = "scaleHead";
-      const left = document.createElement("span");
-      left.textContent = "1 = まったくそう思わない";
-      const mid = document.createElement("b");
-      mid.textContent = String(value);
-      const right = document.createElement("span");
-      right.textContent = "7 = 非常にそう思う";
-      head.appendChild(left);
-      head.appendChild(mid);
-      head.appendChild(right);
+    /***********************
+     * Chapter clear modal + confetti
+     ***********************/
+    function openModalForChapter(ch){
+      const theme = THEMES[ch-1] || THEMES[0];
+      dom.modalTitle.textContent = `第${ch}章 クリア`;
+      dom.modalDesc.textContent = `テーマ「${theme.name}」達成。次章は色が切り替わります。`;
+      dom.modalChapterStats.textContent = `${CHUNK}/${CHUNK} 完了`;
+      const ac = answeredCount();
+      dom.modalAllStats.textContent = `${ac}/${TOTAL}（${Math.round((ac/TOTAL)*100)}%）`;
+      dom.modalNudge.textContent = theme.nudge;
+      dom.modalReward.textContent = "テーマカラー変更 / 水位上昇 / コンフェッティ";
 
-      const slider = document.createElement("div");
-      slider.className = "sliderBox";
-      slider.setAttribute("role", "slider");
-      slider.setAttribute("aria-valuemin", "1");
-      slider.setAttribute("aria-valuemax", "7");
-      slider.setAttribute("tabindex", "0");
+      dom.modalBack.style.display = "flex";
+      startConfetti(); // ご褒美演出
+    }
 
-      const track = document.createElement("div");
-      track.className = "sliderTrack";
+    function closeModal(){
+      dom.modalBack.style.display = "none";
+      stopConfetti();
+    }
 
-      const fill = document.createElement("div");
-      fill.className = "sliderFill";
+    dom.modalClose.addEventListener("click", closeModal);
+    dom.modalBack.addEventListener("click", (e)=>{
+      if (e.target === dom.modalBack) closeModal();
+    });
 
-      const thumb = document.createElement("div");
-      thumb.className = "sliderThumb";
-      thumb.setAttribute("aria-hidden", "true");
+    dom.modalPause.addEventListener("click", ()=>{
+      closeModal();
+      setView("hero");
+    });
 
-      slider.appendChild(track);
-      slider.appendChild(fill);
-      slider.appendChild(thumb);
+    dom.modalContinue.addEventListener("click", ()=>{
+      closeModal();
+      // 次の章の最初へ
+      const nextCh = Math.min(state.lastChapterCleared + 1, CHAPTERS);
+      state.index = clamp(chapterStart(nextCh), 0, TOTAL-1);
+      applyThemeByIndex(state.index);
+      save();
+      setView("questions");
+    });
 
-      const ticks = document.createElement("div");
-      ticks.className = "tickRow";
-      const tickBtns = [];
-      for (let i=1; i<=7; i++){
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "tickBtn";
-        b.textContent = String(i);
-        b.addEventListener("click", ()=>{
-          setValue(i, true);
+    /***********************
+     * Confetti（軽量）
+     ***********************/
+    const conf = {
+      running:false,
+      parts:[],
+      raf:0,
+      ctx:null,
+      w:0,h:0
+    };
+
+    function resizeConfetti(){
+      conf.w = window.innerWidth;
+      conf.h = window.innerHeight;
+      dom.confettiCanvas.width = Math.floor(conf.w * devicePixelRatio);
+      dom.confettiCanvas.height = Math.floor(conf.h * devicePixelRatio);
+      dom.confettiCanvas.style.width = conf.w + "px";
+      dom.confettiCanvas.style.height = conf.h + "px";
+      conf.ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    }
+
+    function spawnConfetti(n=120){
+      conf.parts.length = 0;
+      const colors = [getComputedStyle(document.documentElement).getPropertyValue("--accent1").trim(),
+                      getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim(),
+                      getComputedStyle(document.documentElement).getPropertyValue("--accent3").trim(),
+                      "#ffffff"];
+      for (let i=0;i<n;i++){
+        conf.parts.push({
+          x: Math.random()*conf.w,
+          y: -20 - Math.random()*conf.h*0.2,
+          vx: (Math.random()-0.5)*4,
+          vy: 3 + Math.random()*6,
+          r: 3 + Math.random()*4,
+          rot: Math.random()*Math.PI,
+          vr: (Math.random()-0.5)*0.25,
+          c: colors[Math.floor(Math.random()*colors.length)],
+          life: 80 + Math.random()*80,
         });
-        ticks.appendChild(b);
-        tickBtns.push(b);
       }
+    }
 
-      wrap.appendChild(head);
-      wrap.appendChild(slider);
-      wrap.appendChild(ticks);
+    function confettiTick(){
+      if (!conf.running) return;
+      const ctx = conf.ctx;
+      ctx.clearRect(0,0,conf.w,conf.h);
 
-      let current = clamp(Number(value), 1, 7);
+      for (const p of conf.parts){
+        p.x += p.vx;
+        p.y += p.vy;
+        p.rot += p.vr;
+        p.vy *= 0.995; // ほんの少し空気抵抗
+        p.life -= 1;
 
-      function updateUI(){
-        mid.textContent = String(current);
-        slider.setAttribute("aria-valuenow", String(current));
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.c;
+        ctx.globalAlpha = Math.max(0, Math.min(1, p.life/120));
+        ctx.fillRect(-p.r, -p.r, p.r*2.2, p.r*1.4);
+        ctx.restore();
 
-        // 端ほど大きく（4が最小）
-        const dist = Math.abs(current - 4); // 0..3
-        const tScale = dist / 3;            // 0..1
-        const scale = 1 + tScale * 0.55;    // 1.00..1.55
-        thumb.style.transform = `translate(-50%, -50%) scale(${scale})`;
-
-        // 色：紫→金に徐々に変化
-        const t = (current - 1) / 6; // 0..1
-        const accent = lerpColorRGB(PURPLE, GOLD, t);
-
-        // フィルは“紫→金”のグラデ、強調はaccent
-        fill.style.background = `linear-gradient(90deg, rgb(${PURPLE.join(",")}), rgb(${GOLD.join(",")}))`;
-        fill.style.boxShadow = `0 0 18px rgba(124,77,255,.12), 0 0 16px rgba(207,167,110,.10)`;
-
-        thumb.style.borderColor = "rgba(255,255,255,.22)";
-        thumb.style.boxShadow = `0 0 18px rgba(124,77,255,.18), 0 0 16px rgba(207,167,110,.12)`;
-
-        // 位置（ズレ防止：実測でピクセル計算）
-        const rect = slider.getBoundingClientRect();
-        const thumbW = 22;
-        const pad = thumbW/2; // 端のズレ補正
-        const usable = Math.max(1, rect.width - pad*2);
-        const p = (current - 1) / 6; // 0..1
-
-        const x = pad + usable * p;       // thumb center
-        thumb.style.left = x + "px";
-        fill.style.width = x + "px";      // 左端からxまで（track全幅ベース）
-
-        // tick選択状態
-        tickBtns.forEach((btn, idx)=>{
-          btn.classList.toggle("sel", (idx+1) === current);
-        });
-
-        // 目盛りの強調色（選択ボタンだけ accent）
-        tickBtns[current-1].style.borderColor = "rgba(255,255,255,.14)";
-        tickBtns[current-1].style.background = "rgba(255,255,255,.04)";
-        tickBtns[current-1].style.color = "rgba(234,240,255,.98)";
-        // 他はリセット（上書きされ続けるのを防ぐ）
-        for (let k=0; k<tickBtns.length; k++){
-          if (k === current-1) continue;
-          tickBtns[k].style.borderColor = "transparent";
-          tickBtns[k].style.background = "transparent";
-          tickBtns[k].style.color = "rgba(234,240,255,.82)";
-        }
-
-        // ラベル中央値の色も徐々に変える（欲しければ）
-        mid.style.color = accent;
+        if (p.y > conf.h + 40) p.life = 0;
       }
+      conf.parts = conf.parts.filter(p => p.life > 0);
 
-      function setValue(v, emit){
-        const nv = clamp(Math.round(Number(v)), 1, 7);
-        if (nv === current) return;
-        current = nv;
-        updateUI();
-        if (emit) onChange(current);
+      if (conf.parts.length === 0){
+        stopConfetti();
+        return;
       }
+      conf.raf = requestAnimationFrame(confettiTick);
+    }
 
-      function valueFromClientX(clientX){
-        const rect = slider.getBoundingClientRect();
-        const thumbW = 22;
-        const pad = thumbW/2;
-        const usable = Math.max(1, rect.width - pad*2);
-        const x = clamp(clientX - rect.left, pad, rect.width - pad);
-        const p = (x - pad) / usable;     // 0..1
-        const raw = 1 + p * 6;
-        return clamp(Math.round(raw), 1, 7);
+    function startConfetti(){
+      if (!conf.ctx){
+        conf.ctx = dom.confettiCanvas.getContext("2d");
+        window.addEventListener("resize", ()=>{ if(conf.running) resizeConfetti(); });
       }
+      dom.confettiCanvas.style.display = "block";
+      conf.running = true;
+      resizeConfetti();
+      spawnConfetti(160);
+      cancelAnimationFrame(conf.raf);
+      conf.raf = requestAnimationFrame(confettiTick);
+      // 4秒で終了
+      setTimeout(()=> stopConfetti(), 4200);
+    }
 
-      // track/slider をタップしても選べる
-      slider.addEventListener("click", (e)=>{
-        // クリックはドラッグ後にも飛ぶことがあるので、pointer capture中は無視
-        if (slider._dragging) return;
-        const v = valueFromClientX(e.clientX);
-        setValue(v, true);
-      });
-
-      // ドラッグ（スマホ/PC両対応）
-      slider.addEventListener("pointerdown", (e)=>{
-        slider._dragging = true;
-        slider.setPointerCapture(e.pointerId);
-        // ページが動かないように（この要素だけ touch-action:none で止める）
-        const v = valueFromClientX(e.clientX);
-        setValue(v, true);
-      });
-
-      slider.addEventListener("pointermove", (e)=>{
-        if (!slider._dragging) return;
-        const v = valueFromClientX(e.clientX);
-        setValue(v, true);
-      });
-
-      function endDrag(){
-        slider._dragging = false;
-      }
-      slider.addEventListener("pointerup", endDrag);
-      slider.addEventListener("pointercancel", endDrag);
-      slider.addEventListener("lostpointercapture", endDrag);
-
-      // キーボード操作
-      slider.addEventListener("keydown", (e)=>{
-        if (e.key === "ArrowLeft" || e.key === "ArrowDown"){
-          e.preventDefault();
-          setValue(current - 1, true);
-        }
-        if (e.key === "ArrowRight" || e.key === "ArrowUp"){
-          e.preventDefault();
-          setValue(current + 1, true);
-        }
-        if (e.key === "Home"){
-          e.preventDefault();
-          setValue(1, true);
-        }
-        if (e.key === "End"){
-          e.preventDefault();
-          setValue(7, true);
-        }
-      });
-
-      // 初期描画
-      updateUI();
-
-      // 画面回転・リサイズでズレないよう再計算
-      const ro = new ResizeObserver(()=> updateUI());
-      ro.observe(slider);
-
-      return { node: wrap, setValue, getValue: ()=>current, destroy: ()=>ro.disconnect() };
+    function stopConfetti(){
+      conf.running = false;
+      cancelAnimationFrame(conf.raf);
+      if (conf.ctx) conf.ctx.clearRect(0,0,conf.w,conf.h);
+      dom.confettiCanvas.style.display = "none";
     }
 
     /***********************
      * Rendering
      ***********************/
     function hideAllViews(){
-      el.viewHero.hidden = true;
-      el.viewProfile.hidden = true;
-      el.viewQuestions.hidden = true;
-      el.viewWorry.hidden = true;
-      el.viewResult.hidden = true;
+      dom.viewHero.hidden = true;
+      dom.viewProfile.hidden = true;
+      dom.viewQuestions.hidden = true;
+      dom.viewWorry.hidden = true;
+      dom.viewResult.hidden = true;
     }
 
-    function renderAll(){
-      hideAllViews();
-      if (state.view === "hero"){
-        el.viewHero.hidden = false;
-        setProgress(0, "0%");
+    function updateTopProgress(){
+      const a = answeredCount();
+      dom.answeredText.textContent = String(a);
+
+      const ch = chapterOfIndex(state.index);
+      dom.chapterText.textContent = String(ch);
+
+      // 水位（回答数で増える）
+      const pct = (a / TOTAL) * 100;
+      dom.waterFill.style.width = pct.toFixed(1) + "%";
+    }
+
+    function renderChapters(){
+      dom.chapterList.innerHTML = "";
+      const currentCh = chapterOfIndex(state.index);
+
+      for (let ch=1; ch<=CHAPTERS; ch++){
+        const done = (chapterAnsweredCount(ch) >= CHUNK);
+        const item = document.createElement("div");
+        item.className = "chapterItem" + (ch===currentCh ? " active" : "") + (done ? " done" : "");
+        const left = document.createElement("div");
+        left.innerHTML = `<b>第${ch}章</b><div style="font-size:12px; opacity:.84; margin-top:2px;">Q${chapterStart(ch)+1}〜Q${chapterEnd(ch)+1}</div>`;
+        const right = document.createElement("span");
+        right.textContent = done ? "完了" : (chapterAnsweredCount(ch) + "/20");
+        item.appendChild(left);
+        item.appendChild(right);
+
+        item.addEventListener("click", ()=>{
+          // 章ジャンプ（未完でもOK）：その章の最初へ
+          state.index = chapterStart(ch);
+          applyThemeByIndex(state.index);
+          save();
+          setView("questions");
+        });
+
+        dom.chapterList.appendChild(item);
       }
-      if (state.view === "profile"){
-        el.viewProfile.hidden = false;
-        renderProfile();
-        setProgress(5, "プロフィール");
-      }
-      if (state.view === "questions"){
-        el.viewQuestions.hidden = false;
-        renderQuestion();
-      }
-      if (state.view === "worry"){
-        el.viewWorry.hidden = false;
-        renderWorry();
-        setProgress(92, "悩み入力");
-      }
-      if (state.view === "result"){
-        el.viewResult.hidden = false;
-        renderResult();
-        setProgress(100, "結果");
-      }
+
+      const nowLabel = `第${currentCh}章 / Q${state.index+1}`;
+      dom.sideNow.textContent = nowLabel;
+    }
+
+    function renderMomentum(){
+      const m = momentumValue();
+      dom.momentumFill.style.width = m.toFixed(1) + "%";
+      dom.momentumPct.textContent = Math.round(m) + "%";
+      dom.momentumText.textContent = momentumCopy(m);
+      dom.streak.textContent = String(state.streak);
     }
 
     function renderProfile(){
-      el.name.value = state.profile.name || "";
-      el.gender.value = state.profile.gender || "";
-      el.birthday.value = state.profile.birthday || "";
-      el.userId.value = state.userId || "";
+      dom.name.value = state.profile.name || "";
+      dom.gender.value = state.profile.gender || "";
+      dom.birthday.value = state.profile.birthday || "";
+      dom.userId.value = state.userId || "";
     }
 
     function renderQuestion(){
-      const i = state.currentIndex;
+      const i = state.index;
       const q = QUESTIONS[i];
+      const ch = chapterOfIndex(i);
+      const inChapterIndex = (i - chapterStart(ch)) + 1;
 
-      el.qProgress.textContent = (i+1) + " / 100";
-      el.qTag.textContent = q.tag;
-      el.qText.textContent = q.text;
+      dom.qMeta.textContent = `第${ch}章（${inChapterIndex}/20） / Q${i+1}`;
+      dom.qTag.textContent = q.tag;
+      dom.qText.textContent = q.text;
 
-      const base = 5;
-      const span = 85;
-      const pct = base + ( (i) / 100 ) * span;
-      setProgress(pct, el.qProgress.textContent);
+      dom.btnPrev.disabled = (i === 0);
+      dom.btnNext.textContent = (i === TOTAL-1) ? "次へ（悩み入力）" : "次へ";
 
-      // 7段階（初期4は回答扱い）
-      el.scaleGrid.innerHTML = "";
-      const current = Number.isInteger(state.answers[i]) ? state.answers[i] : 4;
+      // 章内回答数
+      dom.chapterAnswered.textContent = String(chapterAnsweredCount(ch));
+
+      // slider
+      dom.scaleHost.innerHTML = "";
+      const a = state.answers[i];
+      const isSet = (a >= 1);
+      const shown = isSet ? a : 4;
 
       const slider = buildSevenSlider({
-        value: current,
+        value: shown,
+        isSet,
         onChange: (v)=>{
+          const beforeSet = (state.answers[i] >= 1);
           state.answers[i] = v;
+
+          // streak & praiseは「初回選択」と「変更」両方でも良いが、
+          // “やった感”は初回に強く出す
+          updateStreakOnAnswer();
           save();
+
+          // 未選択→選択になった瞬間に軽く褒める
+          if (!beforeSet){
+            microPraise(i);
+          }else{
+            // 変更は小さめの褒め
+            dom.microPraise.textContent = pick([
+              "調整できている。あなたの感覚が精度を上げています。",
+              "いい微調整。ここまで来たら“自分の直感”が正解です。",
+              "その選び方でOK。次へ進むほど輪郭が出ます。"
+            ]);
+          }
+
+          // UI更新
+          dom.unsetNote.style.display = "none";
+          updateTopProgress();
+          renderChapters();
+          renderMomentum();
+
+          // 章クリア判定（章の最後の問題を“選択”したタイミングが気持ち良い）
+          maybeChapterClear();
         }
       });
+      dom.scaleHost.appendChild(slider.node);
 
-      el.scaleGrid.appendChild(slider.node);
-      el.qGuard.style.opacity = "0";
-
-      el.btnPrevQ.disabled = (i === 0);
-      el.btnNextQ.textContent = (i === 99) ? "次へ（悩み入力）" : "次へ";
+      // 未選択警告
+      dom.unsetNote.style.display = (state.answers[i] >= 1) ? "none" : "block";
     }
 
     function renderWorry(){
-      el.worryText.value = state.worryText || "";
-      updateWorryCount();
+      dom.worryText.value = state.worryText || "";
+      dom.worryCount.textContent = `${dom.worryText.value.length} / 2000`;
     }
 
-    function updateWorryCount(){
-      const len = el.worryText.value.length;
-      el.worryCount.textContent = `${len} / 2000`;
+    function axisCard(label, leftName, rightName, score){
+      const leftPct = axisPercent(score);
+      const rightPct = 100 - leftPct;
+      const wrap = document.createElement("div");
+      wrap.style.borderRadius = "18px";
+      wrap.style.border = "1px solid rgba(255,255,255,.12)";
+      wrap.style.background = "rgba(0,0,0,.18)";
+      wrap.style.padding = "12px";
+
+      const top = document.createElement("div");
+      top.style.display = "flex";
+      top.style.justifyContent = "space-between";
+      top.style.gap = "10px";
+      top.style.flexWrap = "wrap";
+      top.style.fontSize = "12px";
+      top.style.opacity = ".90";
+      top.innerHTML = `<span>${label}</span><span>${leftName} ${leftPct.toFixed(1)}% / ${rightName} ${rightPct.toFixed(1)}%</span>`;
+
+      const bar = document.createElement("div");
+      bar.style.marginTop = "8px";
+      bar.style.height = "12px";
+      bar.style.borderRadius = "999px";
+      bar.style.border = "1px solid rgba(255,255,255,.12)";
+      bar.style.background = "rgba(255,255,255,.08)";
+      bar.style.overflow = "hidden";
+
+      const fill = document.createElement("div");
+      fill.style.height = "100%";
+      fill.style.width = leftPct.toFixed(1) + "%";
+      fill.style.borderRadius = "999px";
+      fill.style.background = "linear-gradient(90deg, var(--accent1), var(--accent2))";
+      bar.appendChild(fill);
+
+      const small = document.createElement("div");
+      small.style.marginTop = "8px";
+      small.style.fontSize = "12px";
+      small.style.opacity = ".85";
+      small.textContent = `軸スコア：${score} / ${AXIS_MAX}`;
+
+      wrap.appendChild(top);
+      wrap.appendChild(bar);
+      wrap.appendChild(small);
+      return wrap;
     }
 
     function renderResult(){
       hideToast();
-      el.jsonPreviewWrap.style.display = "none";
+      dom.jsonPreviewWrap.style.display = "none";
 
       const scores = computeScores();
       const t = computeType(scores);
+      dom.typeCode.textContent = t.typeCode;
+      dom.typeTitle.textContent = TYPE_TITLES[t.typeCode] || "—";
+      dom.typeSub.textContent = t.isBAL ? "均衡型（BAL）— 4軸が拮抗しているため、状況に応じて最適化しやすいタイプです。" : "—";
+      dom.balChip.style.display = t.isBAL ? "inline-flex" : "none";
+
+      dom.axisGrid.innerHTML = "";
+      dom.axisGrid.appendChild(axisCard("E/I", "E", "I", scores.E));
+      dom.axisGrid.appendChild(axisCard("S/N", "S", "N", scores.S));
+      dom.axisGrid.appendChild(axisCard("T/F", "T", "F", scores.T));
+      dom.axisGrid.appendChild(axisCard("J/P", "J", "P", scores.J));
+
       const typeCode = t.typeCode;
-
-      el.typeCode.textContent = typeCode;
-      el.typeTitle.textContent = TYPE_TITLES[typeCode] || "（未定義）";
-      el.typeSub.textContent = (typeCode === "BAL") ? "（統合適応者）" : "";
-      el.balanceNote.style.display = t.isBAL ? "inline-flex" : "none";
-
-      el.axisBars.innerHTML = "";
-      const axisData = [
-        { key:"E", left:"E", right:"I", score: scores.E },
-        { key:"S", left:"S", right:"N", score: scores.S },
-        { key:"T", left:"T", right:"F", score: scores.T },
-        { key:"J", left:"J", right:"P", score: scores.J },
-      ];
-
-      for (const a of axisData){
-        const leftPct = axisPercent(a.score);
-        const rightPct = 100 - leftPct;
-        const conf = confidence(a.score);
-
-        const box = document.createElement("div");
-        box.className = "barBox";
-
-        const top = document.createElement("div");
-        top.className = "barTop";
-        top.innerHTML = `
-          <span>${a.left}/${a.right}</span>
-          <span>${a.left}寄り ${leftPct.toFixed(1)}% / ${a.right}寄り ${rightPct.toFixed(1)}%</span>
-        `;
-
-        const line = document.createElement("div");
-        line.className = "barLine";
-        const fill = document.createElement("i");
-        fill.style.width = leftPct.toFixed(1) + "%";
-        line.appendChild(fill);
-
-        const small = document.createElement("div");
-        small.className = "muted small";
-        small.style.marginTop = "8px";
-        small.textContent = `軸スコア: ${a.score} / 信頼度: ${conf.toFixed(1)}%`;
-
-        box.appendChild(top);
-        box.appendChild(line);
-        box.appendChild(small);
-        el.axisBars.appendChild(box);
-      }
-
-      const overall = overallConfidence(scores);
-      el.confOverall.textContent = overall.toFixed(1) + "%";
-      el.confBar.style.width = overall.toFixed(1) + "%";
-
-      el.layers.innerHTML = "";
       const tarot = TAROT_MAJOR[typeCode] || "—";
       const zm = zodiacMode(scores, t.isBAL);
       const five = fiveElements(typeCode);
 
       const layers = [
-        {
-          title: "タロット（大アルカナ）",
-          body: `対応カード：${tarot}\n\n象徴：あなたの意思決定の癖や、今期のテーマを“物語”として捉えるための比喩です。`
-        },
-        {
-          title: "星座モード（象徴）",
-          body: `モード：${zm}\n\n象徴：実際の星座を確定するものではなく、“行動のテンポ”や“変化への姿勢”を示す比喩です。`
-        },
-        {
-          title: "五行（四柱推命の象徴：比喩）",
-          body: `象徴：${five}\n\n象徴：気質を元素に置き換えた比喩です。相性や運勢の断定ではありません。`
-        },
-        { title: "手相（象徴：比喩）", body: palmistryText(typeCode) },
-        { title: "姓名判断（象徴：比喩）", body: nameologyText(typeCode) }
+        { title:"タロット（大アルカナ）", body:`対応カード：${tarot}\n\n象徴：意思決定の癖を“物語”で捉えるための比喩です。` },
+        { title:"星座モード（象徴）", body:`モード：${zm}\n\n象徴：実星座の断定ではなく、行動テンポの比喩です。` },
+        { title:"五行（象徴）", body:`象徴：${five}\n\n象徴：気質を元素で表した比喩です。` },
+        { title:"手相（象徴）", body: palmistryText(typeCode) },
+        { title:"姓名判断（象徴）", body: nameologyText(typeCode) },
       ];
 
+      dom.layers.innerHTML = "";
       for (const L of layers){
         const d = document.createElement("details");
+        d.style.borderRadius = "18px";
+        d.style.border = "1px solid rgba(255,255,255,.12)";
+        d.style.background = "rgba(0,0,0,.18)";
+        d.style.padding = "12px";
+
         const s = document.createElement("summary");
-        s.innerHTML = `<span>${escapeHtml(L.title)}</span><span class="chev" aria-hidden="true"></span>`;
+        s.style.cursor = "pointer";
+        s.style.listStyle = "none";
+        s.style.display = "flex";
+        s.style.alignItems = "center";
+        s.style.justifyContent = "space-between";
+        s.style.fontSize = "13px";
+        s.style.opacity = ".95";
+        s.innerHTML = `<span>${escapeHtml(L.title)}</span><span style="opacity:.8;">▼</span>`;
+
         const p = document.createElement("div");
-        p.className = "layerText";
+        p.style.marginTop = "10px";
+        p.style.fontSize = "12px";
+        p.style.lineHeight = "1.7";
+        p.style.opacity = ".88";
+        p.style.whiteSpace = "pre-wrap";
         p.textContent = L.body;
+
         d.appendChild(s);
         d.appendChild(p);
-        el.layers.appendChild(d);
-      }
-
-      try{
-        const payload = buildPayload();
-        state.lastPayload = payload;
-        save();
-      }catch{
-        // noop
+        dom.layers.appendChild(d);
       }
     }
 
@@ -1594,120 +2170,217 @@
         .replaceAll("'","&#039;");
     }
 
-    function ensureAllAnswered(){
-      for (let i=0; i<100; i++){
-        const a = state.answers[i];
-        if (!Number.isInteger(a) || a < 1 || a > 7) return false;
+    function render(){
+      hideAllViews();
+
+      // テーマ（今のindexに合わせる）
+      applyThemeByIndex(state.index);
+
+      updateTopProgress();
+      renderChapters();
+      renderMomentum();
+
+      if (state.view === "hero"){
+        dom.viewHero.hidden = false;
       }
-      return true;
+      if (state.view === "profile"){
+        dom.viewProfile.hidden = false;
+        renderProfile();
+      }
+      if (state.view === "questions"){
+        dom.viewQuestions.hidden = false;
+        renderQuestion();
+      }
+      if (state.view === "worry"){
+        dom.viewWorry.hidden = false;
+        renderWorry();
+      }
+      if (state.view === "result"){
+        dom.viewResult.hidden = false;
+        renderResult();
+      }
     }
 
     /***********************
-     * Event bindings
+     * Micro praise（答えたくなる）
      ***********************/
-    el.btnStart.addEventListener("click", ()=> setView("profile"));
-    el.btnBackToHero.addEventListener("click", ()=> setView("hero"));
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-    el.btnToQuestions.addEventListener("click", ()=>{
-      if (!validateProfile()) return;
-      syncProfileFromInputs();
-      setView("questions");
-    });
+    function microPraise(i){
+      const ch = chapterOfIndex(i);
+      const inCh = (i - chapterStart(ch)) + 1;
+      const a = answeredCount();
 
-    el.btnSampleProfileOnly.addEventListener("click", ()=>{
-      el.name.value = "太郎";
-      el.gender.value = "male";
-      el.birthday.value = "2003-05-01";
-      syncProfileFromInputs();
-    });
+      const msgs = [
+        `いいスタート。水が溜まり始めた（${a}/100）。`,
+        `ナイス。第${ch}章の${inCh}/20。章クリアは近い。`,
+        `今の選択は効いてる。迷ったら直感でOK。`,
+        `いい感じ。あと少しで色が切り替わる。`,
+        `その回答、精度が上がる。次へ。`,
+      ];
+      dom.microPraise.textContent = pick(msgs);
+    }
 
-    el.btnSample.addEventListener("click", ()=>{
-      state.profile.name = "太郎";
-      state.profile.gender = "male";
-      state.profile.birthday = "2003-05-01";
-      state.answers = new Array(100).fill(4);
-      state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
-      state.currentIndex = 0;
+    /***********************
+     * Chapter clear detection
+     ***********************/
+    function maybeChapterClear(){
+      const ch = chapterOfIndex(state.index);
+      const done = (chapterAnsweredCount(ch) >= CHUNK);
+      if (!done) return;
+
+      // すでにこの章までクリア済みなら出さない
+      if (ch <= state.lastChapterCleared) return;
+
+      // 章クリアを記録
+      state.lastChapterCleared = ch;
       save();
-      setView("profile");
-      el.profileRestoreNote.style.display = "block";
-      setTimeout(()=> el.profileRestoreNote.style.display="none", 3500);
-    });
 
-    el.btnResetFromHero.addEventListener("click", clearAll);
-    el.btnResetFromQuestions.addEventListener("click", clearAll);
-    el.btnResetFromResult.addEventListener("click", clearAll);
+      // 次章テーマに切り替える前に、演出としてモーダル
+      openModalForChapter(ch);
+    }
 
-    el.btnJumpProfile.addEventListener("click", ()=>{
-      syncProfileFromInputs();
-      setView("profile");
-    });
+    /***********************
+     * Navigation rules
+     ***********************/
+    function canGoNext(){
+      return state.answers[state.index] >= 1;
+    }
 
-    el.name.addEventListener("input", syncProfileFromInputs);
-    el.gender.addEventListener("change", syncProfileFromInputs);
-    el.birthday.addEventListener("change", syncProfileFromInputs);
-    el.userId.addEventListener("input", syncProfileFromInputs);
-
-    el.btnPrevQ.addEventListener("click", ()=>{
-      if (state.currentIndex > 0){
-        state.currentIndex--;
-        save();
-        renderQuestion();
+    function next(){
+      if (!canGoNext()){
+        dom.unsetNote.style.display = "block";
+        dom.microPraise.textContent = "未選択のまま進めません。数字を一度選んでください。";
+        return;
       }
-    });
 
-    el.btnNextQ.addEventListener("click", ()=>{
-      if (state.currentIndex === 99){
-        if (!ensureAllAnswered()){
-          toast("bad", "未回答が残っています。全100問に回答してください。");
-          return;
-        }
+      if (state.index === TOTAL-1){
         setView("worry");
         return;
       }
-      state.currentIndex++;
+      state.index++;
+      applyThemeByIndex(state.index);
       save();
-      renderQuestion();
+      render();
+    }
+
+    function prev(){
+      if (state.index === 0) return;
+      state.index--;
+      applyThemeByIndex(state.index);
+      save();
+      render();
+    }
+
+    /***********************
+     * Events
+     ***********************/
+    dom.btnStart.addEventListener("click", ()=> setView("profile"));
+
+    dom.btnSample.addEventListener("click", ()=>{
+      state.profile = { name:"太郎", gender:"male", birthday:"2003-05-01" };
+      state.userId = "";
+      // テスト：全部4で埋める（すぐ結果へ行ける）
+      state.answers = new Array(TOTAL).fill(4);
+      state.worryText = "（テスト）サンプル悩み：今後の方向性と強みが知りたい。";
+      state.index = 0;
+      state.streak = 0;
+      state.lastAnsweredAt = 0;
+      state.lastChapterCleared = 5;
+      save();
+      setView("profile");
     });
 
-    el.worryText.addEventListener("input", ()=>{
-      state.worryText = el.worryText.value.slice(0, 2000);
-      updateWorryCount();
+    dom.btnResetAll.addEventListener("click", clearAll);
+    dom.btnResetFromQ.addEventListener("click", clearAll);
+    dom.btnResetFromW.addEventListener("click", clearAll);
+    dom.btnResetFromR.addEventListener("click", clearAll);
+
+    dom.btnBackHero.addEventListener("click", ()=> setView("hero"));
+    dom.btnSampleProfile.addEventListener("click", ()=>{
+      dom.name.value = "太郎";
+      dom.gender.value = "male";
+      dom.birthday.value = "2003-05-01";
+      dom.userId.value = state.userId || "";
+      syncProfile();
+    });
+
+    dom.btnToQuestions.addEventListener("click", ()=>{
+      if (!validateProfile()) return;
+      syncProfile();
+      setView("questions");
+    });
+
+    dom.name.addEventListener("input", syncProfile);
+    dom.gender.addEventListener("change", syncProfile);
+    dom.birthday.addEventListener("change", syncProfile);
+    dom.userId.addEventListener("input", syncProfile);
+
+    dom.btnPrev.addEventListener("click", prev);
+    dom.btnNext.addEventListener("click", next);
+
+    dom.btnSkipToProfile.addEventListener("click", ()=>{
+      syncProfile();
+      setView("profile");
+    });
+
+    dom.btnGoHero.addEventListener("click", ()=> setView("hero"));
+    dom.btnGoProfile.addEventListener("click", ()=> setView("profile"));
+    dom.btnGoResult.addEventListener("click", ()=>{
+      // 全回答必須
+      if (!state.answers.every(a => a>=1 && a<=7)){
+        alert("未回答があります。全100問に回答してから結果へ進めます。");
+        setView("questions");
+        return;
+      }
+      setView("worry");
+    });
+
+    dom.worryText.addEventListener("input", ()=>{
+      state.worryText = dom.worryText.value.slice(0,2000);
+      dom.worryCount.textContent = `${state.worryText.length} / 2000`;
       save();
     });
 
-    el.btnBackToQuestions.addEventListener("click", ()=> setView("questions"));
+    dom.btnBackToQ.addEventListener("click", ()=> setView("questions"));
 
-    el.btnShowResult.addEventListener("click", ()=>{
-      if (!ensureAllAnswered()){
-        toast("bad", "未回答が残っています。設問に戻って全100問に回答してください。");
+    dom.btnToResult.addEventListener("click", ()=>{
+      if (!state.answers.every(a => a>=1 && a<=7)){
+        alert("未回答があります。設問に戻って全100問に回答してください。");
         setView("questions");
         return;
       }
       setView("result");
     });
 
-    el.btnFinalSubmit.addEventListener("click", finalSubmit);
+    dom.btnBackToW.addEventListener("click", ()=> setView("worry"));
 
-    el.btnCopyJson.addEventListener("click", async ()=>{
-      let payload = state.lastPayload;
-      if (!payload){
-        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
-        catch(e){ toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
+    dom.btnFinalSubmit.addEventListener("click", finalSubmit);
+
+    dom.btnCopyJson.addEventListener("click", async ()=>{
+      hideToast();
+      let payload;
+      try{
+        payload = buildPayload();
+      }catch(e){
+        toast("bad", "JSON生成に失敗： " + (e?.message || e));
+        return;
       }
-      const text = safeJsonStringify(payload);
+      const text = JSON.stringify(payload, null, 2);
       const ok = await copyToClipboard(text);
       toast(ok ? "ok" : "bad", ok ? "JSONをコピーしました。" : "コピーに失敗しました。");
     });
 
-    el.btnDownloadJson.addEventListener("click", ()=>{
-      let payload = state.lastPayload;
-      if (!payload){
-        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
-        catch(e){ toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
+    dom.btnDownloadJson.addEventListener("click", ()=>{
+      hideToast();
+      let payload;
+      try{
+        payload = buildPayload();
+      }catch(e){
+        toast("bad", "JSON生成に失敗： " + (e?.message || e));
+        return;
       }
-      const text = safeJsonStringify(payload);
-      downloadText("fortuneai_final_submit.json", text);
+      downloadText("fortuneai_final_submit.json", JSON.stringify(payload, null, 2));
       toast("ok", "JSONをダウンロードしました。");
     });
 
@@ -1719,18 +2392,16 @@
       if (q.userId) state.userId = q.userId;
 
       const restored = load();
-      if (restored){
-        if (q.userId) state.userId = q.userId;
-        el.profileRestoreNote.style.display = "block";
-        setTimeout(()=> el.profileRestoreNote.style.display="none", 3500);
-      }
+      if (restored && q.userId) state.userId = q.userId;
 
-      if (!Array.isArray(QUESTIONS) || QUESTIONS.length !== 100){
-        alert("設問データが不正です（100問必要）。QUESTIONSを確認してください。");
-      }
+      // 最低限の整合
+      state.view = ["hero","profile","questions","worry","result"].includes(state.view) ? state.view : "hero";
+      state.index = clamp(state.index, 0, TOTAL-1);
 
-      renderAll();
-      updateWorryCount();
+      // テーマ適用
+      applyThemeByIndex(state.index);
+
+      render();
     })();
   </script>
 </body>
