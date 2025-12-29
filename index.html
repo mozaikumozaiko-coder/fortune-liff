@@ -395,6 +395,40 @@
       line-height:1.6;
     }
 
+    /* 結果画面の称号カード */
+    .badgeGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+      margin-top: 12px;
+    }
+    @media(min-width:720px){
+      .badgeGrid{grid-template-columns: 1fr 1fr;}
+    }
+    .badgeCard{
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(520px 190px at 10% 20%, color-mix(in oklab, var(--accent1) 14%, transparent), transparent 60%),
+        radial-gradient(520px 190px at 90% 30%, color-mix(in oklab, var(--accent2) 12%, transparent), transparent 62%),
+        rgba(255,255,255,.04);
+      padding: 12px;
+      line-height: 1.7;
+    }
+    .badgeTitle{font-size:13px; font-weight:700; letter-spacing:.05em;}
+    .badgeMeta{font-size:12px; opacity:.86; margin-top:4px;}
+    .badgeDesc{font-size:12px; opacity:.92; margin-top:6px;}
+    .badgeTagRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;}
+    .badgeTag{
+      font-size:11px;
+      opacity:.92;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.03);
+      white-space:nowrap;
+    }
+
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
   </style>
@@ -484,11 +518,12 @@
           <div class="card" style="margin:0; box-shadow:none;">
             <h3 class="h1" style="font-size:14px;">Make連携</h3>
             <p class="lead muted small">
-              最終送信で <code>final_submit</code> JSON を生成し、WEBHOOK_URL が設定されていればPOSTします。
+              最終送信で <code>final_submit</code> JSON を生成し、WEBHOOK_URL が設定されていればPOSTします。<br>
+              送信payloadに <code>typeCode</code> と <code>scores</code>（E/S/T/J）も含みます。
             </p>
             <div class="miniLine"></div>
             <p class="lead muted small" style="margin:0;">
-              20問ごとの演出はUIの体験向上のためのものです。
+              「次へ」で回答済みを飛ばし、未回答へ自動ジャンプします（離脱対策）。
             </p>
           </div>
         </div>
@@ -507,6 +542,7 @@
             <div class="qMeta">
               <span class="chip">完了 <strong id="doneCountText">0</strong></span>
               <span class="chip">現在 <strong id="currentValueText">5</strong></span>
+              <span class="chip">状態 <strong id="answerStateText">未</strong></span>
             </div>
           </div>
 
@@ -530,6 +566,7 @@
 
           <div class="btnRow">
             <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
+            <button class="btn ghost" id="btnJumpFirstUnanswered">未回答へ移動</button>
             <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
           </div>
         </div>
@@ -630,8 +667,8 @@
             <div class="muted small" style="margin-top:8px; line-height:1.7;">
               ・スライダーはドラッグ可能（スマホOK）<br>
               ・数字ボタンで即選択（誤操作が減る）<br>
-              ・5のままでも次へ進める（テンポ重視）<br>
-              ・進捗は“完了数”で積み上がる
+              ・「次へ」は回答済みを自動で飛ばし、未回答へ移動<br>
+              ・未回答が残る限り、最後まで行こうとしても戻されます
             </div>
           </section>
         </div>
@@ -655,6 +692,12 @@
       <div class="sep"></div>
 
       <div class="toast" id="resultToast" style="display:none;"></div>
+
+      <div id="badgeSection" style="display:none;">
+        <p class="lead"><b>獲得称号（章クリア報酬）</b></p>
+        <div class="badgeGrid" id="badgeGrid"></div>
+        <div class="sep"></div>
+      </div>
 
       <div class="btnRow">
         <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
@@ -749,6 +792,15 @@
       "INTJ":"隠者","INTP":"正義","ENTJ":"皇帝","ENTP":"魔術師","INFJ":"女教皇","INFP":"星","ENFJ":"太陽","ENFP":"愚者",
       "ISTJ":"教皇","ISFJ":"節制","ESTJ":"戦車","ESFJ":"女帝","ISTP":"力","ISFP":"恋人","ESTP":"運命の輪","ESFP":"世界","BAL":"審判"
     };
+
+    // 章クリア報酬（保存＆結果に表示）
+    const BADGE_DEFS = [
+      { milestone:20, title:"第一章の証印", meta:"CHAPTER 1 CLEAR（20/100）", desc:"巡礼路が定着。あなたの意志が軌道に乗り始める。", tags:["ルーン点灯","集中+1"] },
+      { milestone:40, title:"第二章の紋章", meta:"CHAPTER 2 CLEAR（40/100）", desc:"判断が研ぎ澄まされる。躊躇が減り、反応が速くなる。", tags:["安定化","決断+1"] },
+      { milestone:60, title:"第三章の聖鍵", meta:"CHAPTER 3 CLEAR（60/100）", desc:"複雑性を統合。矛盾を矛盾のまま扱える強さが生まれる。", tags:["統合","俯瞰+1"] },
+      { milestone:80, title:"第四章の星核", meta:"CHAPTER 4 CLEAR（80/100）", desc:"最後の抵抗帯を突破。自分の型が輪郭として現れる。", tags:["突破","自信+1"] },
+      { milestone:100, title:"終章の冠", meta:"CHAPTER 5 CLEAR（100/100）", desc:"到達。結果の統合処理が解放され、称号が確定する。", tags:["到達","完成"] },
+    ];
 
     /***********************
      * 設問100（固定）
@@ -912,6 +964,7 @@
       btnPrevQ:$("btnPrevQ"),
       btnNextQ:$("btnNextQ"),
       btnJumpProfile:$("btnJumpProfile"),
+      btnJumpFirstUnanswered:$("btnJumpFirstUnanswered"),
       btnResetFromQuestions:$("btnResetFromQuestions"),
 
       bottomNav:$("bottomNav"),
@@ -927,6 +980,9 @@
       resultToast:$("resultToast"),
       jsonPreviewWrap:$("jsonPreviewWrap"),
       jsonPreview:$("jsonPreview"),
+
+      badgeSection:$("badgeSection"),
+      badgeGrid:$("badgeGrid"),
 
       waterFill:$("waterFill"),
       meterText:$("meterText"),
@@ -950,6 +1006,8 @@
 
       leftScaleLabel:$("leftScaleLabel"),
       rightScaleLabel:$("rightScaleLabel"),
+
+      answerStateText:$("answerStateText"),
     };
 
     const state = {
@@ -958,17 +1016,17 @@
       profile:{ name:"", gender:"", birthday:"" },
       userId:"",
       answers:new Array(100).fill(SCALE_MID),
-      done:new Array(100).fill(false),
+      done:new Array(100).fill(false),   // 触った/確定したか
       worryText:"",
       lastPayload:null,
-      lastChapterShown:0
+      lastChapterShown:0,
+      badges:[] // {milestone,title,meta,desc,tags,at}
     };
 
     // 初期ラベル・range属性をJSでも確定（保険）
     dom.range.min = String(SCALE_MIN);
     dom.range.max = String(SCALE_MAX);
     dom.range.step = "1";
-
     dom.leftScaleLabel.textContent = `${SCALE_MIN} = まったくそう思わない`;
     dom.rightScaleLabel.textContent = `${SCALE_MAX} = 非常にそう思う`;
 
@@ -992,7 +1050,8 @@
         answers:state.answers,
         done:state.done,
         worryText:state.worryText,
-        lastChapterShown:state.lastChapterShown
+        lastChapterShown:state.lastChapterShown,
+        badges:state.badges
       }));
     }
 
@@ -1020,11 +1079,26 @@
           state.done = data.done.map(Boolean);
         } else {
           state.done = new Array(100).fill(false);
-          for (let i=0;i<state.currentIndex;i++) state.done[i] = true;
         }
 
         state.worryText = String(data.worryText || "");
         state.lastChapterShown = Number(data.lastChapterShown || 0);
+
+        if (Array.isArray(data.badges)){
+          state.badges = data.badges
+            .filter(x => x && typeof x === "object" && Number.isFinite(Number(x.milestone)))
+            .map(x => ({
+              milestone:Number(x.milestone),
+              title:String(x.title||""),
+              meta:String(x.meta||""),
+              desc:String(x.desc||""),
+              tags:Array.isArray(x.tags)? x.tags.map(String): [],
+              at:Number(x.at||Date.now())
+            }));
+        } else {
+          state.badges = [];
+        }
+
         return true;
       }catch{
         return false;
@@ -1042,6 +1116,7 @@
       state.worryText="";
       state.lastPayload=null;
       state.lastChapterShown=0;
+      state.badges=[];
       renderAll();
     }
 
@@ -1054,6 +1129,21 @@
 
     function answeredDoneCount(){
       return state.done.reduce((a,b)=>a+(b?1:0),0);
+    }
+    function unansweredCount(){
+      return state.done.reduce((a,b)=>a+(b?0:1),0);
+    }
+    function firstUnansweredIndex(){
+      return state.done.findIndex(x=>!x);
+    }
+    function nextUnansweredIndex(from){
+      for (let i=from+1;i<100;i++){
+        if (!state.done[i]) return i;
+      }
+      return -1;
+    }
+    function allAnswered(){
+      return answeredDoneCount() === 100;
     }
 
     function currentChapterByDone(doneCount){
@@ -1114,6 +1204,9 @@
       dom.tickRow.querySelectorAll("button[data-v]").forEach(b=>{
         b.classList.toggle("on", Number(b.dataset.v) === v);
       });
+
+      const i = state.currentIndex;
+      dom.answerStateText.textContent = state.done[i] ? "済" : "未";
     }
 
     function renderTicks(current){
@@ -1130,11 +1223,18 @@
       }
     }
 
+    function showQToast(msg, kind="warn"){
+      dom.qToast.className = "toast " + (kind==="ok"?"ok":kind==="bad"?"bad":"warn");
+      dom.qToast.textContent = msg;
+      dom.qToast.style.display="block";
+      setTimeout(()=>{ dom.qToast.style.display="none"; }, 1600);
+    }
+
     function setAnswerValue(v, markDone){
       const i = state.currentIndex;
       const val = clamp(Number(v), SCALE_MIN, SCALE_MAX);
       state.answers[i] = val;
-      if (markDone) state.done[i] = true;
+      if (markDone) state.done[i] = true;   // 触ったら「回答済み」
       save();
       dom.range.value = String(val);
       applyRangePaint(val);
@@ -1201,6 +1301,14 @@
     }
 
     function buildPayload(){
+      if (!allAnswered()){
+        const idx = firstUnansweredIndex();
+        throw new Error(`未回答があります（Q${idx+1}）`);
+      }
+
+      const scores = computeScores();
+      const t = computeType(scores);
+
       const payload = {
         action:"final_submit",
         userId: (state.userId || "").trim(),
@@ -1211,8 +1319,11 @@
           birthday: state.profile.birthday
         },
         answers: state.answers.map(v => Number(v)),
-        worryText: state.worryText || ""
+        worryText: state.worryText || "",
+        typeCode: t.typeCode,
+        scores: { E:scores.E, S:scores.S, T:scores.T, J:scores.J }
       };
+
       if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) throw new Error("profile incomplete");
       if (!Array.isArray(payload.answers) || payload.answers.length !== 100) throw new Error("answers invalid");
       for (const a of payload.answers){
@@ -1418,6 +1529,22 @@
       }
     }
 
+    function ensureBadge(milestone){
+      const def = BADGE_DEFS.find(b => b.milestone === milestone);
+      if (!def) return;
+      if (state.badges.some(b => b.milestone === milestone)) return;
+
+      state.badges.push({
+        milestone:def.milestone,
+        title:def.title,
+        meta:def.meta,
+        desc:def.desc,
+        tags:def.tags,
+        at: Date.now()
+      });
+      save();
+    }
+
     function maybeShowChapterClear(){
       const done = answeredDoneCount();
       const milestones = [20,40,60,80,100];
@@ -1425,6 +1552,7 @@
       if (!hit) return;
 
       state.lastChapterShown = hit;
+      ensureBadge(hit);
       save();
 
       const chapIdx = Math.min(4, Math.floor((hit-1)/20));
@@ -1432,10 +1560,11 @@
 
       dom.chapterModalTitle.textContent = `CHAPTER CLEAR（${hit}/100）`;
       dom.chapterModalBody.textContent = (hit === 100)
-        ? "最終章を突破しました。結果へ進みましょう。"
+        ? "最終章を突破しました。未回答が0なら、悩み入力→結果へ進めます。"
         : `章を突破しました。次の章（${THEMES[nextIdx].name}）へ移行します。`;
 
-      dom.reward1.textContent = `報酬：ルーン点灯（${hit}到達）`;
+      const def = BADGE_DEFS.find(b=>b.milestone===hit);
+      dom.reward1.textContent = `称号獲得：${def ? def.title : "ルーン点灯"}`;
       dom.reward2.textContent = (hit === 100)
         ? "ボーナス：結果の統合処理が解放されます。"
         : "ボーナス：配色が変化し、集中が続きやすくなります。";
@@ -1482,7 +1611,13 @@
       applyRangePaint(current);
 
       dom.btnPrevQ.disabled = (i===0);
-      dom.btnNextQ.textContent = (i===99) ? "次へ（悩み入力）" : "次へ";
+
+      const u = unansweredCount();
+      if (u > 0){
+        dom.btnNextQ.textContent = (allAnswered()) ? "次へ（完了）" : "次へ（未回答へ）";
+      } else {
+        dom.btnNextQ.textContent = (i===99) ? "次へ（悩み入力）" : "次へ";
+      }
     }
 
     function updateWorryCount(){
@@ -1495,9 +1630,67 @@
       updateWorryCount();
     }
 
+    function renderBadges(){
+      if (!state.badges.length){
+        dom.badgeSection.style.display="none";
+        dom.badgeGrid.innerHTML="";
+        return;
+      }
+      dom.badgeSection.style.display="block";
+      dom.badgeGrid.innerHTML = "";
+
+      const badgesSorted = [...state.badges].sort((a,b)=>a.milestone-b.milestone);
+      for (const b of badgesSorted){
+        const div = document.createElement("div");
+        div.className = "badgeCard";
+
+        const title = document.createElement("div");
+        title.className = "badgeTitle";
+        title.textContent = b.title || `称号（${b.milestone}/100）`;
+
+        const meta = document.createElement("div");
+        meta.className = "badgeMeta";
+        meta.textContent = b.meta || `到達：${b.milestone}/100`;
+
+        const desc = document.createElement("div");
+        desc.className = "badgeDesc";
+        desc.textContent = b.desc || "";
+
+        const tags = document.createElement("div");
+        tags.className = "badgeTagRow";
+        for (const t of (b.tags || [])){
+          const s = document.createElement("span");
+          s.className = "badgeTag";
+          s.textContent = t;
+          tags.appendChild(s);
+        }
+
+        div.appendChild(title);
+        div.appendChild(meta);
+        if (b.desc) div.appendChild(desc);
+        if ((b.tags||[]).length) div.appendChild(tags);
+        dom.badgeGrid.appendChild(div);
+      }
+    }
+
     function renderResult(){
       dom.resultToast.style.display="none";
       dom.jsonPreviewWrap.style.display="none";
+
+      renderBadges();
+
+      // 未回答がある限り結果に行かせない（計算が歪むため）
+      if (!allAnswered()){
+        const idx = firstUnansweredIndex();
+        dom.resultToast.className="toast bad";
+        dom.resultToast.textContent=`未回答があります（Q${idx+1}）。未回答を埋めてから結果を表示します。`;
+        dom.resultToast.style.display="block";
+        // 自動で未回答へ戻す
+        state.currentIndex = idx >= 0 ? idx : 0;
+        save();
+        setTimeout(()=> setView("questions"), 400);
+        return;
+      }
 
       let payload;
       try{ payload = buildPayload(); state.lastPayload = payload; save(); }
@@ -1508,10 +1701,8 @@
         return;
       }
 
-      const scores = computeScores();
-      const t = computeType(scores);
-      const code = t.typeCode;
-
+      const scores = payload.scores;
+      const code = payload.typeCode;
       const title = TYPE_TITLES[code] || "（未定義）";
       const tarot = TAROT_MAJOR[code] || "—";
 
@@ -1536,6 +1727,50 @@
       updateMeter();
     }
 
+    // ナビ：次へ（未回答へスキップ）
+    function goNext(){
+      const i = state.currentIndex;
+
+      // 全問回答済みなら、1回で最後へ寄せる（テンポ）
+      if (allAnswered()){
+        if (i < 99){
+          state.currentIndex = 99;
+          save();
+          renderQuestion();
+          updateMeter();
+          showQToast("全問回答済み。最後へ移動します。", "ok");
+          return;
+        }
+        // i==99 なら悩み入力へ
+        setView("worry");
+        return;
+      }
+
+      // 未回答がある：次の未回答へ
+      const nxt = nextUnansweredIndex(i);
+      if (nxt !== -1){
+        state.currentIndex = nxt;
+        save();
+        renderQuestion();
+        updateMeter();
+        maybeShowChapterClear();
+        showQToast(`未回答へ移動：Q${nxt+1}`, "warn");
+        return;
+      }
+
+      // 現在より後に未回答がない場合、先頭の未回答へ
+      const first = firstUnansweredIndex();
+      if (first !== -1){
+        state.currentIndex = first;
+        save();
+        renderQuestion();
+        updateMeter();
+        maybeShowChapterClear();
+        showQToast(`未回答が残っています：Q${first+1}へ`, "warn");
+        return;
+      }
+    }
+
     dom.btnStart.addEventListener("click", ()=> setView("profile"));
     dom.btnResetAll.addEventListener("click", clearAll);
     dom.btnBackToHero.addEventListener("click", ()=> setView("hero"));
@@ -1555,6 +1790,18 @@
     dom.btnResetFromResult.addEventListener("click", clearAll);
 
     dom.btnJumpProfile.addEventListener("click", ()=> setView("profile"));
+    dom.btnJumpFirstUnanswered.addEventListener("click", ()=>{
+      const idx = firstUnansweredIndex();
+      if (idx === -1){
+        showQToast("未回答はありません。", "ok");
+        return;
+      }
+      state.currentIndex = idx;
+      save();
+      renderQuestion();
+      updateMeter();
+      showQToast(`未回答へ移動：Q${idx+1}`, "warn");
+    });
 
     dom.range.addEventListener("input", ()=>{
       const v = clamp(Number(dom.range.value), SCALE_MIN, SCALE_MAX);
@@ -1570,21 +1817,7 @@
       }
     });
 
-    dom.btnNextQ.addEventListener("click", ()=>{
-      const i = state.currentIndex;
-      state.done[i] = true;
-
-      if (i === 99){
-        save(); updateMeter(); maybeShowChapterClear();
-        setView("worry");
-        return;
-      }
-      state.currentIndex++;
-      save();
-      renderQuestion();
-      updateMeter();
-      maybeShowChapterClear();
-    });
+    dom.btnNextQ.addEventListener("click", goNext);
 
     dom.btnChapterContinue.addEventListener("click", closeChapterModal);
     dom.chapterModal.addEventListener("click", (e)=>{ if (e.target===dom.chapterModal) closeChapterModal(); });
@@ -1595,7 +1828,18 @@
       save();
     });
 
-    dom.btnShowResult.addEventListener("click", ()=> setView("result"));
+    dom.btnShowResult.addEventListener("click", ()=>{
+      // 念のため、未回答があれば先に戻す
+      if (!allAnswered()){
+        const idx = firstUnansweredIndex();
+        state.currentIndex = idx >= 0 ? idx : 0;
+        save();
+        setView("questions");
+        return;
+      }
+      setView("result");
+    });
+
     dom.btnFinalSubmit.addEventListener("click", finalSubmit);
 
     dom.btnCopyJson.addEventListener("click", async ()=>{
