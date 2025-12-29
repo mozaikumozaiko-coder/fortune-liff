@@ -32,7 +32,8 @@
         radial-gradient(900px 540px at 85% 25%, rgba(207,167,110,.20), transparent 62%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
-      touch-action: pan-y; /* ページは縦スクロールのみ許可（スライダーは別途touch-action:none） */
+      touch-action: pan-y; /* ページは縦スクロールのみ */
+      -webkit-text-size-adjust: 100%;
     }
     a{color:inherit}
     .wrap{max-width:980px; margin:0 auto; padding:18px 14px 40px;}
@@ -60,19 +61,8 @@
       box-shadow: 0 0 24px rgba(124,77,255,.25), 0 0 18px rgba(207,167,110,.18);
       flex: 0 0 auto;
     }
-    .title{
-      font-size:14px;
-      letter-spacing:.06em;
-      margin:0;
-      line-height:1.2;
-    }
-    .subtitle{
-      font-size:12px;
-      opacity:.86;
-      margin-top:4px;
-      line-height:1.35;
-    }
-
+    .title{font-size:14px; letter-spacing:.06em; margin:0; line-height:1.2;}
+    .subtitle{font-size:12px; opacity:.86; margin-top:4px; line-height:1.35;}
     .progressWrap{
       display:flex; align-items:center; gap:10px;
       min-width: 240px;
@@ -93,13 +83,7 @@
       border-radius:999px;
       transition: width .25s ease;
     }
-    .stepText{
-      font-size:12px;
-      opacity:.90;
-      white-space:nowrap;
-      min-width: 72px;
-      text-align:right;
-    }
+    .stepText{font-size:12px; opacity:.90; white-space:nowrap; min-width:72px; text-align:right;}
 
     .card{
       margin-top:14px;
@@ -111,53 +95,30 @@
       backdrop-filter: blur(12px);
     }
 
-    .hero{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media(min-width:820px){
-      .hero{grid-template-columns: 1.2fr .8fr;}
-    }
+    .hero{display:grid; grid-template-columns: 1fr; gap:12px;}
+    @media(min-width:820px){ .hero{grid-template-columns: 1.2fr .8fr;} }
 
-    .h1{
-      font-size:20px;
-      margin:0 0 8px;
-      letter-spacing:.05em;
-      line-height:1.25;
-    }
-    .lead{
-      margin:0;
-      font-size:13px;
-      opacity:.88;
-      line-height:1.7;
-    }
+    .h1{font-size:20px; margin:0 0 8px; letter-spacing:.05em; line-height:1.25;}
+    .lead{margin:0; font-size:13px; opacity:.88; line-height:1.7;}
     .disclaimer{
-      margin-top:10px;
-      padding: 10px 12px;
+      margin-top:10px; padding:10px 12px;
       border-radius:14px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.03);
-      font-size:12px;
-      line-height:1.6;
+      font-size:12px; line-height:1.6;
       color: rgba(234,240,255,.86);
     }
     .pillRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;}
     .pill{
       display:inline-flex; align-items:center; gap:8px;
-      padding: 8px 10px;
+      padding:8px 10px;
       border-radius: 999px;
       border:1px solid rgba(207,167,110,.30);
       background: rgba(207,167,110,.10);
       font-size:12px;
       opacity:.95;
     }
-    .mini{
-      font-size:12px;
-      opacity:.84;
-      margin: 0;
-      line-height: 1.5;
-    }
+    .mini{font-size:12px; opacity:.84; margin:0; line-height:1.5;}
 
     .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; align-items:center;}
     .btn{
@@ -177,30 +138,13 @@
       background: linear-gradient(90deg, rgba(124,77,255,.85), rgba(207,167,110,.85));
       border-color: rgba(255,255,255,.18);
     }
-    .btn.danger{
-      background: rgba(255,107,107,.12);
-      border-color: rgba(255,107,107,.40);
-    }
-    .btn.ghost{
-      background: rgba(255,255,255,.03);
-    }
-    .btn:disabled{
-      opacity:.45;
-      cursor:not-allowed;
-    }
-    .hint{
-      font-size:12px; opacity:.82; line-height:1.6;
-      margin: 10px 0 0;
-    }
+    .btn.danger{background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.40);}
+    .btn.ghost{background: rgba(255,255,255,.03);}
+    .btn:disabled{opacity:.45; cursor:not-allowed;}
+    .hint{font-size:12px; opacity:.82; line-height:1.6; margin:10px 0 0;}
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 12px;
-    }
-    @media(min-width:820px){
-      .grid{grid-template-columns: 1fr 1fr;}
-    }
+    .grid{display:grid; grid-template-columns: 1fr; gap:12px;}
+    @media(min-width:820px){ .grid{grid-template-columns: 1fr 1fr;} }
 
     label{display:block; font-size:12px; opacity:.88; margin-bottom:6px;}
     .field{
@@ -219,16 +163,8 @@
     .err{color: var(--bad); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
     .ok{color: var(--ok); font-size:12px; margin-top:6px; line-height:1.5; display:none;}
 
-    .qHeader{
-      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
-      flex-wrap:wrap;
-    }
-    .qTitle{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.03em;
-      line-height:1.55;
-    }
+    .qHeader{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
+    .qTitle{margin:0; font-size:14px; letter-spacing:.03em; line-height:1.55;}
     .tagBadge{
       font-size:12px;
       padding: 6px 10px;
@@ -239,22 +175,10 @@
       white-space:nowrap;
     }
 
-    .textarea{
-      min-height: 140px;
-      resize: vertical;
-      line-height: 1.6;
-    }
-    .counter{
-      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      margin-top:8px;
-      font-size:12px;
-      opacity:.85;
-    }
+    .textarea{min-height:140px; resize: vertical; line-height: 1.6;}
+    .counter{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:8px; font-size:12px; opacity:.85;}
 
-    .resultHeader{
-      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
-      flex-wrap:wrap;
-    }
+    .resultHeader{display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;}
     .badge{
       display:inline-flex; align-items:center; gap:8px;
       padding: 8px 10px;
@@ -264,38 +188,18 @@
       font-size:12px;
       opacity:.98;
     }
-    .bigTitle{
-      font-size:18px;
-      margin:10px 0 0;
-      letter-spacing:.03em;
-      line-height:1.35;
-    }
-    .subNote{
-      margin: 6px 0 0;
-      font-size:12px;
-      opacity:.86;
-      line-height:1.6;
-    }
-    .bars{
-      margin-top: 12px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    @media(min-width:820px){
-      .bars{grid-template-columns: 1fr 1fr;}
-    }
+    .bigTitle{font-size:18px; margin:10px 0 0; letter-spacing:.03em; line-height:1.35;}
+    .subNote{margin:6px 0 0; font-size:12px; opacity:.86; line-height:1.6;}
+
+    .bars{margin-top:12px; display:grid; grid-template-columns:1fr; gap:10px;}
+    @media(min-width:820px){ .bars{grid-template-columns: 1fr 1fr;} }
     .barBox{
       border-radius: 16px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
       padding: 12px;
     }
-    .barTop{
-      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
-      font-size:12px;
-      opacity:.90;
-    }
+    .barTop{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12px; opacity:.90;}
     .barLine{
       margin-top:8px;
       height:10px;
@@ -312,74 +216,57 @@
       transition: width .3s ease;
     }
     .confidence{
-      margin-top: 12px;
-      border-radius: 16px;
+      margin-top:12px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
-      padding: 12px;
+      padding:12px;
     }
-    .confRow{
-      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
-      font-size:12px;
-      opacity:.90;
-    }
+    .confRow{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:12px; opacity:.90;}
 
-    details{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      padding: 12px;
-    }
+    details{border-radius:16px; border:1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.03); padding:12px;}
     details summary{
       cursor:pointer;
-      font-size:13px;
-      letter-spacing:.02em;
-      opacity:.95;
+      font-size:13px; letter-spacing:.02em; opacity:.95;
       list-style:none;
       display:flex; align-items:center; justify-content:space-between;
       user-select:none;
     }
     details summary::-webkit-details-marker{display:none}
     details summary .chev{
-      width: 10px; height: 10px;
+      width:10px; height:10px;
       border-right:2px solid rgba(234,240,255,.75);
       border-bottom:2px solid rgba(234,240,255,.75);
       transform: rotate(-45deg);
       transition: transform .2s ease;
-      margin-left: 8px;
+      margin-left:8px;
       opacity:.9;
     }
     details[open] summary .chev{transform: rotate(45deg);}
-    .layerText{
-      margin: 10px 0 0;
-      font-size:12px;
-      line-height:1.7;
-      opacity:.88;
-      white-space: pre-wrap;
-    }
+    .layerText{margin:10px 0 0; font-size:12px; line-height:1.7; opacity:.88; white-space: pre-wrap;}
 
     .jsonBox{
-      margin-top: 12px;
-      border-radius: 16px;
+      margin-top:12px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.22);
-      padding: 12px;
+      padding:12px;
       overflow:auto;
-      max-height: 320px;
+      max-height:320px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 11.5px;
+      font-size:11.5px;
       line-height:1.55;
       color: rgba(234,240,255,.92);
       white-space: pre;
     }
 
     .toast{
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 14px;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
-      font-size: 12px;
+      font-size:12px;
       line-height:1.6;
       opacity:.92;
     }
@@ -391,87 +278,100 @@
     .muted{opacity:.84}
     .small{font-size:12px}
 
-    /* ===== Slider (1..7) ===== */
-    .rangeWrap{
+    /* ===== 7段階：カスタムスライダー（スマホでドラッグ可 / ページ固定） ===== */
+    .scaleWrap{
       margin-top: 12px;
       border-radius: 16px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
       padding: 14px 12px;
-      touch-action: none;            /* 重要：スライド中のページ操作を止める */
-      overscroll-behavior: contain;
     }
-
-    .range{
-      width: 100%;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-      outline: none;
-      touch-action: none;            /* 重要 */
-    }
-
-    .range::-webkit-slider-runnable-track{
-      height: 10px;
-      border-radius: 999px;
-    }
-
-    .range::-webkit-slider-thumb{
-      -webkit-appearance: none;
-      appearance: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
-      box-shadow: 0 0 16px rgba(124,77,255,.20), 0 0 14px rgba(207,167,110,.14);
-      transform: scale(var(--thumbScale, 1));
-      transition: transform .08s linear;
-    }
-
-    .range::-moz-range-track{
-      height: 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.10);
-      border: 1px solid rgba(255,255,255,.14);
-    }
-    .range::-moz-range-thumb{
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.22);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
-      box-shadow: 0 0 16px rgba(124,77,255,.20), 0 0 14px rgba(207,167,110,.14);
-      transform: scale(var(--thumbScale, 1));
-      transition: transform .08s linear;
-    }
-
-    .tickRow{
-      margin-top: 10px;
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 6px;
-      font-size: 11px;
-      opacity: .82;
-    }
-    .tickRow span{ text-align:center; }
-
-    .centerRead{
-      margin-top: 4px;
+    .scaleHead{
+      margin-top: 2px;
       display:flex;
       justify-content:space-between;
       align-items:center;
+      gap: 10px;
       font-size:12px;
       opacity:.92;
     }
-    .centerRead b{
+    .scaleHead b{
       font-size:14px;
       letter-spacing:.03em;
       min-width: 20px;
       text-align:center;
+      opacity:1;
+    }
+
+    .sliderBox{
+      margin-top: 10px;
+      position: relative;
+      height: 26px;
+      user-select:none;
+      touch-action: none;             /* 重要：ここだけジェスチャを止めて、ページのズーム/横ズレを防止 */
+      -webkit-user-select:none;
+    }
+    .sliderTrack{
+      position:absolute;
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .sliderFill{
+      position:absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 10px;
+      border-radius: 999px;
+      width: 0px;
+      background: linear-gradient(90deg, rgba(124,77,255,.95), rgba(207,167,110,.95));
+      box-shadow: 0 0 18px rgba(124,77,255,.14), 0 0 16px rgba(207,167,110,.10);
+    }
+    .sliderThumb{
+      position:absolute;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
+      box-shadow: 0 0 16px rgba(124,77,255,.22), 0 0 14px rgba(207,167,110,.14);
+      transition: transform .08s linear;
+    }
+    .sliderThumb:focus{
+      outline:none;
+      box-shadow: 0 0 0 3px rgba(207,167,110,.18), 0 0 18px rgba(124,77,255,.18);
+    }
+
+    .tickRow{
+      margin-top: 10px;
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .tickBtn{
+      appearance:none;
+      border:none;
+      background: transparent;
+      color: rgba(234,240,255,.82);
+      font-size: 11px;
+      padding: 6px 0;
+      border-radius: 10px;
+      cursor:pointer;
+      border: 1px solid transparent;
+      user-select:none;
+    }
+    .tickBtn:active{transform: translateY(1px);}
+    .tickBtn.sel{
+      color: rgba(234,240,255,.96);
+      border-color: rgba(255,255,255,.14);
+      background: rgba(255,255,255,.04);
     }
   </style>
 </head>
@@ -510,7 +410,7 @@
 
           <div class="pillRow" aria-label="特徴">
             <div class="pill">✅ 自動保存（localStorage）</div>
-            <div class="pill">✅ 7段階スライダー（初期値4）</div>
+            <div class="pill">✅ 7段階スライダー（初期値4=回答済み）</div>
             <div class="pill">✅ 17タイプ判定（BALあり）</div>
             <div class="pill">✅ Make連携payload生成</div>
           </div>
@@ -974,7 +874,6 @@
           birthday: String(data.profile?.birthday || ""),
         };
         state.userId = String(data.userId || "");
-        // null等が混じっても4へ
         state.answers = data.answers.map(v => {
           if (v===null || v===undefined || v==="") return 4;
           return clamp(Number(v), 1, 7);
@@ -992,7 +891,7 @@
       state.currentIndex = 0;
       state.profile = { name:"", gender:"", birthday:"" };
       state.userId = "";
-      state.answers = new Array(100).fill(4); // ★初期値4に戻す
+      state.answers = new Array(100).fill(4);
       state.worryText = "";
       state.lastPayload = null;
       renderAll();
@@ -1090,10 +989,7 @@
     /***********************
      * Scoring & Typing (1..7中心4)
      ***********************/
-    function answerToValue(ans){
-      // 1..7 -> -3..+3（中心4）
-      return (Number(ans) - 4);
-    }
+    function answerToValue(ans){ return (Number(ans) - 4); } // 1..7 -> -3..+3
 
     function applyTagToAxis(tag, val, scores){
       const m = String(tag).match(/\[([ESTJ])([+-])\]/);
@@ -1111,8 +1007,7 @@
     function computeScores(){
       const scores = { E:0, S:0, T:0, J:0 };
       for (let i=0; i<100; i++){
-        const ans = state.answers[i];
-        const val = answerToValue(ans);
+        const val = answerToValue(state.answers[i]);
         applyTagToAxis(QUESTIONS[i].tag, val, scores);
       }
       scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
@@ -1128,7 +1023,6 @@
       const absT = Math.abs(scores.T);
       const absJ = Math.abs(scores.J);
 
-      // 1..7は振れ幅が小さいため閾値を少し下げる
       const isBAL = (absE < 8 && absS < 8 && absT < 8 && absJ < 8);
       if (isBAL) return { typeCode:"BAL", isBAL:true };
 
@@ -1143,12 +1037,10 @@
       const p = ((score + AXIS_MAX) / (2 * AXIS_MAX)) * 100;
       return clamp(p, 0, 100);
     }
-
     function confidence(score){
       const p = (Math.abs(score) / AXIS_MAX) * 100;
       return clamp(p, 0, 100);
     }
-
     function overallConfidence(scores){
       return (confidence(scores.E) + confidence(scores.S) + confidence(scores.T) + confidence(scores.J)) / 4;
     }
@@ -1162,7 +1054,6 @@
       if (absE < 8) return "柔軟宮モード（拮抗・調整）";
       return (scores.E >= 0) ? "活動宮モード（能動・始動）" : "不動宮モード（持続・安定）";
     }
-
     function fiveElements(typeCode){
       if (typeCode === "BAL") return "火（変容・統合）";
       const nt = typeCode.includes("N") && typeCode.includes("T");
@@ -1175,7 +1066,6 @@
       if (sf) return "水（共感・調和）";
       return "火（変容・統合）";
     }
-
     function palmistryText(typeCode){
       const map = {
         "INTJ":"知能線が深く伸びる象徴。集中と戦略で勝ち筋を組み立てる相。",
@@ -1198,7 +1088,6 @@
       };
       return map[typeCode] || "象徴テキスト（未定義）";
     }
-
     function nameologyText(typeCode){
       const map = {
         "INTJ":"文字の“骨格”を整える象徴。名は戦略を呼び、選択を鋭くする。",
@@ -1301,6 +1190,215 @@
     }
 
     /***********************
+     * 7段階カスタムスライダー
+     * - ドラッグ可（スマホOK）
+     * - ページは固定（ズーム/横ズレしない）
+     * - 端に行くほどカーソルが大きく
+     * - 色が徐々に変化（紫→金）
+     ***********************/
+    function lerp(a,b,t){ return a + (b-a)*t; }
+    function lerpColorRGB(c1, c2, t){
+      const r = Math.round(lerp(c1[0], c2[0], t));
+      const g = Math.round(lerp(c1[1], c2[1], t));
+      const b = Math.round(lerp(c1[2], c2[2], t));
+      return `rgb(${r},${g},${b})`;
+    }
+    const PURPLE = [124, 77, 255];
+    const GOLD   = [207,167,110];
+
+    function buildSevenSlider(opts){
+      const { value, onChange } = opts;
+
+      const wrap = document.createElement("div");
+      wrap.className = "scaleWrap";
+
+      const head = document.createElement("div");
+      head.className = "scaleHead";
+      const left = document.createElement("span");
+      left.textContent = "1 = まったくそう思わない";
+      const mid = document.createElement("b");
+      mid.textContent = String(value);
+      const right = document.createElement("span");
+      right.textContent = "7 = 非常にそう思う";
+      head.appendChild(left);
+      head.appendChild(mid);
+      head.appendChild(right);
+
+      const slider = document.createElement("div");
+      slider.className = "sliderBox";
+      slider.setAttribute("role", "slider");
+      slider.setAttribute("aria-valuemin", "1");
+      slider.setAttribute("aria-valuemax", "7");
+      slider.setAttribute("tabindex", "0");
+
+      const track = document.createElement("div");
+      track.className = "sliderTrack";
+
+      const fill = document.createElement("div");
+      fill.className = "sliderFill";
+
+      const thumb = document.createElement("div");
+      thumb.className = "sliderThumb";
+      thumb.setAttribute("aria-hidden", "true");
+
+      slider.appendChild(track);
+      slider.appendChild(fill);
+      slider.appendChild(thumb);
+
+      const ticks = document.createElement("div");
+      ticks.className = "tickRow";
+      const tickBtns = [];
+      for (let i=1; i<=7; i++){
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "tickBtn";
+        b.textContent = String(i);
+        b.addEventListener("click", ()=>{
+          setValue(i, true);
+        });
+        ticks.appendChild(b);
+        tickBtns.push(b);
+      }
+
+      wrap.appendChild(head);
+      wrap.appendChild(slider);
+      wrap.appendChild(ticks);
+
+      let current = clamp(Number(value), 1, 7);
+
+      function updateUI(){
+        mid.textContent = String(current);
+        slider.setAttribute("aria-valuenow", String(current));
+
+        // 端ほど大きく（4が最小）
+        const dist = Math.abs(current - 4); // 0..3
+        const tScale = dist / 3;            // 0..1
+        const scale = 1 + tScale * 0.55;    // 1.00..1.55
+        thumb.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+        // 色：紫→金に徐々に変化
+        const t = (current - 1) / 6; // 0..1
+        const accent = lerpColorRGB(PURPLE, GOLD, t);
+
+        // フィルは“紫→金”のグラデ、強調はaccent
+        fill.style.background = `linear-gradient(90deg, rgb(${PURPLE.join(",")}), rgb(${GOLD.join(",")}))`;
+        fill.style.boxShadow = `0 0 18px rgba(124,77,255,.12), 0 0 16px rgba(207,167,110,.10)`;
+
+        thumb.style.borderColor = "rgba(255,255,255,.22)";
+        thumb.style.boxShadow = `0 0 18px rgba(124,77,255,.18), 0 0 16px rgba(207,167,110,.12)`;
+
+        // 位置（ズレ防止：実測でピクセル計算）
+        const rect = slider.getBoundingClientRect();
+        const thumbW = 22;
+        const pad = thumbW/2; // 端のズレ補正
+        const usable = Math.max(1, rect.width - pad*2);
+        const p = (current - 1) / 6; // 0..1
+
+        const x = pad + usable * p;       // thumb center
+        thumb.style.left = x + "px";
+        fill.style.width = x + "px";      // 左端からxまで（track全幅ベース）
+
+        // tick選択状態
+        tickBtns.forEach((btn, idx)=>{
+          btn.classList.toggle("sel", (idx+1) === current);
+        });
+
+        // 目盛りの強調色（選択ボタンだけ accent）
+        tickBtns[current-1].style.borderColor = "rgba(255,255,255,.14)";
+        tickBtns[current-1].style.background = "rgba(255,255,255,.04)";
+        tickBtns[current-1].style.color = "rgba(234,240,255,.98)";
+        // 他はリセット（上書きされ続けるのを防ぐ）
+        for (let k=0; k<tickBtns.length; k++){
+          if (k === current-1) continue;
+          tickBtns[k].style.borderColor = "transparent";
+          tickBtns[k].style.background = "transparent";
+          tickBtns[k].style.color = "rgba(234,240,255,.82)";
+        }
+
+        // ラベル中央値の色も徐々に変える（欲しければ）
+        mid.style.color = accent;
+      }
+
+      function setValue(v, emit){
+        const nv = clamp(Math.round(Number(v)), 1, 7);
+        if (nv === current) return;
+        current = nv;
+        updateUI();
+        if (emit) onChange(current);
+      }
+
+      function valueFromClientX(clientX){
+        const rect = slider.getBoundingClientRect();
+        const thumbW = 22;
+        const pad = thumbW/2;
+        const usable = Math.max(1, rect.width - pad*2);
+        const x = clamp(clientX - rect.left, pad, rect.width - pad);
+        const p = (x - pad) / usable;     // 0..1
+        const raw = 1 + p * 6;
+        return clamp(Math.round(raw), 1, 7);
+      }
+
+      // track/slider をタップしても選べる
+      slider.addEventListener("click", (e)=>{
+        // クリックはドラッグ後にも飛ぶことがあるので、pointer capture中は無視
+        if (slider._dragging) return;
+        const v = valueFromClientX(e.clientX);
+        setValue(v, true);
+      });
+
+      // ドラッグ（スマホ/PC両対応）
+      slider.addEventListener("pointerdown", (e)=>{
+        slider._dragging = true;
+        slider.setPointerCapture(e.pointerId);
+        // ページが動かないように（この要素だけ touch-action:none で止める）
+        const v = valueFromClientX(e.clientX);
+        setValue(v, true);
+      });
+
+      slider.addEventListener("pointermove", (e)=>{
+        if (!slider._dragging) return;
+        const v = valueFromClientX(e.clientX);
+        setValue(v, true);
+      });
+
+      function endDrag(){
+        slider._dragging = false;
+      }
+      slider.addEventListener("pointerup", endDrag);
+      slider.addEventListener("pointercancel", endDrag);
+      slider.addEventListener("lostpointercapture", endDrag);
+
+      // キーボード操作
+      slider.addEventListener("keydown", (e)=>{
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown"){
+          e.preventDefault();
+          setValue(current - 1, true);
+        }
+        if (e.key === "ArrowRight" || e.key === "ArrowUp"){
+          e.preventDefault();
+          setValue(current + 1, true);
+        }
+        if (e.key === "Home"){
+          e.preventDefault();
+          setValue(1, true);
+        }
+        if (e.key === "End"){
+          e.preventDefault();
+          setValue(7, true);
+        }
+      });
+
+      // 初期描画
+      updateUI();
+
+      // 画面回転・リサイズでズレないよう再計算
+      const ro = new ResizeObserver(()=> updateUI());
+      ro.observe(slider);
+
+      return { node: wrap, setValue, getValue: ()=>current, destroy: ()=>ro.disconnect() };
+    }
+
+    /***********************
      * Rendering
      ***********************/
     function hideAllViews(){
@@ -1358,60 +1456,19 @@
       const pct = base + ( (i) / 100 ) * span;
       setProgress(pct, el.qProgress.textContent);
 
-      // ===== 1..7 slider =====
+      // 7段階（初期4は回答扱い）
       el.scaleGrid.innerHTML = "";
-
-      const wrap = document.createElement("div");
-      wrap.className = "rangeWrap";
-
-      const centerRead = document.createElement("div");
-      centerRead.className = "centerRead";
-      centerRead.innerHTML = `<span>1 = まったくそう思わない</span><b id="rangeVal">4</b><span>7 = 非常にそう思う</span>`;
-
-      const range = document.createElement("input");
-      range.type = "range";
-      range.min = "1";
-      range.max = "7";
-      range.step = "1";
-      range.className = "range";
-
       const current = Number.isInteger(state.answers[i]) ? state.answers[i] : 4;
-      range.value = String(current);
 
-      const ticks = document.createElement("div");
-      ticks.className = "tickRow";
-      ticks.innerHTML = `<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>`;
-
-      function applyThumbScale(v){
-        const dist = Math.abs(v - 4);   // 0..3
-        const t = dist / 3;            // 0..1
-        const scale = 1 + t * 0.55;    // 1.00..1.55（好みで調整）
-        range.style.setProperty("--thumbScale", String(scale));
-        const valEl = centerRead.querySelector("#rangeVal");
-        if (valEl) valEl.textContent = String(v);
-      }
-
-      // スライド中のページ操作（横スクロール/ズーム/ジェスチャ）抑止
-      function blockGesture(e){ e.preventDefault(); }
-      range.addEventListener("touchstart", blockGesture, { passive:false });
-      range.addEventListener("touchmove",  blockGesture, { passive:false });
-      wrap.addEventListener("touchmove",   blockGesture, { passive:false });
-
-      applyThumbScale(current);
-
-      range.addEventListener("input", ()=>{
-        const v = clamp(Number(range.value), 1, 7);
-        state.answers[i] = v; // ★これで回答済み
-        applyThumbScale(v);
-        save();
+      const slider = buildSevenSlider({
+        value: current,
+        onChange: (v)=>{
+          state.answers[i] = v;
+          save();
+        }
       });
 
-      wrap.appendChild(centerRead);
-      wrap.appendChild(range);
-      wrap.appendChild(ticks);
-      el.scaleGrid.appendChild(wrap);
-
-      // ガードは常に消してOK（初期4が回答扱い）
+      el.scaleGrid.appendChild(slider.node);
       el.qGuard.style.opacity = "0";
 
       el.btnPrevQ.disabled = (i === 0);
@@ -1537,9 +1594,6 @@
         .replaceAll("'","&#039;");
     }
 
-    /***********************
-     * Guards (1..7)
-     ***********************/
     function ensureAllAnswered(){
       for (let i=0; i<100; i++){
         const a = state.answers[i];
@@ -1571,8 +1625,7 @@
       state.profile.name = "太郎";
       state.profile.gender = "male";
       state.profile.birthday = "2003-05-01";
-      state.userId = state.userId || "";
-      state.answers = new Array(100).fill(4); // ★サンプルも中心4
+      state.answers = new Array(100).fill(4);
       state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
       state.currentIndex = 0;
       save();
@@ -1662,7 +1715,6 @@
      * Boot
      ***********************/
     (function init(){
-      // URL ?userId=... を優先
       const q = parseQuery();
       if (q.userId) state.userId = q.userId;
 
