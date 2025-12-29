@@ -2,7 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- 固定：ズーム抑止（iOS含む） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>FortuneAI式 17タイプ診断</title>
   <style>
     :root{
@@ -21,7 +22,7 @@
       --r: 18px;
     }
     *{box-sizing:border-box}
-    html, body{height:100%}
+    html, body{height:100%; overscroll-behavior: none;}
     body{
       margin:0;
       color:var(--text);
@@ -31,6 +32,7 @@
         radial-gradient(900px 540px at 85% 25%, rgba(207,167,110,.20), transparent 62%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
+      touch-action: pan-y; /* ページは縦スクロールのみ許可（スライダーは別途touch-action:none） */
     }
     a{color:inherit}
     .wrap{max-width:980px; margin:0 auto; padding:18px 14px 40px;}
@@ -237,119 +239,6 @@
       white-space:nowrap;
     }
 
-    /* ---- Slider UI ---- */
-    .scale{
-      margin-top:12px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.03);
-      padding: 12px;
-    }
-    .scaleLegend{
-      display:flex; justify-content:space-between;
-      font-size:11px;
-      opacity:.82;
-      gap:10px;
-      line-height:1.3;
-      margin-bottom:10px;
-    }
-    .sliderRow{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex-wrap:wrap;
-    }
-    .valueBadge{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-width: 44px;
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(207,167,110,.35);
-      background: rgba(207,167,110,.10);
-      font-size:12px;
-      font-weight:700;
-      letter-spacing:.02em;
-    }
-    .rangeWrap{
-      flex: 1 1 280px;
-      padding: 8px 10px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.18);
-    }
-    input[type="range"]{
-      width:100%;
-      margin: 6px 0;
-      background: transparent;
-      -webkit-appearance: none;
-      appearance: none;
-      height: 22px;
-    }
-    input[type="range"]::-webkit-slider-runnable-track{
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(90deg, rgba(124,77,255,.45), rgba(207,167,110,.45));
-    }
-    input[type="range"]::-webkit-slider-thumb{
-      -webkit-appearance: none;
-      appearance: none;
-      width: 20px;
-      height: 20px;
-      margin-top: -6px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.20);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.12) 45%, rgba(207,167,110,.30));
-      box-shadow: 0 0 24px rgba(124,77,255,.18), 0 0 18px rgba(207,167,110,.14);
-      cursor: pointer;
-    }
-    input[type="range"]::-moz-range-track{
-      height: 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(90deg, rgba(124,77,255,.45), rgba(207,167,110,.45));
-    }
-    input[type="range"]::-moz-range-thumb{
-      width: 20px;
-      height: 20px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.20);
-      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(255,255,255,.12) 45%, rgba(207,167,110,.30));
-      cursor: pointer;
-    }
-    .ticks{
-      display:flex;
-      justify-content:space-between;
-      gap:6px;
-      font-size:11px;
-      opacity:.78;
-      line-height:1.2;
-      margin-top: 4px;
-      user-select:none;
-    }
-    .ticks span{
-      width: 14%;
-      text-align:center;
-    }
-
-    .spark{
-      position:absolute;
-      width:10px; height:10px;
-      border-radius:999px;
-      pointer-events:none;
-      background: radial-gradient(circle, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.18), transparent 70%);
-      transform: translate(-50%,-50%) scale(.4);
-      animation: pop .55s ease-out forwards;
-      filter: blur(.2px);
-    }
-    @keyframes pop{
-      0%{opacity:0; transform:translate(-50%,-50%) scale(.4);}
-      20%{opacity:1;}
-      100%{opacity:0; transform:translate(-50%,-50%) scale(7);}
-    }
-
     .textarea{
       min-height: 140px;
       resize: vertical;
@@ -501,6 +390,89 @@
     .sep{height:1px; background: rgba(255,255,255,.10); margin: 12px 0;}
     .muted{opacity:.84}
     .small{font-size:12px}
+
+    /* ===== Slider (1..7) ===== */
+    .rangeWrap{
+      margin-top: 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.03);
+      padding: 14px 12px;
+      touch-action: none;            /* 重要：スライド中のページ操作を止める */
+      overscroll-behavior: contain;
+    }
+
+    .range{
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+      outline: none;
+      touch-action: none;            /* 重要 */
+    }
+
+    .range::-webkit-slider-runnable-track{
+      height: 10px;
+      border-radius: 999px;
+    }
+
+    .range::-webkit-slider-thumb{
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
+      box-shadow: 0 0 16px rgba(124,77,255,.20), 0 0 14px rgba(207,167,110,.14);
+      transform: scale(var(--thumbScale, 1));
+      transition: transform .08s linear;
+    }
+
+    .range::-moz-range-track{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+    .range::-moz-range-thumb{
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.95), rgba(207,167,110,.55), rgba(124,77,255,.20));
+      box-shadow: 0 0 16px rgba(124,77,255,.20), 0 0 14px rgba(207,167,110,.14);
+      transform: scale(var(--thumbScale, 1));
+      transition: transform .08s linear;
+    }
+
+    .tickRow{
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      font-size: 11px;
+      opacity: .82;
+    }
+    .tickRow span{ text-align:center; }
+
+    .centerRead{
+      margin-top: 4px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-size:12px;
+      opacity:.92;
+    }
+    .centerRead b{
+      font-size:14px;
+      letter-spacing:.03em;
+      min-width: 20px;
+      text-align:center;
+    }
   </style>
 </head>
 <body>
@@ -511,7 +483,7 @@
           <div class="orb" aria-hidden="true"></div>
           <div>
             <h1 class="title">FortuneAI式 17タイプ診断</h1>
-            <div class="subtitle">100の質問×7段階で17タイプに分類。占い5種類の象徴レイヤー付き</div>
+            <div class="subtitle">100の質問×7段階スライダーで17タイプに分類。占い5種類の象徴レイヤー付き</div>
           </div>
         </div>
         <div class="progressWrap" aria-label="進捗">
@@ -538,7 +510,7 @@
 
           <div class="pillRow" aria-label="特徴">
             <div class="pill">✅ 自動保存（localStorage）</div>
-            <div class="pill">✅ 7段階スライダー</div>
+            <div class="pill">✅ 7段階スライダー（初期値4）</div>
             <div class="pill">✅ 17タイプ判定（BALあり）</div>
             <div class="pill">✅ Make連携payload生成</div>
           </div>
@@ -557,8 +529,8 @@
           <p class="mini"><b>Make連携について</b></p>
           <p class="mini muted">
             最終送信（final_submit）時に、以下の形式のJSON payloadを生成します。<br>
-            本番：WEBHOOK_URLを設定してあるためfetch()でPOST送信します。<br>
-            テスト：送信内容はJSONコピー/ダウンロードでも確認できます。
+            本番：WEBHOOK_URLを設定するとfetch()でPOST送信。<br>
+            テスト：WEBHOOK_URLが空なら、送信せずJSONプレビュー/コピー/ダウンロードを提供します。
           </p>
           <div class="sep"></div>
           <p class="mini"><b>注意（userId）</b></p>
@@ -626,30 +598,12 @@
 
       <p class="qTitle" id="qText" style="margin-top:10px;">Q1. （設問）</p>
 
-      <div class="scale" id="scaleBox">
-        <div class="scaleLegend">
-          <span>1 = まったくそう思わない</span>
-          <span>7 = 非常にそう思う</span>
-        </div>
-
-        <div class="sliderRow">
-          <div class="valueBadge" id="sliderValue">-</div>
-          <div class="rangeWrap" id="rangeWrap">
-            <input id="answerSlider" type="range" min="1" max="7" step="1" value="4" aria-label="回答スライダー（1〜7）" />
-            <div class="ticks" aria-hidden="true">
-              <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
-            </div>
-          </div>
-        </div>
-
-        <p class="hint" style="margin:10px 0 0;">
-          ※未回答のまま次へ進めません（スライダーを一度動かすと回答確定）。
-        </p>
-      </div>
+      <!-- スライダーがここに入る -->
+      <div id="scaleGrid" aria-label="7段階スライダー"></div>
 
       <div class="btnRow" style="justify-content:space-between;">
         <button class="btn ghost" id="btnPrevQ">前へ</button>
-        <div class="muted small" id="qGuard">未回答のまま次へ進めません。</div>
+        <div class="muted small" id="qGuard" style="opacity:0;">未回答のまま次へ進めません。</div>
         <button class="btn primary" id="btnNextQ">次へ</button>
       </div>
 
@@ -701,7 +655,7 @@
           <i id="confBar" style="width:0%;"></i>
         </div>
         <p class="hint" style="margin:8px 0 0;">
-          信頼度は各軸の絶対値を「その軸の最大値」で割って%化し、4軸平均で算出します（7段階対応）。
+          信頼度は各軸の絶対値（0〜100%換算）を%に換算し、4軸平均で算出します。
         </p>
       </div>
 
@@ -725,7 +679,7 @@
 
       <div id="jsonPreviewWrap" style="display:none;">
         <div class="sep"></div>
-        <p class="lead"><b>JSONプレビュー</b></p>
+        <p class="lead"><b>JSONプレビュー（テストモード：WEBHOOK_URL未設定）</b></p>
         <div class="jsonBox" id="jsonPreview"></div>
       </div>
     </section>
@@ -742,14 +696,8 @@
     const WEBHOOK_URL = "https://hook.eu2.make.com/7ac62r32ffup0cl0d1kr9h3dpbf8dz3h";
     const STORAGE_KEY = "fortuneai_17type_v1";
 
-    // 7段階設定
-    const SCALE_MIN = 1;
-    const SCALE_MAX = 7;
-    const SCALE_NEUTRAL = 4; // 1..7の中立
-    const VALUE_MAX = SCALE_MAX - SCALE_NEUTRAL; // 3  （= -3..+3）
-
-    // BAL判定しきい値（軸スコアの絶対値がこれ未満なら均衡扱い）
-    const BAL_THRESHOLD = 10;
+    // 1..7（中心4）での軸最大値：25問×3 = 75
+    const AXIS_MAX = 75;
 
     /***********************
      * 17タイプ称号データ（固定）
@@ -911,28 +859,6 @@
     }
 
     /***********************
-     * Axis counts / max
-     ***********************/
-    const AXIS_COUNTS = computeAxisCounts(QUESTIONS);   // {E:25,S:25,T:25,J:25} 想定
-    const AXIS_MAX = {
-      E: AXIS_COUNTS.E * VALUE_MAX,
-      S: AXIS_COUNTS.S * VALUE_MAX,
-      T: AXIS_COUNTS.T * VALUE_MAX,
-      J: AXIS_COUNTS.J * VALUE_MAX,
-    };
-
-    function computeAxisCounts(questions){
-      const c = { E:0, S:0, T:0, J:0 };
-      for (const q of questions){
-        const m = String(q.tag).match(/\[([ESTJ])([+-])\]/);
-        if (!m) continue;
-        const axis = m[1];
-        if (c[axis] !== undefined) c[axis] += 1;
-      }
-      return c;
-    }
-
-    /***********************
      * UI Elements
      ***********************/
     const el = {
@@ -965,15 +891,12 @@
       qProgress: document.getElementById("qProgress"),
       qTag: document.getElementById("qTag"),
       qText: document.getElementById("qText"),
+      scaleGrid: document.getElementById("scaleGrid"),
       btnPrevQ: document.getElementById("btnPrevQ"),
       btnNextQ: document.getElementById("btnNextQ"),
       btnJumpProfile: document.getElementById("btnJumpProfile"),
       btnResetFromQuestions: document.getElementById("btnResetFromQuestions"),
       qGuard: document.getElementById("qGuard"),
-
-      answerSlider: document.getElementById("answerSlider"),
-      sliderValue: document.getElementById("sliderValue"),
-      rangeWrap: document.getElementById("rangeWrap"),
 
       worryText: document.getElementById("worryText"),
       worryCount: document.getElementById("worryCount"),
@@ -1007,7 +930,7 @@
       currentIndex: 0,
       profile: { name: "", gender: "", birthday: "" },
       userId: "",
-      answers: new Array(100).fill(null), // 1..7 or null
+      answers: new Array(100).fill(4),  // ★初期値4＝回答済み扱い
       worryText: "",
       lastPayload: null,
     };
@@ -1051,7 +974,11 @@
           birthday: String(data.profile?.birthday || ""),
         };
         state.userId = String(data.userId || "");
-        state.answers = data.answers.map(v => (v===null || v===undefined) ? null : clamp(Number(v), SCALE_MIN, SCALE_MAX));
+        // null等が混じっても4へ
+        state.answers = data.answers.map(v => {
+          if (v===null || v===undefined || v==="") return 4;
+          return clamp(Number(v), 1, 7);
+        });
         state.worryText = String(data.worryText || "");
         return true;
       }catch{
@@ -1065,7 +992,7 @@
       state.currentIndex = 0;
       state.profile = { name:"", gender:"", birthday:"" };
       state.userId = "";
-      state.answers = new Array(100).fill(null);
+      state.answers = new Array(100).fill(4); // ★初期値4に戻す
       state.worryText = "";
       state.lastPayload = null;
       renderAll();
@@ -1082,18 +1009,7 @@
       const p = clamp(pct, 0, 100);
       el.progressBar.style.width = p.toFixed(0) + "%";
       el.progressText.textContent = text ?? (p.toFixed(0) + "%");
-      const pb = el.progressBar.parentElement;
-      pb.setAttribute("aria-valuenow", String(p));
-    }
-
-    function sparkAt(container, clientX, clientY){
-      const r = container.getBoundingClientRect();
-      const s = document.createElement("i");
-      s.className = "spark";
-      s.style.left = (clientX - r.left) + "px";
-      s.style.top  = (clientY - r.top) + "px";
-      container.appendChild(s);
-      setTimeout(()=>s.remove(), 650);
+      el.progressBar.parentElement.setAttribute("aria-valuenow", String(p));
     }
 
     function toast(kind, msg){
@@ -1172,11 +1088,11 @@
     }
 
     /***********************
-     * Scoring & Typing (7段階対応)
+     * Scoring & Typing (1..7中心4)
      ***********************/
     function answerToValue(ans){
-      // 1..7 -> -3..+3
-      return (Number(ans) - SCALE_NEUTRAL);
+      // 1..7 -> -3..+3（中心4）
+      return (Number(ans) - 4);
     }
 
     function applyTagToAxis(tag, val, scores){
@@ -1196,14 +1112,13 @@
       const scores = { E:0, S:0, T:0, J:0 };
       for (let i=0; i<100; i++){
         const ans = state.answers[i];
-        if (ans === null) continue;
         const val = answerToValue(ans);
         applyTagToAxis(QUESTIONS[i].tag, val, scores);
       }
-      scores.E = clamp(scores.E, -AXIS_MAX.E, AXIS_MAX.E);
-      scores.S = clamp(scores.S, -AXIS_MAX.S, AXIS_MAX.S);
-      scores.T = clamp(scores.T, -AXIS_MAX.T, AXIS_MAX.T);
-      scores.J = clamp(scores.J, -AXIS_MAX.J, AXIS_MAX.J);
+      scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
+      scores.S = clamp(scores.S, -AXIS_MAX, AXIS_MAX);
+      scores.T = clamp(scores.T, -AXIS_MAX, AXIS_MAX);
+      scores.J = clamp(scores.J, -AXIS_MAX, AXIS_MAX);
       return scores;
     }
 
@@ -1213,10 +1128,9 @@
       const absT = Math.abs(scores.T);
       const absJ = Math.abs(scores.J);
 
-      const isBAL = (absE < BAL_THRESHOLD && absS < BAL_THRESHOLD && absT < BAL_THRESHOLD && absJ < BAL_THRESHOLD);
-      if (isBAL){
-        return { typeCode:"BAL", isBAL:true };
-      }
+      // 1..7は振れ幅が小さいため閾値を少し下げる
+      const isBAL = (absE < 8 && absS < 8 && absT < 8 && absJ < 8);
+      if (isBAL) return { typeCode:"BAL", isBAL:true };
 
       const EorI = (scores.E >= 0) ? "E" : "I";
       const SorN = (scores.S >= 0) ? "S" : "N";
@@ -1225,24 +1139,18 @@
       return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
     }
 
-    function axisPercent(score, axisKey){
-      const max = AXIS_MAX[axisKey] || 1;
-      const p = ((score + max) / (2 * max)) * 100;
+    function axisPercent(score){
+      const p = ((score + AXIS_MAX) / (2 * AXIS_MAX)) * 100;
       return clamp(p, 0, 100);
     }
 
-    function confidence(score, axisKey){
-      const max = AXIS_MAX[axisKey] || 1;
-      const p = (Math.abs(score) / max) * 100;
+    function confidence(score){
+      const p = (Math.abs(score) / AXIS_MAX) * 100;
       return clamp(p, 0, 100);
     }
 
     function overallConfidence(scores){
-      const ei = confidence(scores.E, "E");
-      const sn = confidence(scores.S, "S");
-      const tf = confidence(scores.T, "T");
-      const jp = confidence(scores.J, "J");
-      return (ei + sn + tf + jp) / 4;
+      return (confidence(scores.E) + confidence(scores.S) + confidence(scores.T) + confidence(scores.J)) / 4;
     }
 
     /***********************
@@ -1251,7 +1159,7 @@
     function zodiacMode(scores, isBAL){
       if (isBAL) return "柔軟宮モード（バランスと適応）";
       const absE = Math.abs(scores.E);
-      if (absE < BAL_THRESHOLD) return "柔軟宮モード（拮抗・調整）";
+      if (absE < 8) return "柔軟宮モード（拮抗・調整）";
       return (scores.E >= 0) ? "活動宮モード（能動・始動）" : "不動宮モード（持続・安定）";
     }
 
@@ -1315,7 +1223,7 @@
     }
 
     /***********************
-     * Payload Builder (7段階対応)
+     * Payload Builder
      ***********************/
     function buildPayload(){
       const userId = (state.userId || "").trim();
@@ -1336,17 +1244,19 @@
         throw new Error("answers must be array length 100");
       }
       for (const a of payload.answers){
-        if (!Number.isInteger(a) || a < SCALE_MIN || a > SCALE_MAX) {
-          throw new Error(`answers must be integers ${SCALE_MIN}..${SCALE_MAX}`);
+        if (!Number.isInteger(a) || a < 1 || a > 7) {
+          throw new Error("answers must be integers 1..7");
         }
       }
       if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) {
         throw new Error("profile is incomplete");
       }
-      if (payload.worryText.length > 2000) {
-        payload.worryText = payload.worryText.slice(0, 2000);
-      }
+      if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0, 2000);
       return payload;
+    }
+
+    async function safeReadText(res){
+      try{ return await res.text(); }catch{ return ""; }
     }
 
     async function finalSubmit(){
@@ -1363,6 +1273,14 @@
 
       const jsonText = safeJsonStringify(payload);
 
+      if (!WEBHOOK_URL){
+        el.jsonPreviewWrap.style.display = "block";
+        el.jsonPreview.textContent = jsonText;
+        toast("warn", "テストモード：WEBHOOK_URL未設定のため送信せず、JSONプレビューを表示しました。");
+        return;
+      }
+
+      el.jsonPreviewWrap.style.display = "none";
       toast("", "送信中…");
       try{
         const res = await fetch(WEBHOOK_URL, {
@@ -1379,14 +1297,6 @@
         toast("ok", "送信成功：HTTP " + res.status + (body ? " / response=" + body.slice(0, 400) : ""));
       }catch(e){
         toast("bad", "送信エラー： " + (e?.message || e));
-      }
-    }
-
-    async function safeReadText(res){
-      try{
-        return await res.text();
-      }catch{
-        return "";
       }
     }
 
@@ -1448,18 +1358,64 @@
       const pct = base + ( (i) / 100 ) * span;
       setProgress(pct, el.qProgress.textContent);
 
+      // ===== 1..7 slider =====
+      el.scaleGrid.innerHTML = "";
+
+      const wrap = document.createElement("div");
+      wrap.className = "rangeWrap";
+
+      const centerRead = document.createElement("div");
+      centerRead.className = "centerRead";
+      centerRead.innerHTML = `<span>1 = まったくそう思わない</span><b id="rangeVal">4</b><span>7 = 非常にそう思う</span>`;
+
+      const range = document.createElement("input");
+      range.type = "range";
+      range.min = "1";
+      range.max = "7";
+      range.step = "1";
+      range.className = "range";
+
+      const current = Number.isInteger(state.answers[i]) ? state.answers[i] : 4;
+      range.value = String(current);
+
+      const ticks = document.createElement("div");
+      ticks.className = "tickRow";
+      ticks.innerHTML = `<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>`;
+
+      function applyThumbScale(v){
+        const dist = Math.abs(v - 4);   // 0..3
+        const t = dist / 3;            // 0..1
+        const scale = 1 + t * 0.55;    // 1.00..1.55（好みで調整）
+        range.style.setProperty("--thumbScale", String(scale));
+        const valEl = centerRead.querySelector("#rangeVal");
+        if (valEl) valEl.textContent = String(v);
+      }
+
+      // スライド中のページ操作（横スクロール/ズーム/ジェスチャ）抑止
+      function blockGesture(e){ e.preventDefault(); }
+      range.addEventListener("touchstart", blockGesture, { passive:false });
+      range.addEventListener("touchmove",  blockGesture, { passive:false });
+      wrap.addEventListener("touchmove",   blockGesture, { passive:false });
+
+      applyThumbScale(current);
+
+      range.addEventListener("input", ()=>{
+        const v = clamp(Number(range.value), 1, 7);
+        state.answers[i] = v; // ★これで回答済み
+        applyThumbScale(v);
+        save();
+      });
+
+      wrap.appendChild(centerRead);
+      wrap.appendChild(range);
+      wrap.appendChild(ticks);
+      el.scaleGrid.appendChild(wrap);
+
+      // ガードは常に消してOK（初期4が回答扱い）
+      el.qGuard.style.opacity = "0";
+
       el.btnPrevQ.disabled = (i === 0);
       el.btnNextQ.textContent = (i === 99) ? "次へ（悩み入力）" : "次へ";
-
-      // スライダー表示：未回答なら見た目は4だが、未回答扱いのまま
-      const current = state.answers[i];
-      el.answerSlider.min = String(SCALE_MIN);
-      el.answerSlider.max = String(SCALE_MAX);
-      el.answerSlider.step = "1";
-      el.answerSlider.value = String(current ?? SCALE_NEUTRAL);
-
-      el.sliderValue.textContent = (current === null) ? "-" : String(current);
-      el.qGuard.style.opacity = (current === null) ? "1" : "0";
     }
 
     function renderWorry(){
@@ -1494,9 +1450,9 @@
       ];
 
       for (const a of axisData){
-        const leftPct = axisPercent(a.score, a.key);
+        const leftPct = axisPercent(a.score);
         const rightPct = 100 - leftPct;
-        const conf = confidence(a.score, a.key);
+        const conf = confidence(a.score);
 
         const box = document.createElement("div");
         box.className = "barBox";
@@ -1548,7 +1504,7 @@
           body: `象徴：${five}\n\n象徴：気質を元素に置き換えた比喩です。相性や運勢の断定ではありません。`
         },
         { title: "手相（象徴：比喩）", body: palmistryText(typeCode) },
-        { title: "姓名判断（象徴：比喩）", body: nameologyText(typeCode) },
+        { title: "姓名判断（象徴：比喩）", body: nameologyText(typeCode) }
       ];
 
       for (const L of layers){
@@ -1567,7 +1523,9 @@
         const payload = buildPayload();
         state.lastPayload = payload;
         save();
-      }catch{}
+      }catch{
+        // noop
+      }
     }
 
     function escapeHtml(s){
@@ -1580,20 +1538,12 @@
     }
 
     /***********************
-     * Navigation guards
+     * Guards (1..7)
      ***********************/
-    function ensureAnsweredCurrent(){
-      const i = state.currentIndex;
-      const ans = state.answers[i];
-      const ok = (Number.isInteger(ans) && ans >= SCALE_MIN && ans <= SCALE_MAX);
-      el.qGuard.style.opacity = ok ? "0" : "1";
-      return ok;
-    }
-
     function ensureAllAnswered(){
       for (let i=0; i<100; i++){
         const a = state.answers[i];
-        if (!Number.isInteger(a) || a < SCALE_MIN || a > SCALE_MAX) return false;
+        if (!Number.isInteger(a) || a < 1 || a > 7) return false;
       }
       return true;
     }
@@ -1622,7 +1572,7 @@
       state.profile.gender = "male";
       state.profile.birthday = "2003-05-01";
       state.userId = state.userId || "";
-      state.answers = new Array(100).fill(4); // 7段階の中立
+      state.answers = new Array(100).fill(4); // ★サンプルも中心4
       state.worryText = "（テスト）サンプル悩み：今後の方向性を知りたい。";
       state.currentIndex = 0;
       save();
@@ -1654,8 +1604,6 @@
     });
 
     el.btnNextQ.addEventListener("click", ()=>{
-      if (!ensureAnsweredCurrent()) return;
-
       if (state.currentIndex === 99){
         if (!ensureAllAnswered()){
           toast("bad", "未回答が残っています。全100問に回答してください。");
@@ -1667,40 +1615,6 @@
       state.currentIndex++;
       save();
       renderQuestion();
-    });
-
-    // スライダー操作：一度触れたら回答確定（null→数値）
-    let sliderTouched = false;
-    el.answerSlider.addEventListener("pointerdown", (e)=>{
-      sliderTouched = true;
-      if (e.pointerType) sparkAt(el.rangeWrap, e.clientX, e.clientY);
-    });
-
-    el.answerSlider.addEventListener("input", ()=>{
-      const i = state.currentIndex;
-      const v = clamp(Number(el.answerSlider.value), SCALE_MIN, SCALE_MAX);
-
-      // 「触れた」前提で確定（未回答のまま次へ防止）
-      if (sliderTouched || state.answers[i] !== null) {
-        state.answers[i] = v;
-        el.sliderValue.textContent = String(v);
-        el.qGuard.style.opacity = "0";
-        save();
-      } else {
-        // 念のため：触ってない状態では表示だけ
-        el.sliderValue.textContent = "-";
-        el.qGuard.style.opacity = "1";
-      }
-    });
-
-    // キーボード操作でも回答確定
-    el.answerSlider.addEventListener("change", ()=>{
-      const i = state.currentIndex;
-      const v = clamp(Number(el.answerSlider.value), SCALE_MIN, SCALE_MAX);
-      state.answers[i] = v;
-      el.sliderValue.textContent = String(v);
-      el.qGuard.style.opacity = "0";
-      save();
     });
 
     el.worryText.addEventListener("input", ()=>{
@@ -1725,9 +1639,8 @@
     el.btnCopyJson.addEventListener("click", async ()=>{
       let payload = state.lastPayload;
       if (!payload){
-        try{ payload = buildPayload(); state.lastPayload = payload; save(); }catch(e){
-          toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return;
-        }
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){ toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
       }
       const text = safeJsonStringify(payload);
       const ok = await copyToClipboard(text);
@@ -1737,9 +1650,8 @@
     el.btnDownloadJson.addEventListener("click", ()=>{
       let payload = state.lastPayload;
       if (!payload){
-        try{ payload = buildPayload(); state.lastPayload = payload; save(); }catch(e){
-          toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return;
-        }
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){ toast("bad", "JSON生成に失敗しました： " + (e?.message || e)); return; }
       }
       const text = safeJsonStringify(payload);
       downloadText("fortuneai_final_submit.json", text);
@@ -1750,6 +1662,7 @@
      * Boot
      ***********************/
     (function init(){
+      // URL ?userId=... を優先
       const q = parseQuery();
       if (q.userId) state.userId = q.userId;
 
