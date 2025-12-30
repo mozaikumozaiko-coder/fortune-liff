@@ -23,6 +23,11 @@
 
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeTop: env(safe-area-inset-top, 0px);
+
+      /* ===== FIX: 質問画面を“被りゼロ＋縦スクロールなし”にするための見込み値 ===== */
+      --headerH: 132px;      /* スマホ2段ヘッダーの見込み高さ */
+      --bottomH: 86px;       /* 下部ナビの見込み高さ */
+      --mapReserve: 170px;   /* ミニマップ分の右側安全余白 */
     }
 
     *{box-sizing:border-box}
@@ -201,6 +206,14 @@
     .btn.danger{ background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.40); }
     .btn:disabled{opacity:.45; cursor:not-allowed;}
 
+    /* ===== FIX: “最初からやり直す”を小さくする（ミニマップと被らない） ===== */
+    .btn.slim{
+      padding: 9px 12px;
+      font-size: 12px;
+      border-radius: 12px;
+      letter-spacing: .02em;
+    }
+
     .toast{
       margin-top: 10px;
       padding: 10px 12px;
@@ -227,7 +240,20 @@
       outline:none;
       min-width:0;
     }
-    input[type="date"].field{min-width:0; width:100%;}
+
+    /* ===== FIX: iOSのdate入力がはみ出しやすいので保険 ===== */
+    input[type="date"].field{
+      min-width:0;
+      width:100%;
+      display:block;
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 44px;
+      padding-right: 14px;
+    }
+    input[type="date"].field::-webkit-date-and-time-value{ text-align:left; }
+    input[type="date"].field::-webkit-calendar-picker-indicator{ opacity:.75; }
+
     .field:focus{
       border-color: color-mix(in oklab, var(--accent2) 55%, white 0%);
       box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 18%, transparent);
@@ -369,7 +395,7 @@
     .miniMapFloat{
       position: fixed;
       right: 12px;
-      bottom: calc(86px + var(--safeBottom)); /* 右下ボタンと被りにくい */
+      bottom: calc(86px + var(--safeBottom)); /* 下部ナビの上に固定 */
       z-index: 95;
       width: 164px;
       border-radius: 18px;
@@ -482,6 +508,41 @@
 
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
+
+    /* =====================================================================================
+       FIX: 質問画面だけ「縦スクロールなし」＋「ミニマップ被りゼロ」＋「ボタン被りゼロ」
+       ===================================================================================== */
+    body.isQuestions{ overflow: hidden; }
+
+    body.isQuestions .wrap{
+      padding: 10px 14px 0;
+      padding-right: calc(14px + var(--mapReserve));
+      height: calc(100svh - var(--headerH) - var(--bottomH) - var(--safeBottom));
+      overflow: hidden;
+    }
+    body.isQuestions #viewQuestions{
+      height: 100%;
+      overflow: hidden;
+    }
+    body.isQuestions #viewQuestions .qCard{
+      height: 100%;
+      display:flex;
+      flex-direction:column;
+      padding: 14px;
+    }
+    body.isQuestions #viewQuestions .qText{
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    body.isQuestions #viewQuestions .scaleWrap{ padding: 12px 10px; }
+    body.isQuestions #viewQuestions .sep{ margin: 10px 0; }
+
+    @media (max-height:760px){
+      :root{ --headerH: 122px; --bottomH: 82px; --mapReserve: 165px; }
+      body.isQuestions #viewQuestions .tickBtn{ padding: 8px 0; }
+      body.isQuestions #viewQuestions .scaleWrap{ padding: 10px 10px; }
+    }
   </style>
 </head>
 
@@ -578,7 +639,7 @@
 
     <section class="card" id="viewProfile" hidden>
       <h2 class="h1">プロフィール</h2>
-      <p class="lead muted small">お名前はニックネームでも可能です</p>
+      <p class="lead muted small">※保存復元あり。userIdはURL（?userId=...）でも渡せます。お名前はニックネームでも可能です</p>
 
       <div style="margin-top:12px;">
         <label for="name">お名前（必須）</label>
@@ -651,7 +712,8 @@
 
         <div class="btnRow">
           <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
-          <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
+          <!-- FIX: 被らないようにslim -->
+          <button class="btn danger slim" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
         </div>
       </div>
     </section>
@@ -1399,7 +1461,6 @@
     const mini = { pathLen:0 };
 
     function initAscent(){
-      // 詳細SVGはモーダル内だが、length計算は可能
       ascent.pathLen = dom.ascentPathProg.getTotalLength();
       dom.ascentPathProg.style.strokeDasharray = `${ascent.pathLen} ${ascent.pathLen}`;
       dom.ascentPathProg.style.strokeDashoffset = `${ascent.pathLen}`;
@@ -1453,7 +1514,6 @@
     }
 
     function renderAscentBuildings(){
-      // 20,40,60,80,100 に建物
       dom.ascentBuildings.innerHTML = "";
       const milestones = [20,40,60,80,100];
       milestones.forEach(m=>{
@@ -1464,11 +1524,9 @@
         g.setAttribute("data-b", String(m));
         g.setAttribute("class","floaty");
 
-        // 建物タイプを章で変える
         const idx = Math.min(4, Math.floor((m-1)/20));
         const color = ["rgba(255,255,255,.16)","rgba(255,255,255,.14)","rgba(255,255,255,.16)","rgba(255,255,255,.14)","rgba(255,255,255,.18)"][idx];
 
-        // 小さな尖塔（シンプルで神秘的）
         const base = document.createElementNS("http://www.w3.org/2000/svg","path");
         base.setAttribute("d", `M ${pt.x-8} ${pt.y+10} L ${pt.x+8} ${pt.y+10} L ${pt.x+6} ${pt.y+18} L ${pt.x-6} ${pt.y+18} Z`);
         base.setAttribute("fill","rgba(0,0,0,.18)");
@@ -1541,7 +1599,6 @@
       dom.ascentDot.setAttribute("cx", pt.x);
       dom.ascentDot.setAttribute("cy", pt.y);
 
-      // 精霊（wisp）をマーカーに追従
       dom.ascentWisp.setAttribute("transform", `translate(${(pt.x-42).toFixed(2)}, ${(pt.y-190).toFixed(2)})`);
 
       dom.ascentRunes.querySelectorAll("g[data-node]").forEach(g=>{
@@ -1657,7 +1714,7 @@
       const i = state.currentIndex;
       const q = QUESTIONS[i];
       dom.qText.textContent = q.text;
-      dom.qTagChip.textContent = q.tag; // 表示はCSSで非表示（データ保持）
+      dom.qTagChip.textContent = q.tag;
       dom.qIndexChip.textContent = `Q ${i+1} / 100`;
 
       const done = answeredDoneCount();
@@ -1713,6 +1770,9 @@
       const inQuestions = (state.view==="questions");
       dom.bottomNav.style.display = inQuestions ? "block" : "none";
       dom.miniMapBtn.style.display = inQuestions ? "block" : "none";
+
+      /* ===== FIX: 質問画面だけ body にクラスを付ける（縦スクロールなし＋被りゼロ） ===== */
+      document.body.classList.toggle("isQuestions", inQuestions);
 
       if (state.view==="hero"){ dom.viewHero.hidden=false; }
       if (state.view==="profile"){ dom.viewProfile.hidden=false; renderProfile(); }
@@ -1800,7 +1860,7 @@
           return;
         }
       }
-      const ok = await copyToClipboard(safeJson(payload));
+      const ok = await copyToClipboard(JSON.stringify(payload, null, 2));
       dom.resultToast.className = "toast " + (ok ? "ok" : "bad");
       dom.resultToast.textContent = ok ? "JSONをコピーしました。" : "コピーに失敗しました。";
       dom.resultToast.style.display="block";
@@ -1817,7 +1877,7 @@
           return;
         }
       }
-      downloadText("fortuneai_final_submit.json", safeJson(payload));
+      downloadText("fortuneai_final_submit.json", JSON.stringify(payload, null, 2));
       dom.resultToast.className="toast ok";
       dom.resultToast.textContent="JSONをダウンロードしました。";
       dom.resultToast.style.display="block";
