@@ -24,10 +24,12 @@
       --safeBottom: env(safe-area-inset-bottom, 0px);
       --safeTop: env(safe-area-inset-top, 0px);
 
-      /* ===== FIX: 質問画面を“被りゼロ＋縦スクロールなし”にするための見込み値 ===== */
-      --headerH: 132px;      /* スマホ2段ヘッダーの見込み高さ */
-      --bottomH: 86px;       /* 下部ナビの見込み高さ */
-      --mapReserve: 170px;   /* ミニマップ分の右側安全余白 */
+      /* JSで実測して入れる（質問画面のスクロール撲滅用） */
+      --headerH: 110px;
+      --bottomH: 86px;
+
+      /* ★重要：スマホで右予約すると文字が潰れて「ぐちゃぐちゃ」になるのでデフォ0 */
+      --mapReserve: 0px;
     }
 
     *{box-sizing:border-box}
@@ -45,12 +47,38 @@
       touch-action: pan-y;
     }
 
+    /* 質問画面だけ「ページスクロールなし」 */
+    body.isQuestions{
+      height: 100svh;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
     input, select, textarea{max-width:100%;}
+    /* iOSでフォームが変に伸びる/ズームするのを抑える */
+    input, select, textarea{ font-size:16px; }
 
     .wrap{
       max-width:1180px;
       margin:0 auto;
       padding: 14px 14px calc(96px + var(--safeBottom));
+    }
+
+    /* 質問画面は viewport に収める（縦スクロール禁止） */
+    body.isQuestions .wrap{
+      height: calc(100svh - var(--headerH) - var(--bottomH));
+      padding: 10px 14px 0;
+      padding-right: 14px;           /* ★スマホは右予約しない（崩壊原因） */
+      overflow: hidden;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+
+    /* タブレット以上だけ右にミニマップ分の余白を確保（被りゼロ） */
+    @media (min-width: 720px){
+      :root{ --mapReserve: 170px; }
+      body.isQuestions .wrap{ padding-right: calc(14px + var(--mapReserve)); }
     }
 
     /* ===== Header (スマホ2段化で被りゼロ) ===== */
@@ -71,7 +99,7 @@
       justify-content:space-between;
       min-width:0;
     }
-    .brand{display:flex; gap:12px; align-items:center; min-width: 260px; min-width:0;}
+    .brand{display:flex; gap:12px; align-items:center; min-width:0;}
     .orb{
       width:44px; height:44px; border-radius:999px;
       background:
@@ -168,6 +196,20 @@
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
     }
+
+    /* 質問画面は外側カードを“器”にして高さ固定（スクロール禁止） */
+    body.isQuestions #viewQuestions.card{
+      flex: 1;
+      min-height:0;
+      margin-top: 10px;
+      padding: 0;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      display:flex;
+    }
+
     .h1{font-size:18px; margin:0 0 8px; letter-spacing:.05em; line-height:1.25;}
     .lead{margin:0; font-size:13px; opacity:.88; line-height:1.75;}
     .muted{opacity:.84}
@@ -192,6 +234,7 @@
       border: 1px solid rgba(255,255,255,.14);
       transition: transform .08s ease, border-color .2s ease, background .2s ease, filter .2s ease;
       user-select:none; -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
     }
     .btn:hover{border-color: rgba(255,255,255,.22);}
     .btn:active{transform: translateY(1px) scale(.995);}
@@ -205,14 +248,6 @@
     .btn.ghost{ background: rgba(255,255,255,.03); }
     .btn.danger{ background: rgba(255,107,107,.12); border-color: rgba(255,107,107,.40); }
     .btn:disabled{opacity:.45; cursor:not-allowed;}
-
-    /* ===== FIX: “最初からやり直す”を小さくする（ミニマップと被らない） ===== */
-    .btn.slim{
-      padding: 9px 12px;
-      font-size: 12px;
-      border-radius: 12px;
-      letter-spacing: .02em;
-    }
 
     .toast{
       margin-top: 10px;
@@ -239,21 +274,14 @@
       color: var(--text);
       outline:none;
       min-width:0;
+      display:block;
     }
-
-    /* ===== FIX: iOSのdate入力がはみ出しやすいので保険 ===== */
     input[type="date"].field{
       min-width:0;
       width:100%;
+      max-width:100%;
       display:block;
-      -webkit-appearance: none;
-      appearance: none;
-      min-height: 44px;
-      padding-right: 14px;
     }
-    input[type="date"].field::-webkit-date-and-time-value{ text-align:left; }
-    input[type="date"].field::-webkit-calendar-picker-indicator{ opacity:.75; }
-
     .field:focus{
       border-color: color-mix(in oklab, var(--accent2) 55%, white 0%);
       box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent2) 18%, transparent);
@@ -262,7 +290,9 @@
 
     /* ===== Question Card ===== */
     .qCard{
-      padding: 16px;
+      flex: 1;
+      min-height:0;
+      padding: 14px;
       border-radius: 22px;
       border: 1px solid rgba(255,255,255,.14);
       background:
@@ -271,7 +301,12 @@
         rgba(255,255,255,.04);
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      overflow:hidden;
     }
+
     .qTop{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; flex-wrap:wrap;}
     .qMeta{display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:12px; opacity:.92;}
     .chip{
@@ -285,22 +320,39 @@
       border-color: color-mix(in oklab, var(--accent1) 25%, rgba(255,255,255,.14));
       background: color-mix(in oklab, var(--accent1) 12%, rgba(255,255,255,.04));
     }
-    .qText{margin:10px 0 0; font-size:15px; letter-spacing:.02em; line-height:1.7;}
+
+    .qText{
+      margin: 0;
+      font-size: 15px;
+      letter-spacing:.02em;
+      line-height:1.7;
+      /* ぐちゃぐちゃ防止：単語単位で折り返し */
+      word-break: normal;
+      overflow-wrap: anywhere;
+    }
 
     /* qTag（S+等）を非表示（データ保持） */
     #qTagChip{display:none !important;}
 
     .scaleWrap{
-      margin-top: 14px;
       border-radius: 18px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.14);
-      padding: 14px 12px;
+      padding: 12px 12px;
     }
+
+    /* ★縦に潰れても崩れにくいよう grid 化 */
     .scaleHead{
-      display:flex; justify-content:space-between; align-items:center; gap:10px;
-      font-size:12px; opacity:.92;
+      display:grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 8px;
+      align-items:center;
+      font-size:12px;
+      opacity:.92;
     }
+    .scaleHead span:first-child{ text-align:left; }
+    .scaleHead span:last-child{ text-align:right; }
+
     .valuePill{
       min-width: 44px; text-align:center; font-weight:700; font-size:13px;
       padding: 6px 10px; border-radius:999px;
@@ -310,7 +362,7 @@
     }
 
     .range{
-      margin-top: 12px;
+      margin-top: 10px;
       width: 100%;
       -webkit-appearance: none;
       appearance: none;
@@ -357,13 +409,13 @@
       transition: transform .10s linear;
     }
 
-    .tickRow{margin-top:12px; display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;}
+    .tickRow{margin-top:10px; display:grid; grid-template-columns:repeat(7, 1fr); gap:6px;}
     .tickBtn{
       appearance:none; border: 1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.03);
       color: rgba(234,240,255,.88);
       border-radius: 12px;
-      padding: 10px 0;
+      padding: 9px 0;
       font-size: 12px;
       cursor:pointer;
       user-select:none;
@@ -376,6 +428,15 @@
       background: color-mix(in oklab, var(--fillColor) 18%, rgba(255,255,255,.03));
       box-shadow: 0 0 0 3px color-mix(in oklab, var(--fillColor) 14%, transparent);
       color: rgba(234,240,255,.96);
+    }
+
+    /* 質問画面のボタン行：押しやすくしつつ省スペース */
+    body.isQuestions .qCard .btnRow{ margin-top: 0; }
+    body.isQuestions #btnResetFromQuestions{
+      padding: 9px 10px;             /* ★小さく */
+      font-size: 12px;               /* ★小さく */
+      border-radius: 12px;
+      max-width: 240px;
     }
 
     /* ===== Bottom Nav ===== */
@@ -395,7 +456,8 @@
     .miniMapFloat{
       position: fixed;
       right: 12px;
-      bottom: calc(86px + var(--safeBottom)); /* 下部ナビの上に固定 */
+      /* ★bottomNavの上に配置（ボタンと被りにくい） */
+      bottom: calc(var(--bottomH) + 12px);
       z-index: 95;
       width: 164px;
       border-radius: 18px;
@@ -417,8 +479,10 @@
     }
     .miniMapHint{font-size:11px; opacity:.70; margin-top:6px; text-align:center;}
 
-    @media(max-width:380px){
-      .miniMapFloat{ width: 150px; right: 10px; }
+    /* 小さい端末はミニマップを少し縮めて圧迫を減らす */
+    @media(max-width:420px){
+      .miniMapFloat{ width: 150px; right: 10px; padding: 9px; }
+      .miniMapHint{ display:none; }
     }
 
     /* ===== Modal ===== */
@@ -441,6 +505,8 @@
       backdrop-filter: blur(14px);
       position:relative;
       overflow:hidden;
+      max-height: calc(100svh - 26px);
+      overflow:auto;
     }
     .modalGlow{
       position:absolute; inset:-60px -80px;
@@ -489,7 +555,6 @@
       40%{ transform: scale(1.16); }
       100%{ transform: scale(1); }
     }
-    /* 建物/精霊のふわふわ */
     .floaty{animation: floaty 2.8s ease-in-out infinite;}
     @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 
@@ -509,39 +574,13 @@
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
 
-    /* =====================================================================================
-       FIX: 質問画面だけ「縦スクロールなし」＋「ミニマップ被りゼロ」＋「ボタン被りゼロ」
-       ===================================================================================== */
-    body.isQuestions{ overflow: hidden; }
-
-    body.isQuestions .wrap{
-      padding: 10px 14px 0;
-      padding-right: calc(14px + var(--mapReserve));
-      height: calc(100svh - var(--headerH) - var(--bottomH) - var(--safeBottom));
-      overflow: hidden;
-    }
-    body.isQuestions #viewQuestions{
-      height: 100%;
-      overflow: hidden;
-    }
-    body.isQuestions #viewQuestions .qCard{
-      height: 100%;
-      display:flex;
-      flex-direction:column;
-      padding: 14px;
-    }
-    body.isQuestions #viewQuestions .qText{
-      margin-top: 8px;
-      font-size: 14px;
-      line-height: 1.55;
-    }
-    body.isQuestions #viewQuestions .scaleWrap{ padding: 12px 10px; }
-    body.isQuestions #viewQuestions .sep{ margin: 10px 0; }
-
-    @media (max-height:760px){
-      :root{ --headerH: 122px; --bottomH: 82px; --mapReserve: 165px; }
-      body.isQuestions #viewQuestions .tickBtn{ padding: 8px 0; }
-      body.isQuestions #viewQuestions .scaleWrap{ padding: 10px 10px; }
+    /* 低い画面（SE等）でさらに詰めて「縦スクロールゼロ」を維持 */
+    @media (max-height: 740px){
+      body.isQuestions .qCard{ padding: 12px; gap: 8px; }
+      .qText{ font-size: 14px; line-height: 1.55; }
+      .tickBtn{ padding: 8px 0; }
+      .scaleWrap{ padding: 10px 10px; }
+      body.isQuestions #btnResetFromQuestions{ padding: 8px 9px; }
     }
   </style>
 </head>
@@ -549,7 +588,7 @@
 <body>
   <div class="chapterFlash" id="chapterFlash" aria-hidden="true"></div>
 
-  <header class="topbar">
+  <header class="topbar" id="topbar">
     <div class="topbarInner">
       <div class="brand">
         <div class="orb" aria-hidden="true"></div>
@@ -619,7 +658,7 @@
     <div class="miniMapHint">タップで詳細</div>
   </div>
 
-  <div class="wrap">
+  <div class="wrap" id="wrap">
     <section class="card" id="viewHero">
       <h2 class="h1">診断を開始</h2>
       <p class="lead">
@@ -712,8 +751,7 @@
 
         <div class="btnRow">
           <button class="btn ghost" id="btnJumpProfile">プロフィールへ戻る</button>
-          <!-- FIX: 被らないようにslim -->
-          <button class="btn danger slim" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
+          <button class="btn danger" id="btnResetFromQuestions">最初からやり直す（保存を消去）</button>
         </div>
       </div>
     </section>
@@ -1123,6 +1161,9 @@
       ascentWisp:$("ascentWisp"),
       ascentParticles:$("ascentParticles"),
       ascentSvg:$("ascentSvg"),
+
+      topbar:$("topbar"),
+      wrap:$("wrap"),
     };
 
     const state = {
@@ -1714,7 +1755,7 @@
       const i = state.currentIndex;
       const q = QUESTIONS[i];
       dom.qText.textContent = q.text;
-      dom.qTagChip.textContent = q.tag;
+      dom.qTagChip.textContent = q.tag; // 表示はCSSで非表示
       dom.qIndexChip.textContent = `Q ${i+1} / 100`;
 
       const done = answeredDoneCount();
@@ -1764,6 +1805,20 @@
       dom.resultToast.style.display="block";
     }
 
+    function setBodyMode(){
+      const inQuestions = (state.view==="questions");
+      document.body.classList.toggle("isQuestions", inQuestions);
+      recalcLayoutVars();
+    }
+
+    function recalcLayoutVars(){
+      // 実測して CSS var 更新（端末差/2段ヘッダー差吸収）
+      const headerH = dom.topbar?.offsetHeight || 110;
+      const bottomH = (dom.bottomNav?.style.display !== "none") ? (dom.bottomNav?.offsetHeight || 86) : 0;
+      document.documentElement.style.setProperty("--headerH", headerH + "px");
+      document.documentElement.style.setProperty("--bottomH", bottomH + "px");
+    }
+
     function renderAll(){
       hideAllViews();
 
@@ -1771,16 +1826,17 @@
       dom.bottomNav.style.display = inQuestions ? "block" : "none";
       dom.miniMapBtn.style.display = inQuestions ? "block" : "none";
 
-      /* ===== FIX: 質問画面だけ body にクラスを付ける（縦スクロールなし＋被りゼロ） ===== */
-      document.body.classList.toggle("isQuestions", inQuestions);
-
       if (state.view==="hero"){ dom.viewHero.hidden=false; }
       if (state.view==="profile"){ dom.viewProfile.hidden=false; renderProfile(); }
       if (state.view==="questions"){ dom.viewQuestions.hidden=false; renderQuestion(); }
       if (state.view==="worry"){ dom.viewWorry.hidden=false; renderWorry(); }
       if (state.view==="result"){ dom.viewResult.hidden=false; renderResult(); }
 
+      setBodyMode();
       updateMeter();
+
+      // 直後にもう一回（レイアウトが反映された後の高さを拾う）
+      requestAnimationFrame(recalcLayoutVars);
     }
 
     dom.btnStart.addEventListener("click", ()=> setView("profile"));
@@ -1860,7 +1916,7 @@
           return;
         }
       }
-      const ok = await copyToClipboard(JSON.stringify(payload, null, 2));
+      const ok = await copyToClipboard(safeJson(payload));
       dom.resultToast.className = "toast " + (ok ? "ok" : "bad");
       dom.resultToast.textContent = ok ? "JSONをコピーしました。" : "コピーに失敗しました。";
       dom.resultToast.style.display="block";
@@ -1877,11 +1933,13 @@
           return;
         }
       }
-      downloadText("fortuneai_final_submit.json", JSON.stringify(payload, null, 2));
+      downloadText("fortuneai_final_submit.json", safeJson(payload));
       dom.resultToast.className="toast ok";
       dom.resultToast.textContent="JSONをダウンロードしました。";
       dom.resultToast.style.display="block";
     });
+
+    window.addEventListener("resize", ()=>{ recalcLayoutVars(); });
 
     /***********************
      * Boot
@@ -1899,6 +1957,8 @@
 
       initAscent();
       renderAll();
+      recalcLayoutVars();
+      requestAnimationFrame(recalcLayoutVars);
     })();
   </script>
 </body>
