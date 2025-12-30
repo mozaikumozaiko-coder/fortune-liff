@@ -285,6 +285,10 @@
       width:100%;
       max-width:100%;
       display:block;
+      box-sizing: border-box;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
     }
     .field:focus{
       border-color: color-mix(in oklab, var(--accent2) 55%, white 0%);
@@ -547,6 +551,15 @@
 
     @media(max-width:720px) and (min-width:421px){
       :root{ --miniMapLift: 20px; }
+    }
+
+    /* スマホでのフォーム入力欄の調整 */
+    @media(max-width:768px){
+      .field, input[type="date"].field{
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
     }
 
     /* ===== Modal ===== */
