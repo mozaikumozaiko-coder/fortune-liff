@@ -7,7 +7,7 @@
 
   <style>
     :root{
-      /* すべてコピペできるように修正して */
+      /* ===== Theme ===== */
       --bg0:#070b1a;
       --bg1:#0b1231;
 
@@ -31,6 +31,9 @@
 
       /* ★重要：スマホで右予約すると文字が潰れて「ぐちゃぐちゃ」になるのでデフォ0 */
       --mapReserve: 0px;
+
+      /* ★ミニマップの持ち上げ量（ここを増やすほど上に上がる） */
+      --miniMapLift: 56px;
     }
 
     *{box-sizing:border-box}
@@ -429,6 +432,7 @@
       color: rgba(234,240,255,.96);
     }
 
+    /* 質問画面のボタン行：押しやすくしつつ省スペース */
     body.isQuestions .qCard .btnRow{ margin-top: 0; }
     body.isQuestions #btnResetFromQuestions{
       padding: 9px 10px;
@@ -454,10 +458,8 @@
     .miniMapFloat{
       position: fixed;
       right: 12px;
-
-      /* ★ここで上に上げる：数値を増やすほど上がる */
-      bottom: calc(var(--bottomH) + 84px);
-
+      /* ★ここで「持ち上げ量」を足して上に上げる */
+      bottom: calc(var(--bottomH) + 12px + var(--miniMapLift));
       z-index: 95;
       width: 164px;
       border-radius: 18px;
@@ -482,6 +484,7 @@
     @media(max-width:420px){
       .miniMapFloat{ width: 150px; right: 10px; padding: 9px; }
       .miniMapHint{ display:none; }
+      :root{ --miniMapLift: 44px; }
     }
 
     /* ===== Modal ===== */
@@ -521,15 +524,6 @@
     }
     .modalTitle{margin:0; font-size:16px; letter-spacing:.06em;}
     .modalBody{margin-top:10px; font-size:13px; line-height:1.8; opacity:.92;}
-    .rewardRow{margin-top:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;}
-    .reward{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      padding: 10px;
-      font-size:12px;
-      line-height:1.6;
-    }
 
     /* ===== Ascent Map (詳細) ===== */
     .ascentWrap{
@@ -557,6 +551,7 @@
     .floaty{animation: floaty 2.8s ease-in-out infinite;}
     @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(4px)}}
 
+    /* 章クリア：全体フラッシュ */
     .chapterFlash{
       position: fixed; inset:0; z-index:150;
       pointer-events:none;
@@ -572,6 +567,7 @@
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
 
+    /* 低い画面（SE等）でさらに詰めて「縦スクロールゼロ」を維持 */
     @media (max-height: 740px){
       body.isQuestions .qCard{ padding: 12px; gap: 8px; }
       .qText{ font-size: 14px; line-height: 1.55; }
@@ -794,16 +790,12 @@
     </div>
   </div>
 
+  <!-- 章クリアモーダル（ボーナス/報酬欄は削除） -->
   <div class="modalBack" id="chapterModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalGlow" aria-hidden="true"></div>
       <h3 class="modalTitle" id="chapterModalTitle">CHAPTER CLEAR</h3>
       <div class="modalBody" id="chapterModalBody"></div>
-
-      <div class="rewardRow">
-        <div class="reward" id="reward1"></div>
-        <div class="reward" id="reward2"></div>
-      </div>
 
       <div class="btnRow" style="justify-content:flex-end;">
         <button class="btn primary" id="btnChapterContinue">次の章へ</button>
@@ -811,6 +803,7 @@
     </div>
   </div>
 
+  <!-- 巡礼路（詳細）モーダル -->
   <div class="modalBack" id="mapModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalGlow" aria-hidden="true"></div>
@@ -947,19 +940,21 @@
     };
 
     /***********************
-     * localStorage が使えない環境（IG/Threads内ブラウザ等）でも止まらないようにする
+     * 章クリア通知文（要件準拠）
+     * - currentAnswerCount が 20,40,60,80,100 のときだけ文を返す
+     * - それ以外は空文字
      ***********************/
-    let STORAGE_OK = true;
-    (function testStorage(){
-      try{
-        const k="__fa_test__";
-        localStorage.setItem(k,"1");
-        localStorage.removeItem(k);
-        STORAGE_OK = true;
-      }catch(e){
-        STORAGE_OK = false;
-      }
-    })();
+    function chapterClearNotice(currentAnswerCount){
+      const c = Number(currentAnswerCount);
+      if (![20,40,60,80,100].includes(c)) return "";
+      const n = Math.min(5, Math.ceil(c/20));
+
+      if (c === 20)  return `チャプター${n}クリア。20件の回答データを統合し解析基盤へ反映しました。次は価値観の輪郭を解析します。`;
+      if (c === 40)  return `チャプター${n}クリア。40件の入力を統合し推定精度へ反映しました。次は行動傾向と意思決定を解析します。`;
+      if (c === 60)  return `チャプター${n}クリア。60件の回答データを統合し解析基盤へ反映しました。次は強み／弱点とリスク耐性の推定を実行します。`;
+      if (c === 80)  return `チャプター${n}クリア。80件の入力を統合し推定モデルへ反映しました。次は最終最適化と結論生成を実行します。`;
+      return `チャプター${n}クリア。100件の回答データを統合し解析を完了しました。最終結果を生成します。`;
+    }
 
     /***********************
      * 設問100（固定）
@@ -1148,8 +1143,6 @@
       chapterModalTitle:$("chapterModalTitle"),
       chapterModalBody:$("chapterModalBody"),
       btnChapterContinue:$("btnChapterContinue"),
-      reward1:$("reward1"),
-      reward2:$("reward2"),
 
       mapModal:$("mapModal"),
       btnCloseMap:$("btnCloseMap"),
@@ -1198,35 +1191,21 @@
     }
 
     function save(){
-      if (!STORAGE_OK) return;
-      try{
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          view:state.view,
-          currentIndex:state.currentIndex,
-          profile:state.profile,
-          userId:state.userId,
-          answers:state.answers,
-          done:state.done,
-          worryText:state.worryText,
-          lastChapterShown:state.lastChapterShown
-        }));
-      }catch(e){
-        STORAGE_OK = false; // 以後保存なしで動作継続
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        view:state.view,
+        currentIndex:state.currentIndex,
+        profile:state.profile,
+        userId:state.userId,
+        answers:state.answers,
+        done:state.done,
+        worryText:state.worryText,
+        lastChapterShown:state.lastChapterShown
+      }));
     }
 
     function load(){
-      if (!STORAGE_OK) return false;
-
-      let raw = null;
-      try{
-        raw = localStorage.getItem(STORAGE_KEY);
-      }catch(e){
-        STORAGE_OK = false;
-        return false;
-      }
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return false;
-
       try{
         const data = JSON.parse(raw);
         if (!data || typeof data !== "object") return false;
@@ -1260,8 +1239,7 @@
     }
 
     function clearAll(){
-      try{ if (STORAGE_OK) localStorage.removeItem(STORAGE_KEY); }catch(e){ STORAGE_OK = false; }
-
+      localStorage.removeItem(STORAGE_KEY);
       state.view="hero";
       state.currentIndex=0;
       state.profile={name:"",gender:"",birthday:""};
@@ -1680,11 +1658,11 @@
       });
 
       let cap = "まずは1問。光が道を描き始めます。";
-      if (doneCount >= 10) cap = "巡礼路が見えてきました。直感でテンポ良く。";
-      if (doneCount >= 20) cap = "第1章突破。建造物が点灯し、色相が切り替わります。";
-      if (doneCount >= 50) cap = "半分到達。尖塔の気配が濃くなっています。";
-      if (doneCount >= 80) cap = "残りわずか。最後まで一気に。";
-      if (doneCount >= 100) cap = "到達。尖塔の頂で結果が統合されます。";
+      if (doneCount >= 10) cap = "巡礼路が見えてきました。";
+      if (doneCount >= 20) cap = "第1章到達。解析テーマが更新されます。";
+      if (doneCount >= 50) cap = "半分到達。";
+      if (doneCount >= 80) cap = "残りわずか。";
+      if (doneCount >= 100) cap = "到達。結果を統合します。";
       dom.ascentCaption.textContent = cap;
 
       if (doneCount > ascent.lastDone){
@@ -1716,27 +1694,23 @@
 
     function maybeShowChapterClear(){
       const done = answeredDoneCount();
-      const milestones = [20,40,60,80,100];
-      const hit = milestones.find(m => done >= m && state.lastChapterShown < m);
-      if (!hit) return;
 
-      state.lastChapterShown = hit;
+      // ★通知文：条件外は空文字（=表示しない）
+      const notice = chapterClearNotice(done);
+      if (!notice) return;
+
+      // ★同じ到達点での再表示を防ぐ
+      if (state.lastChapterShown >= done) return;
+      state.lastChapterShown = done;
       save();
 
       flashChapter();
 
-      const chapIdx = Math.min(4, Math.floor((hit-1)/20));
-      const nextIdx = Math.min(4, chapIdx+1);
+      dom.chapterModalTitle.textContent = `CHAPTER CLEAR（${done}/100）`;
+      dom.chapterModalBody.textContent = notice;
 
-      dom.chapterModalTitle.textContent = `CHAPTER CLEAR（${hit}/100）`;
-      dom.chapterModalBody.textContent = (hit === 100)
-        ? "最終章を突破しました。結果へ進みましょう。"
-        : `章を突破しました。次の章（${THEMES[nextIdx].name}）へ移行します。`;
-
-      dom.reward1.textContent = `報酬：建造物点灯（${hit}到達）`;
-      dom.reward2.textContent = (hit === 100)
-        ? "ボーナス：結果の統合処理が解放されます。"
-        : "ボーナス：色相が切り替わり、集中が続きやすくなります。";
+      // 100到達時だけボタン文言を変える（任意）
+      dom.btnChapterContinue.textContent = (done === 100) ? "結果へ進む" : "次の章へ";
 
       dom.chapterModal.style.display = "flex";
       dom.chapterModal.setAttribute("aria-hidden","false");
@@ -1747,6 +1721,11 @@
       dom.chapterModal.style.display = "none";
       dom.chapterModal.setAttribute("aria-hidden","true");
       updateMeter();
+
+      // 100なら結果へ（任意）
+      if (answeredDoneCount() >= 100 && state.view === "questions"){
+        setView("worry");
+      }
     }
 
     function openMapModal(){
@@ -1778,7 +1757,7 @@
       const i = state.currentIndex;
       const q = QUESTIONS[i];
       dom.qText.textContent = q.text;
-      dom.qTagChip.textContent = q.tag;
+      dom.qTagChip.textContent = q.tag; // 表示はCSSで非表示
       dom.qIndexChip.textContent = `Q ${i+1} / 100`;
 
       const done = answeredDoneCount();
