@@ -531,7 +531,11 @@
         z-index: 100;
       }
       .miniMapHint{ display: block !important; }
-      :root{ --miniMapLift: 62px; }
+      :root{ --miniMapLift: 80px; }
+    }
+
+    @media(max-width:720px) and (min-width:421px){
+      :root{ --miniMapLift: 70px; }
     }
 
     /* ===== Modal ===== */
