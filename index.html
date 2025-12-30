@@ -7,6 +7,7 @@
 
   <style>
     :root{
+      /* すべてコピペできるように修正して */
       --bg0:#070b1a;
       --bg1:#0b1231;
 
@@ -30,9 +31,6 @@
 
       /* ★重要：スマホで右予約すると文字が潰れて「ぐちゃぐちゃ」になるのでデフォ0 */
       --mapReserve: 0px;
-
-      /* ★追加：ミニマップを上に上げる量（ここを調整） */
-      --miniMapLift: 220px;
     }
 
     *{box-sizing:border-box}
@@ -147,6 +145,7 @@
       transition: width .30s ease;
       overflow:hidden;
     }
+    /* 水面のゆらぎ */
     .waterFill::before{
       content:"";
       position:absolute; inset:-10px -60px -10px -60px;
@@ -160,6 +159,7 @@
       pointer-events:none;
     }
     @keyframes waveMove{0%{transform:translateX(0)}100%{transform:translateX(110px)}}
+    /* キラキラ（ゲージ内） */
     .waterFill .sparkles{
       position:absolute; inset:-30px -60px -30px -60px;
       background:
@@ -198,6 +198,7 @@
       backdrop-filter: blur(12px);
     }
 
+    /* 質問画面は外側カードを“器”にして高さ固定（スクロール禁止） */
     body.isQuestions #viewQuestions.card{
       flex: 1;
       min-height:0;
@@ -330,6 +331,7 @@
       overflow-wrap: anywhere;
     }
 
+    /* qTag（S+等）を非表示（データ保持） */
     #qTagChip{display:none !important;}
 
     .scaleWrap{
@@ -453,8 +455,8 @@
       position: fixed;
       right: 12px;
 
-      /* ★ここが位置：bottomNavの上 + safe-area + さらに上へ持ち上げ */
-      bottom: calc(var(--bottomH) + var(--safeBottom) + 12px + var(--miniMapLift));
+      /* ★ここで上に上げる：数値を増やすほど上がる */
+      bottom: calc(var(--bottomH) + 84px);
 
       z-index: 95;
       width: 164px;
@@ -792,7 +794,6 @@
     </div>
   </div>
 
-  <!-- 章クリアモーダル -->
   <div class="modalBack" id="chapterModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalGlow" aria-hidden="true"></div>
@@ -810,7 +811,6 @@
     </div>
   </div>
 
-  <!-- 巡礼路（詳細）モーダル -->
   <div class="modalBack" id="mapModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true">
       <div class="modalGlow" aria-hidden="true"></div>
@@ -947,6 +947,21 @@
     };
 
     /***********************
+     * localStorage が使えない環境（IG/Threads内ブラウザ等）でも止まらないようにする
+     ***********************/
+    let STORAGE_OK = true;
+    (function testStorage(){
+      try{
+        const k="__fa_test__";
+        localStorage.setItem(k,"1");
+        localStorage.removeItem(k);
+        STORAGE_OK = true;
+      }catch(e){
+        STORAGE_OK = false;
+      }
+    })();
+
+    /***********************
      * 設問100（固定）
      ***********************/
     const QUESTIONS = buildDefaultQuestions();
@@ -1070,8 +1085,902 @@
       return out;
     }
 
-    /* 以降のJSは、あなたのコードと同一なので省略せずに続けて貼ってOKです。
-       ここから下は、あなたが送ってくれたJSをそのまま貼れば動きます。 */
+    const $ = (id)=>document.getElementById(id);
+
+    const dom = {
+      chapterFlash:$("chapterFlash"),
+
+      viewHero:$("viewHero"),
+      viewProfile:$("viewProfile"),
+      viewQuestions:$("viewQuestions"),
+      viewWorry:$("viewWorry"),
+      viewResult:$("viewResult"),
+
+      btnStart:$("btnStart"),
+      btnResetAll:$("btnResetAll"),
+
+      btnBackToHero:$("btnBackToHero"),
+      btnToQuestions:$("btnToQuestions"),
+
+      name:$("name"),
+      gender:$("gender"),
+      birthday:$("birthday"),
+      userId:$("userId"),
+      errName:$("errName"),
+      errGender:$("errGender"),
+      errBirthday:$("errBirthday"),
+      profileRestoreNote:$("profileRestoreNote"),
+
+      qText:$("qText"),
+      qTagChip:$("qTagChip"),
+      qIndexChip:$("qIndexChip"),
+      chapterChip:$("chapterChip"),
+      doneCountText:$("doneCountText"),
+      valuePill:$("valuePill"),
+      range:$("range"),
+      tickRow:$("tickRow"),
+      qToast:$("qToast"),
+
+      btnPrevQ:$("btnPrevQ"),
+      btnNextQ:$("btnNextQ"),
+      btnJumpProfile:$("btnJumpProfile"),
+      btnResetFromQuestions:$("btnResetFromQuestions"),
+
+      bottomNav:$("bottomNav"),
+
+      worryText:$("worryText"),
+      worryCount:$("worryCount"),
+      btnShowResult:$("btnShowResult"),
+
+      btnFinalSubmit:$("btnFinalSubmit"),
+      btnCopyJson:$("btnCopyJson"),
+      btnDownloadJson:$("btnDownloadJson"),
+      btnResetFromResult:$("btnResetFromResult"),
+      resultToast:$("resultToast"),
+      jsonPreviewWrap:$("jsonPreviewWrap"),
+      jsonPreview:$("jsonPreview"),
+
+      waterFill:$("waterFill"),
+      meterText:$("meterText"),
+      topSubtitle:$("topSubtitle"),
+
+      chapterModal:$("chapterModal"),
+      chapterModalTitle:$("chapterModalTitle"),
+      chapterModalBody:$("chapterModalBody"),
+      btnChapterContinue:$("btnChapterContinue"),
+      reward1:$("reward1"),
+      reward2:$("reward2"),
+
+      mapModal:$("mapModal"),
+      btnCloseMap:$("btnCloseMap"),
+
+      miniMapBtn:$("miniMapBtn"),
+      miniPct:$("miniPct"),
+      miniPathProg:$("miniPathProg"),
+      miniHalo:$("miniHalo"),
+      miniDot:$("miniDot"),
+
+      ascentCaption:$("ascentCaption"),
+      ascentPathProg:$("ascentPathProg"),
+      ascentRunes:$("ascentRunes"),
+      ascentBuildings:$("ascentBuildings"),
+      ascentHalo:$("ascentHalo"),
+      ascentDot:$("ascentDot"),
+      ascentWisp:$("ascentWisp"),
+      ascentParticles:$("ascentParticles"),
+      ascentSvg:$("ascentSvg"),
+
+      topbar:$("topbar"),
+      wrap:$("wrap"),
+    };
+
+    const state = {
+      view:"hero",
+      currentIndex:0,
+      profile:{ name:"", gender:"", birthday:"" },
+      userId:"",
+      answers:new Array(100).fill(4),
+      done:new Array(100).fill(false),
+      worryText:"",
+      lastPayload:null,
+      lastChapterShown:0
+    };
+
+    document.addEventListener("gesturestart", (e)=>e.preventDefault(), { passive:false });
+    document.addEventListener("gesturechange",(e)=>e.preventDefault(), { passive:false });
+    document.addEventListener("gestureend",  (e)=>e.preventDefault(), { passive:false });
+
+    const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+
+    function parseQuery(){
+      const q = new URLSearchParams(location.search);
+      return { userId: q.get("userId") || "" };
+    }
+
+    function save(){
+      if (!STORAGE_OK) return;
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          view:state.view,
+          currentIndex:state.currentIndex,
+          profile:state.profile,
+          userId:state.userId,
+          answers:state.answers,
+          done:state.done,
+          worryText:state.worryText,
+          lastChapterShown:state.lastChapterShown
+        }));
+      }catch(e){
+        STORAGE_OK = false; // 以後保存なしで動作継続
+      }
+    }
+
+    function load(){
+      if (!STORAGE_OK) return false;
+
+      let raw = null;
+      try{
+        raw = localStorage.getItem(STORAGE_KEY);
+      }catch(e){
+        STORAGE_OK = false;
+        return false;
+      }
+      if (!raw) return false;
+
+      try{
+        const data = JSON.parse(raw);
+        if (!data || typeof data !== "object") return false;
+        if (!Array.isArray(data.answers) || data.answers.length !== 100) return false;
+
+        state.view = data.view || "hero";
+        state.currentIndex = clamp(Number(data.currentIndex || 0), 0, 99);
+
+        state.profile = {
+          name: String(data.profile?.name || ""),
+          gender: String(data.profile?.gender || ""),
+          birthday: String(data.profile?.birthday || ""),
+        };
+        state.userId = String(data.userId || "");
+
+        state.answers = data.answers.map(v => clamp(Number(v ?? 4), 1, 7));
+
+        if (Array.isArray(data.done) && data.done.length === 100){
+          state.done = data.done.map(Boolean);
+        } else {
+          state.done = new Array(100).fill(false);
+          for (let i=0;i<state.currentIndex;i++) state.done[i] = true;
+        }
+
+        state.worryText = String(data.worryText || "");
+        state.lastChapterShown = Number(data.lastChapterShown || 0);
+        return true;
+      }catch{
+        return false;
+      }
+    }
+
+    function clearAll(){
+      try{ if (STORAGE_OK) localStorage.removeItem(STORAGE_KEY); }catch(e){ STORAGE_OK = false; }
+
+      state.view="hero";
+      state.currentIndex=0;
+      state.profile={name:"",gender:"",birthday:""};
+      state.userId="";
+      state.answers=new Array(100).fill(4);
+      state.done=new Array(100).fill(false);
+      state.worryText="";
+      state.lastPayload=null;
+      state.lastChapterShown=0;
+      renderAll();
+    }
+
+    function setView(v){
+      state.view=v;
+      save();
+      renderAll();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function answeredDoneCount(){
+      return state.done.reduce((a,b)=>a+(b?1:0),0);
+    }
+
+    function currentChapterByDone(doneCount){
+      return clamp(Math.floor(doneCount/20), 0, 4);
+    }
+
+    function applyThemeByDone(doneCount){
+      const th = THEMES[currentChapterByDone(doneCount)];
+      document.documentElement.style.setProperty("--accent1", th.a1);
+      document.documentElement.style.setProperty("--accent2", th.a2);
+      document.documentElement.style.setProperty("--accent3", th.a3);
+      document.documentElement.style.setProperty("--bg0", th.bg0);
+      document.documentElement.style.setProperty("--bg1", th.bg1);
+      dom.chapterChip.textContent = th.name;
+      dom.topSubtitle.textContent = `章：${th.name}｜巡礼路で上昇（7段階）`;
+    }
+
+    function updateMeter(){
+      const done = answeredDoneCount();
+      const pct = (done/100)*100;
+      dom.waterFill.style.width = pct.toFixed(1) + "%";
+      dom.meterText.textContent = `${done} / 100`;
+      dom.waterFill.parentElement.setAttribute("aria-valuenow", String(done));
+      applyThemeByDone(done);
+      updateAscent(done);
+      updateMini(done);
+    }
+
+    function valueColor(v){
+      const map = {
+        1: "color-mix(in oklab, var(--accent1) 70%, black 25%)",
+        2: "color-mix(in oklab, var(--accent1) 70%, var(--accent3) 20%)",
+        3: "color-mix(in oklab, var(--accent3) 70%, var(--accent1) 20%)",
+        4: "color-mix(in oklab, var(--accent3) 55%, rgba(255,255,255,.10) 0%)",
+        5: "color-mix(in oklab, var(--accent2) 55%, var(--accent3) 30%)",
+        6: "color-mix(in oklab, var(--accent2) 72%, var(--accent3) 12%)",
+        7: "color-mix(in oklab, var(--accent2) 85%, white 8%)",
+      };
+      return map[clamp(v,1,7)];
+    }
+
+    function applyThumbScale(v){
+      const dist = Math.abs(v-4);
+      const t = dist/3;
+      dom.range.style.setProperty("--thumbScale", String(1 + t*0.45));
+    }
+
+    function applyRangePaint(v){
+      const pct = ((v-1)/6)*100;
+      dom.range.style.setProperty("--fillPct", pct.toFixed(2) + "%");
+      dom.range.style.setProperty("--fillColor", valueColor(v));
+      dom.valuePill.textContent = String(v);
+      applyThumbScale(v);
+
+      dom.tickRow.querySelectorAll("button[data-v]").forEach(b=>{
+        b.classList.toggle("on", Number(b.dataset.v) === v);
+      });
+    }
+
+    function renderTicks(current){
+      dom.tickRow.innerHTML = "";
+      for (let v=1; v<=7; v++){
+        const b = document.createElement("button");
+        b.type="button";
+        b.className = "tickBtn" + (v===current ? " on" : "");
+        b.textContent = String(v);
+        b.dataset.v = String(v);
+        b.addEventListener("click", ()=> setAnswerValue(v, true));
+        dom.tickRow.appendChild(b);
+      }
+    }
+
+    function setAnswerValue(v, markDone){
+      const i = state.currentIndex;
+      const val = clamp(Number(v),1,7);
+      state.answers[i] = val;
+      if (markDone) state.done[i] = true;
+      save();
+      dom.range.value = String(val);
+      applyRangePaint(val);
+      dom.doneCountText.textContent = String(answeredDoneCount());
+      updateMeter();
+    }
+
+    function validateProfile(){
+      let ok = true;
+      dom.errName.style.display="none";
+      dom.errGender.style.display="none";
+      dom.errBirthday.style.display="none";
+      if (!dom.name.value.trim()){ dom.errName.style.display="block"; ok=false; }
+      if (!dom.gender.value){ dom.errGender.style.display="block"; ok=false; }
+      if (!dom.birthday.value){ dom.errBirthday.style.display="block"; ok=false; }
+      return ok;
+    }
+
+    function syncProfileFromInputs(){
+      state.profile.name = dom.name.value.trim();
+      state.profile.gender = dom.gender.value;
+      state.profile.birthday = dom.birthday.value;
+      state.userId = dom.userId.value.trim();
+      save();
+    }
+
+    function answerToValue(ans){ return (Number(ans) - 4); }
+
+    function applyTagToAxis(tag, val, scores){
+      const m = String(tag).match(/\[([ESTJ])([+-])\]/);
+      if (!m) return;
+      const axis = m[1];
+      const sign = m[2];
+      const v = (sign === "+") ? val : -val;
+      if (axis==="E") scores.E += v;
+      if (axis==="S") scores.S += v;
+      if (axis==="T") scores.T += v;
+      if (axis==="J") scores.J += v;
+    }
+
+    function computeScores(){
+      const scores = {E:0,S:0,T:0,J:0};
+      for (let i=0;i<100;i++){
+        const val = answerToValue(state.answers[i]);
+        applyTagToAxis(QUESTIONS[i].tag, val, scores);
+      }
+      scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
+      scores.S = clamp(scores.S, -AXIS_MAX, AXIS_MAX);
+      scores.T = clamp(scores.T, -AXIS_MAX, AXIS_MAX);
+      scores.J = clamp(scores.J, -AXIS_MAX, AXIS_MAX);
+      return scores;
+    }
+
+    function computeType(scores){
+      const absE = Math.abs(scores.E), absS=Math.abs(scores.S), absT=Math.abs(scores.T), absJ=Math.abs(scores.J);
+      const isBAL = (absE < 8 && absS < 8 && absT < 8 && absJ < 8);
+      if (isBAL) return { typeCode:"BAL", isBAL:true };
+      const EorI = (scores.E >= 0) ? "E" : "I";
+      const SorN = (scores.S >= 0) ? "S" : "N";
+      const TorF = (scores.T >= 0) ? "T" : "F";
+      const JorP = (scores.J >= 0) ? "J" : "P";
+      return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
+    }
+
+    function buildPayload(){
+      const payload = {
+        action:"final_submit",
+        userId: (state.userId || "").trim(),
+        step:999,
+        profile:{
+          gender: state.profile.gender,
+          name: state.profile.name,
+          birthday: state.profile.birthday
+        },
+        answers: state.answers.map(v => Number(v)),
+        worryText: state.worryText || ""
+      };
+      if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) throw new Error("profile incomplete");
+      if (!Array.isArray(payload.answers) || payload.answers.length !== 100) throw new Error("answers invalid");
+      for (const a of payload.answers){
+        if (!Number.isInteger(a) || a<1 || a>7) throw new Error("answers must be 1..7 integers");
+      }
+      if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0,2000);
+      return payload;
+    }
+
+    function safeJson(obj){ return JSON.stringify(obj, null, 2); }
+
+    async function copyToClipboard(text){
+      try{ await navigator.clipboard.writeText(text); return true; }
+      catch{
+        const ta = document.createElement("textarea");
+        ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        let ok=false; try{ ok=document.execCommand("copy"); }catch{ ok=false; }
+        ta.remove(); return ok;
+      }
+    }
+
+    function downloadText(filename, text){
+      const blob = new Blob([text], {type:"application/json;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href=url; a.download=filename;
+      document.body.appendChild(a);
+      a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function finalSubmit(){
+      dom.resultToast.style.display="none";
+      let payload;
+      try{ payload = buildPayload(); }
+      catch(e){
+        dom.resultToast.className="toast bad";
+        dom.resultToast.textContent="送信前チェックに失敗しました： " + (e?.message || e);
+        dom.resultToast.style.display="block";
+        return;
+      }
+      state.lastPayload = payload;
+      save();
+
+      const jsonText = safeJson(payload);
+
+      if (!WEBHOOK_URL){
+        dom.jsonPreviewWrap.style.display="block";
+        dom.jsonPreview.textContent = jsonText;
+        dom.resultToast.className="toast warn";
+        dom.resultToast.textContent="WEBHOOK_URL未設定のため送信せず、JSONを表示しました。";
+        dom.resultToast.style.display="block";
+        return;
+      }
+
+      dom.resultToast.className="toast";
+      dom.resultToast.textContent="送信中…";
+      dom.resultToast.style.display="block";
+
+      try{
+        const res = await fetch(WEBHOOK_URL, {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: jsonText
+        });
+        if (!res.ok){
+          const body = await res.text().catch(()=> "");
+          dom.resultToast.className="toast bad";
+          dom.resultToast.textContent=`送信失敗：HTTP ${res.status}\n${body ? body.slice(0,400) : ""}`;
+          return;
+        }
+        const body = await res.text().catch(()=> "");
+        dom.resultToast.className="toast ok";
+        dom.resultToast.textContent=`送信成功：HTTP ${res.status}\n${body ? body.slice(0,400) : ""}`;
+      }catch(e){
+        dom.resultToast.className="toast bad";
+        dom.resultToast.textContent="送信エラー： " + (e?.message || e);
+      }
+    }
+
+    /***********************
+     * 巡礼路（進捗で上昇）＋建物（20問ごと）
+     ***********************/
+    const ascent = { pathLen:0, lastDone:0, raf:0, particles:[] };
+    const mini = { pathLen:0 };
+
+    function initAscent(){
+      ascent.pathLen = dom.ascentPathProg.getTotalLength();
+      dom.ascentPathProg.style.strokeDasharray = `${ascent.pathLen} ${ascent.pathLen}`;
+      dom.ascentPathProg.style.strokeDashoffset = `${ascent.pathLen}`;
+
+      mini.pathLen = dom.miniPathProg.getTotalLength();
+      dom.miniPathProg.style.strokeDasharray = `${mini.pathLen} ${mini.pathLen}`;
+      dom.miniPathProg.style.strokeDashoffset = `${mini.pathLen}`;
+
+      renderAscentRunes();
+      renderAscentBuildings();
+      seedAscentParticles(22);
+      cancelAnimationFrame(ascent.raf);
+      ascent.raf = requestAnimationFrame(ascentAnimate);
+    }
+
+    function renderAscentRunes(){
+      dom.ascentRunes.innerHTML = "";
+      for (let n=5; n<=100; n+=5){
+        const t = n/100;
+        const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen*t);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+        g.setAttribute("data-node", String(n));
+        const is20 = (n%20===0), is10=(n%10===0);
+
+        if (is20){
+          const ring = document.createElementNS("http://www.w3.org/2000/svg","circle");
+          ring.setAttribute("cx", pt.x); ring.setAttribute("cy", pt.y);
+          ring.setAttribute("r", 10);
+          ring.setAttribute("fill","rgba(255,255,255,.06)");
+          ring.setAttribute("stroke","rgba(255,255,255,.20)");
+          ring.setAttribute("stroke-width","1.2");
+          g.appendChild(ring);
+        } else if (is10){
+          const diamond = document.createElementNS("http://www.w3.org/2000/svg","path");
+          diamond.setAttribute("d", `M ${pt.x} ${pt.y-6} L ${pt.x+6} ${pt.y} L ${pt.x} ${pt.y+6} L ${pt.x-6} ${pt.y} Z`);
+          diamond.setAttribute("fill","rgba(255,255,255,.06)");
+          diamond.setAttribute("stroke","rgba(255,255,255,.16)");
+          g.appendChild(diamond);
+        } else {
+          const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+          dot.setAttribute("cx", pt.x); dot.setAttribute("cy", pt.y);
+          dot.setAttribute("r", 3.6);
+          dot.setAttribute("fill","rgba(255,255,255,.06)");
+          dot.setAttribute("stroke","rgba(255,255,255,.14)");
+          g.appendChild(dot);
+        }
+
+        dom.ascentRunes.appendChild(g);
+      }
+    }
+
+    function renderAscentBuildings(){
+      dom.ascentBuildings.innerHTML = "";
+      const milestones = [20,40,60,80,100];
+      milestones.forEach(m=>{
+        const t = m/100;
+        const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen*t);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+        g.setAttribute("data-b", String(m));
+        g.setAttribute("class","floaty");
+
+        const idx = Math.min(4, Math.floor((m-1)/20));
+        const color = ["rgba(255,255,255,.16)","rgba(255,255,255,.14)","rgba(255,255,255,.16)","rgba(255,255,255,.14)","rgba(255,255,255,.18)"][idx];
+
+        const base = document.createElementNS("http://www.w3.org/2000/svg","path");
+        base.setAttribute("d", `M ${pt.x-8} ${pt.y+10} L ${pt.x+8} ${pt.y+10} L ${pt.x+6} ${pt.y+18} L ${pt.x-6} ${pt.y+18} Z`);
+        base.setAttribute("fill","rgba(0,0,0,.18)");
+        base.setAttribute("stroke", color);
+        base.setAttribute("stroke-width","1.1");
+        g.appendChild(base);
+
+        const spire = document.createElementNS("http://www.w3.org/2000/svg","path");
+        spire.setAttribute("d", `M ${pt.x} ${pt.y-16} L ${pt.x+10} ${pt.y+10} L ${pt.x} ${pt.y+4} L ${pt.x-10} ${pt.y+10} Z`);
+        spire.setAttribute("fill","rgba(255,255,255,.06)");
+        spire.setAttribute("stroke", color);
+        spire.setAttribute("stroke-width","1.1");
+        g.appendChild(spire);
+
+        const gem = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        gem.setAttribute("cx", pt.x);
+        gem.setAttribute("cy", pt.y-16);
+        gem.setAttribute("r", 3.8);
+        gem.setAttribute("fill", "rgba(255,255,255,.28)");
+        gem.setAttribute("stroke", "rgba(255,255,255,.22)");
+        g.appendChild(gem);
+
+        dom.ascentBuildings.appendChild(g);
+      });
+    }
+
+    function seedAscentParticles(k){
+      ascent.particles = [];
+      for (let i=0;i<k;i++){
+        ascent.particles.push({
+          x: 40 + Math.random()*240,
+          y: 30 + Math.random()*170,
+          r: 1.2 + Math.random()*2.1,
+          a: 0.22 + Math.random()*0.35,
+          ph: Math.random()*Math.PI*2
+        });
+      }
+      drawAscentParticles(0);
+    }
+
+    function drawAscentParticles(time){
+      dom.ascentParticles.innerHTML = "";
+      for (const p of ascent.particles){
+        const yy = p.y + Math.sin(time*0.0012 + p.ph) * 6;
+        const xx = p.x + Math.cos(time*0.0010 + p.ph) * 6;
+        const c = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        c.setAttribute("cx", xx.toFixed(2));
+        c.setAttribute("cy", yy.toFixed(2));
+        c.setAttribute("r", p.r.toFixed(2));
+        c.setAttribute("fill", "rgba(255,255,255,.65)");
+        c.setAttribute("opacity", p.a.toFixed(2));
+        dom.ascentParticles.appendChild(c);
+      }
+    }
+
+    function ascentAnimate(t){
+      drawAscentParticles(t);
+      dom.ascentHalo.setAttribute("opacity", String(0.22 + 0.06*Math.sin(t*0.003)));
+      ascent.raf = requestAnimationFrame(ascentAnimate);
+    }
+
+    function updateAscent(doneCount){
+      const pct = doneCount/100;
+      const offset = ascent.pathLen * (1 - pct);
+      dom.ascentPathProg.style.strokeDashoffset = String(offset);
+
+      const pt = dom.ascentPathProg.getPointAtLength(ascent.pathLen * pct);
+      dom.ascentHalo.setAttribute("cx", pt.x);
+      dom.ascentHalo.setAttribute("cy", pt.y);
+      dom.ascentDot.setAttribute("cx", pt.x);
+      dom.ascentDot.setAttribute("cy", pt.y);
+
+      dom.ascentWisp.setAttribute("transform", `translate(${(pt.x-42).toFixed(2)}, ${(pt.y-190).toFixed(2)})`);
+
+      dom.ascentRunes.querySelectorAll("g[data-node]").forEach(g=>{
+        const n = Number(g.getAttribute("data-node"));
+        const on = (doneCount >= n);
+        g.style.opacity = on ? "1" : ".45";
+        g.style.filter = on ? "url(#softGlow)" : "none";
+      });
+
+      dom.ascentBuildings.querySelectorAll("g[data-b]").forEach(g=>{
+        const m = Number(g.getAttribute("data-b"));
+        const on = (doneCount >= m);
+        g.style.opacity = on ? "1" : ".28";
+        g.style.filter = on ? "url(#softGlow)" : "none";
+      });
+
+      let cap = "まずは1問。光が道を描き始めます。";
+      if (doneCount >= 10) cap = "巡礼路が見えてきました。直感でテンポ良く。";
+      if (doneCount >= 20) cap = "第1章突破。建造物が点灯し、色相が切り替わります。";
+      if (doneCount >= 50) cap = "半分到達。尖塔の気配が濃くなっています。";
+      if (doneCount >= 80) cap = "残りわずか。最後まで一気に。";
+      if (doneCount >= 100) cap = "到達。尖塔の頂で結果が統合されます。";
+      dom.ascentCaption.textContent = cap;
+
+      if (doneCount > ascent.lastDone){
+        dom.ascentDot.classList.remove("ascentPulse");
+        void dom.ascentDot.offsetWidth;
+        dom.ascentDot.classList.add("ascentPulse");
+        ascent.lastDone = doneCount;
+        try{ navigator.vibrate?.([18]); }catch{}
+      }
+    }
+
+    function updateMini(doneCount){
+      const pct = doneCount/100;
+      const offset = mini.pathLen * (1 - pct);
+      dom.miniPathProg.style.strokeDashoffset = String(offset);
+      dom.miniPct.textContent = `${Math.round(pct*100)}%`;
+
+      const pt = dom.miniPathProg.getPointAtLength(mini.pathLen * pct);
+      dom.miniHalo.setAttribute("cx", pt.x);
+      dom.miniHalo.setAttribute("cy", pt.y);
+      dom.miniDot.setAttribute("cx", pt.x);
+      dom.miniDot.setAttribute("cy", pt.y);
+    }
+
+    function flashChapter(){
+      dom.chapterFlash.classList.add("on");
+      setTimeout(()=> dom.chapterFlash.classList.remove("on"), 420);
+    }
+
+    function maybeShowChapterClear(){
+      const done = answeredDoneCount();
+      const milestones = [20,40,60,80,100];
+      const hit = milestones.find(m => done >= m && state.lastChapterShown < m);
+      if (!hit) return;
+
+      state.lastChapterShown = hit;
+      save();
+
+      flashChapter();
+
+      const chapIdx = Math.min(4, Math.floor((hit-1)/20));
+      const nextIdx = Math.min(4, chapIdx+1);
+
+      dom.chapterModalTitle.textContent = `CHAPTER CLEAR（${hit}/100）`;
+      dom.chapterModalBody.textContent = (hit === 100)
+        ? "最終章を突破しました。結果へ進みましょう。"
+        : `章を突破しました。次の章（${THEMES[nextIdx].name}）へ移行します。`;
+
+      dom.reward1.textContent = `報酬：建造物点灯（${hit}到達）`;
+      dom.reward2.textContent = (hit === 100)
+        ? "ボーナス：結果の統合処理が解放されます。"
+        : "ボーナス：色相が切り替わり、集中が続きやすくなります。";
+
+      dom.chapterModal.style.display = "flex";
+      dom.chapterModal.setAttribute("aria-hidden","false");
+      try{ navigator.vibrate?.([25, 45, 25]); }catch{}
+    }
+
+    function closeChapterModal(){
+      dom.chapterModal.style.display = "none";
+      dom.chapterModal.setAttribute("aria-hidden","true");
+      updateMeter();
+    }
+
+    function openMapModal(){
+      dom.mapModal.style.display = "flex";
+      dom.mapModal.setAttribute("aria-hidden","false");
+      updateMeter();
+    }
+    function closeMapModal(){
+      dom.mapModal.style.display = "none";
+      dom.mapModal.setAttribute("aria-hidden","true");
+    }
+
+    function hideAllViews(){
+      dom.viewHero.hidden=true;
+      dom.viewProfile.hidden=true;
+      dom.viewQuestions.hidden=true;
+      dom.viewWorry.hidden=true;
+      dom.viewResult.hidden=true;
+    }
+
+    function renderProfile(){
+      dom.name.value = state.profile.name || "";
+      dom.gender.value = state.profile.gender || "";
+      dom.birthday.value = state.profile.birthday || "";
+      dom.userId.value = state.userId || "";
+    }
+
+    function renderQuestion(){
+      const i = state.currentIndex;
+      const q = QUESTIONS[i];
+      dom.qText.textContent = q.text;
+      dom.qTagChip.textContent = q.tag;
+      dom.qIndexChip.textContent = `Q ${i+1} / 100`;
+
+      const done = answeredDoneCount();
+      dom.doneCountText.textContent = String(done);
+
+      const current = Number.isInteger(state.answers[i]) ? state.answers[i] : 4;
+      dom.range.value = String(current);
+      renderTicks(current);
+      applyRangePaint(current);
+
+      dom.btnPrevQ.disabled = (i===0);
+      dom.btnNextQ.textContent = (i===99) ? "次へ（悩み入力）" : "次へ";
+    }
+
+    function updateWorryCount(){
+      const len = dom.worryText.value.length;
+      dom.worryCount.textContent = `${len} / 2000`;
+    }
+
+    function renderWorry(){
+      dom.worryText.value = state.worryText || "";
+      updateWorryCount();
+    }
+
+    function renderResult(){
+      dom.resultToast.style.display="none";
+      dom.jsonPreviewWrap.style.display="none";
+
+      let payload;
+      try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+      catch(e){
+        dom.resultToast.className="toast bad";
+        dom.resultToast.textContent="結果表示前のチェックに失敗しました： " + (e?.message || e);
+        dom.resultToast.style.display="block";
+        return;
+      }
+
+      const scores = computeScores();
+      const t = computeType(scores);
+      const code = t.typeCode;
+
+      const title = TYPE_TITLES[code] || "（未定義）";
+      const tarot = TAROT_MAJOR[code] || "—";
+
+      dom.resultToast.className="toast ok";
+      dom.resultToast.textContent = `判定：${code}\n${title}\n（象徴）タロット：${tarot}\n\nこのまま最終送信できます。`;
+      dom.resultToast.style.display="block";
+    }
+
+    function setBodyMode(){
+      const inQuestions = (state.view==="questions");
+      document.body.classList.toggle("isQuestions", inQuestions);
+      recalcLayoutVars();
+    }
+
+    function recalcLayoutVars(){
+      const headerH = dom.topbar?.offsetHeight || 110;
+      const bottomH = (dom.bottomNav?.style.display !== "none") ? (dom.bottomNav?.offsetHeight || 86) : 0;
+      document.documentElement.style.setProperty("--headerH", headerH + "px");
+      document.documentElement.style.setProperty("--bottomH", bottomH + "px");
+    }
+
+    function renderAll(){
+      hideAllViews();
+
+      const inQuestions = (state.view==="questions");
+      dom.bottomNav.style.display = inQuestions ? "block" : "none";
+      dom.miniMapBtn.style.display = inQuestions ? "block" : "none";
+
+      if (state.view==="hero"){ dom.viewHero.hidden=false; }
+      if (state.view==="profile"){ dom.viewProfile.hidden=false; renderProfile(); }
+      if (state.view==="questions"){ dom.viewQuestions.hidden=false; renderQuestion(); }
+      if (state.view==="worry"){ dom.viewWorry.hidden=false; renderWorry(); }
+      if (state.view==="result"){ dom.viewResult.hidden=false; renderResult(); }
+
+      setBodyMode();
+      updateMeter();
+
+      requestAnimationFrame(recalcLayoutVars);
+    }
+
+    dom.btnStart.addEventListener("click", ()=> setView("profile"));
+    dom.btnResetAll.addEventListener("click", clearAll);
+    dom.btnBackToHero.addEventListener("click", ()=> setView("hero"));
+
+    dom.btnToQuestions.addEventListener("click", ()=>{
+      if (!validateProfile()) return;
+      syncProfileFromInputs();
+      setView("questions");
+    });
+
+    dom.name.addEventListener("input", syncProfileFromInputs);
+    dom.gender.addEventListener("change", syncProfileFromInputs);
+    dom.birthday.addEventListener("change", syncProfileFromInputs);
+    dom.userId.addEventListener("input", syncProfileFromInputs);
+
+    dom.btnResetFromQuestions.addEventListener("click", clearAll);
+    dom.btnResetFromResult.addEventListener("click", clearAll);
+
+    dom.btnJumpProfile.addEventListener("click", ()=> setView("profile"));
+
+    dom.range.addEventListener("input", ()=>{
+      const v = clamp(Number(dom.range.value),1,7);
+      setAnswerValue(v, true);
+    });
+
+    dom.btnPrevQ.addEventListener("click", ()=>{
+      if (state.currentIndex>0){
+        state.currentIndex--;
+        save();
+        renderQuestion();
+        updateMeter();
+      }
+    });
+
+    dom.btnNextQ.addEventListener("click", ()=>{
+      const i = state.currentIndex;
+      state.done[i] = true;
+
+      if (i === 99){
+        save(); updateMeter(); maybeShowChapterClear();
+        setView("worry");
+        return;
+      }
+      state.currentIndex++;
+      save();
+      renderQuestion();
+      updateMeter();
+      maybeShowChapterClear();
+    });
+
+    dom.btnChapterContinue.addEventListener("click", closeChapterModal);
+    dom.chapterModal.addEventListener("click", (e)=>{ if (e.target===dom.chapterModal) closeChapterModal(); });
+
+    dom.miniMapBtn.addEventListener("click", openMapModal);
+    dom.btnCloseMap.addEventListener("click", closeMapModal);
+    dom.mapModal.addEventListener("click", (e)=>{ if (e.target===dom.mapModal) closeMapModal(); });
+
+    dom.worryText.addEventListener("input", ()=>{
+      state.worryText = dom.worryText.value.slice(0,2000);
+      updateWorryCount();
+      save();
+    });
+
+    dom.btnShowResult.addEventListener("click", ()=> setView("result"));
+    dom.btnFinalSubmit.addEventListener("click", finalSubmit);
+
+    dom.btnCopyJson.addEventListener("click", async ()=>{
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){
+          dom.resultToast.className="toast bad";
+          dom.resultToast.textContent="JSON生成に失敗しました： " + (e?.message || e);
+          dom.resultToast.style.display="block";
+          return;
+        }
+      }
+      const ok = await copyToClipboard(safeJson(payload));
+      dom.resultToast.className = "toast " + (ok ? "ok" : "bad");
+      dom.resultToast.textContent = ok ? "JSONをコピーしました。" : "コピーに失敗しました。";
+      dom.resultToast.style.display="block";
+    });
+
+    dom.btnDownloadJson.addEventListener("click", ()=>{
+      let payload = state.lastPayload;
+      if (!payload){
+        try{ payload = buildPayload(); state.lastPayload = payload; save(); }
+        catch(e){
+          dom.resultToast.className="toast bad";
+          dom.resultToast.textContent="JSON生成に失敗しました： " + (e?.message || e);
+          dom.resultToast.style.display="block";
+          return;
+        }
+      }
+      downloadText("fortuneai_final_submit.json", safeJson(payload));
+      dom.resultToast.className="toast ok";
+      dom.resultToast.textContent="JSONをダウンロードしました。";
+      dom.resultToast.style.display="block";
+    });
+
+    window.addEventListener("resize", ()=>{ recalcLayoutVars(); });
+
+    /***********************
+     * Boot
+     ***********************/
+    (function init(){
+      const q = parseQuery();
+      if (q.userId) state.userId = q.userId;
+
+      const restored = load();
+      if (restored){
+        if (q.userId) state.userId = q.userId;
+        dom.profileRestoreNote.style.display="block";
+        setTimeout(()=> dom.profileRestoreNote.style.display="none", 2500);
+      }
+
+      initAscent();
+      renderAll();
+      recalcLayoutVars();
+      requestAnimationFrame(recalcLayoutVars);
+    })();
   </script>
 </body>
 </html>
