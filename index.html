@@ -461,6 +461,8 @@
       /* ★ここで「持ち上げ量」を足して上に上げる */
       bottom: calc(var(--bottomH) + 12px + var(--miniMapLift));
       z-index: 95;
+      pointer-events: auto;
+      touch-action: manipulation;
       width: 184px;
       border-radius: 20px;
       border:1px solid rgba(255,255,255,.22);
@@ -520,9 +522,15 @@
     }
 
     @media(max-width:420px){
-      .miniMapFloat{ width: 168px; right: 10px; padding: 10px; }
+      .miniMapFloat{
+        width: 168px;
+        right: 10px;
+        bottom: calc(var(--bottomH) + 10px + var(--miniMapLift));
+        padding: 10px;
+        z-index: 100;
+      }
       .miniMapHint{ display:none; }
-      :root{ --miniMapLift: 44px; }
+      :root{ --miniMapLift: 50px; }
     }
 
     /* ===== Modal ===== */
@@ -728,20 +736,48 @@
   </div>
 
   <div class="wrap" id="wrap">
-    <section class="card" id="viewHero">
-      <h2 class="h1">診断を開始</h2>
-      <p class="lead">
-        20問ごとに章が切り替わり、配色が変化します。進捗は“水が溜まるゲージ”と“神秘の巡礼路”で上昇します。
-      </p>
-      <div class="pillRow">
-        <div class="pill">7段階（1〜7）</div>
-        <div class="pill">20問ごとに演出</div>
-        <div class="pill">値で色が変わる</div>
-        <div class="pill">ミニマップ常時表示</div>
+    <section class="card" id="viewHero" style="position:relative; overflow:hidden;">
+      <!-- 背景装飾 -->
+      <div style="position:absolute; inset:-60px -80px; pointer-events:none; opacity:.15;">
+        <div style="position:absolute; top:10%; left:15%; width:180px; height:180px; border-radius:50%; background:radial-gradient(circle, var(--accent1), transparent 70%); filter:blur(40px);"></div>
+        <div style="position:absolute; top:40%; right:10%; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle, var(--accent2), transparent 70%); filter:blur(50px);"></div>
+        <div style="position:absolute; bottom:15%; left:25%; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, var(--accent3), transparent 70%); filter:blur(45px);"></div>
       </div>
-      <div class="btnRow">
-        <button class="btn primary" id="btnStart">開始</button>
-        <button class="btn danger" id="btnResetAll">最初からやり直す（保存を消去）</button>
+      
+      <div style="position:relative; z-index:1;">
+        <h2 class="h1" style="font-size:22px; margin-bottom:14px; letter-spacing:.08em;">
+          ✨ FortuneAI式 17タイプ診断
+        </h2>
+        <p class="lead" style="font-size:14.5px; line-height:1.85; margin-bottom:18px;">
+          100の質問に答えることで、あなたの性格タイプを17分類で診断します。<br>
+          進捗は美しい水のゲージと神秘的な巡礼路で可視化され、20問ごとに章が切り替わります。
+        </p>
+        
+        <div style="margin:20px 0; padding:16px; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--accent1); box-shadow:0 0 12px var(--accent1);"></div>
+            <span style="font-size:13px; opacity:.92;">7段階評価で細かく回答</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--accent3); box-shadow:0 0 12px var(--accent3);"></div>
+            <span style="font-size:13px; opacity:.92;">20問ごとに美しい演出とテーマ変化</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--accent2); box-shadow:0 0 12px var(--accent2);"></div>
+            <span style="font-size:13px; opacity:.92;">回答値に応じた色彩の変化</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.75); box-shadow:0 0 12px rgba(255,255,255,.5);"></div>
+            <span style="font-size:13px; opacity:.92;">リアルタイム進捗マップを常時表示</span>
+          </div>
+        </div>
+        
+        <div class="btnRow" style="margin-top:24px;">
+          <button class="btn primary" id="btnStart" style="font-size:15px; padding:14px 24px; min-width:160px;">
+            🚀 診断を開始する
+          </button>
+          <button class="btn danger" id="btnResetAll">最初からやり直す（保存を消去）</button>
+        </div>
       </div>
     </section>
 
@@ -2022,7 +2058,18 @@
     dom.btnChapterContinue.addEventListener("click", closeChapterModal);
     dom.chapterModal.addEventListener("click", (e)=>{ if (e.target===dom.chapterModal) closeChapterModal(); });
 
-    dom.miniMapBtn.addEventListener("click", openMapModal);
+    // ミニマップ：クリックとタッチの両方に対応
+    dom.miniMapBtn.addEventListener("click", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      openMapModal();
+    });
+    dom.miniMapBtn.addEventListener("touchend", (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      openMapModal();
+    }, { passive: false });
+    
     dom.btnCloseMap.addEventListener("click", closeMapModal);
     dom.mapModal.addEventListener("click", (e)=>{ if (e.target===dom.mapModal) closeMapModal(); });
 
