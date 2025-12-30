@@ -107,11 +107,25 @@
     .orb{
       width:44px; height:44px; border-radius:999px;
       background:
-        radial-gradient(circle at 30% 30%, rgba(255,255,255,.92), rgba(255,255,255,.10) 42%, rgba(124,77,255,.28) 72%, rgba(207,167,110,.18));
-      border:1px solid rgba(255,255,255,.18);
+        linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.15)),
+        url('https://www.genspark.ai/api/files/s/Omaof47F');
+      background-size: cover;
+      background-position: center;
+      border:1px solid rgba(255,255,255,.30);
       box-shadow: 0 0 26px color-mix(in oklab, var(--accent1) 28%, transparent),
-                  0 0 18px color-mix(in oklab, var(--accent2) 18%, transparent);
+                  0 0 18px color-mix(in oklab, var(--accent2) 18%, transparent),
+                  0 0 0 2px rgba(124,77,255,.15) inset;
       flex: 0 0 auto;
+      position: relative;
+      overflow: hidden;
+    }
+    .orb::after{
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.15), transparent 60%);
+      pointer-events: none;
     }
     .title{font-size:14px; letter-spacing:.06em; margin:0; line-height:1.2;}
     .subtitle{
