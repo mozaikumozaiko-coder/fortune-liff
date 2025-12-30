@@ -524,18 +524,29 @@
 
     @media(max-width:420px){
       .miniMapFloat{
-        width: 168px;
-        right: 10px;
-        bottom: calc(var(--bottomH) + 10px + var(--miniMapLift));
-        padding: 10px;
+        width: 140px;
+        right: 8px;
+        bottom: calc(var(--bottomH) + 8px + var(--miniMapLift));
+        padding: 8px;
         z-index: 100;
+        border-radius: 16px;
       }
-      .miniMapHint{ display: block !important; }
-      :root{ --miniMapLift: 80px; }
+      .miniMapHead{
+        font-size: 11px;
+        margin-bottom: 6px;
+      }
+      #miniSvg{
+        height: 100px;
+      }
+      .miniMapHint{
+        font-size: 9.5px;
+        margin-top: 5px;
+      }
+      :root{ --miniMapLift: 110px; }
     }
 
     @media(max-width:720px) and (min-width:421px){
-      :root{ --miniMapLift: 70px; }
+      :root{ --miniMapLift: 90px; }
     }
 
     /* ===== Modal ===== */
