@@ -454,35 +454,73 @@
       display:flex; gap:10px; align-items:center; justify-content:space-between;
     }
 
-    /* ===== Mini Map (常時表示) ===== */
+    /* ===== Mini Map (常時表示・豪華版) ===== */
     .miniMapFloat{
       position: fixed;
       right: 12px;
       /* ★ここで「持ち上げ量」を足して上に上げる */
       bottom: calc(var(--bottomH) + 12px + var(--miniMapLift));
       z-index: 95;
-      width: 164px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(10,14,36,.55);
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
-      backdrop-filter: blur(14px);
+      width: 184px;
+      border-radius: 20px;
+      border:1px solid rgba(255,255,255,.22);
+      background:
+        radial-gradient(180px 120px at 50% 30%, rgba(124,77,255,.12), transparent 70%),
+        radial-gradient(160px 100px at 50% 70%, rgba(207,167,110,.08), transparent 70%),
+        rgba(10,14,36,.72);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.08) inset,
+        0 18px 60px rgba(0,0,0,.45),
+        0 0 32px color-mix(in oklab, var(--accent1) 18%, transparent);
+      backdrop-filter: blur(16px);
       overflow:hidden;
-      padding: 10px;
+      padding: 12px;
       cursor:pointer;
       -webkit-tap-highlight-color: transparent;
       user-select:none;
+      transition: transform .15s ease, border-color .2s ease, box-shadow .3s ease;
     }
-    .miniMapFloat:active{ transform: translateY(1px); }
+    .miniMapFloat:hover{
+      border-color: rgba(255,255,255,.35);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,.12) inset,
+        0 22px 70px rgba(0,0,0,.50),
+        0 0 42px color-mix(in oklab, var(--accent1) 28%, transparent);
+    }
+    .miniMapFloat:active{
+      transform: translateY(1px) scale(.995);
+    }
     .miniMapHead{
       display:flex; align-items:center; justify-content:space-between; gap:8px;
-      font-size:12px; opacity:.92;
+      font-size:12.5px; opacity:.95; font-weight:600; letter-spacing:.03em;
       margin-bottom:8px;
     }
-    .miniMapHint{font-size:11px; opacity:.70; margin-top:6px; text-align:center;}
+    .miniMapHint{
+      font-size:10.5px; opacity:.75; margin-top:7px; text-align:center;
+      letter-spacing:.04em;
+    }
+    /* ミニマップ背景装飾 */
+    .miniMapFloat::before{
+      content:"";
+      position:absolute; inset:-40px -60px;
+      background:
+        radial-gradient(2px 2px at 18% 25%, rgba(255,255,255,.90), rgba(255,255,255,0) 60%),
+        radial-gradient(1.5px 1.5px at 45% 45%, rgba(255,255,255,.85), rgba(255,255,255,0) 60%),
+        radial-gradient(2px 2px at 72% 65%, rgba(255,255,255,.88), rgba(255,255,255,0) 60%),
+        radial-gradient(1.2px 1.2px at 88% 30%, rgba(255,255,255,.82), rgba(255,255,255,0) 60%);
+      opacity:.35;
+      animation: miniSparkle 4.5s linear infinite;
+      pointer-events:none;
+      mix-blend-mode: screen;
+    }
+    @keyframes miniSparkle{
+      0%{ transform: translateX(-10px) translateY(0px); opacity:.30; }
+      50%{ transform: translateX(10px) translateY(-5px); opacity:.45; }
+      100%{ transform: translateX(30px) translateY(0px); opacity:.30; }
+    }
 
     @media(max-width:420px){
-      .miniMapFloat{ width: 150px; right: 10px; padding: 9px; }
+      .miniMapFloat{ width: 168px; right: 10px; padding: 10px; }
       .miniMapHint{ display:none; }
       :root{ --miniMapLift: 44px; }
     }
@@ -602,27 +640,43 @@
     </div>
   </header>
 
-  <!-- ミニマップ常時表示（質問画面でのみ表示） -->
+  <!-- ミニマップ常時表示（質問画面でのみ表示・豪華版） -->
   <div class="miniMapFloat" id="miniMapBtn" style="display:none;" role="button" aria-label="巡礼路（詳細）">
     <div class="miniMapHead">
-      <div>巡礼路</div>
-      <div><strong id="miniPct">0%</strong></div>
+      <div>🗺️ 巡礼路</div>
+      <div><strong id="miniPct" style="font-size:14px;">0%</strong></div>
     </div>
-    <svg id="miniSvg" viewBox="0 0 320 220" width="100%" height="120" aria-hidden="true">
+    <svg id="miniSvg" viewBox="0 0 320 220" width="100%" height="130" aria-hidden="true">
       <defs>
         <linearGradient id="miniStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color="var(--accent1)"/>
-          <stop offset="55%" stop-color="var(--accent3)"/>
-          <stop offset="100%" stop-color="var(--accent2)"/>
+          <stop offset="0%" stop-color="var(--accent1)" stop-opacity="1"/>
+          <stop offset="55%" stop-color="var(--accent3)" stop-opacity="1"/>
+          <stop offset="100%" stop-color="var(--accent2)" stop-opacity="1"/>
         </linearGradient>
-        <filter id="miniGlow">
-          <feGaussianBlur stdDeviation="2.0" result="b"/>
+        
+        <!-- ミニマップ専用：強化グロー -->
+        <filter id="miniGlowStrong">
+          <feGaussianBlur stdDeviation="2.8" result="b"/>
+          <feColorMatrix in="b" type="matrix" values="1.2 0 0 0 0  0 1.2 0 0 0  0 0 1.2 0 0  0 0 0 1 0"/>
           <feMerge>
+            <feMergeNode in="b"/>
             <feMergeNode in="b"/>
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        
+        <!-- パルス用radial gradient -->
+        <radialGradient id="miniPulseGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="rgba(255,255,255,.95)"/>
+          <stop offset="40%" stop-color="rgba(255,255,255,.50)"/>
+          <stop offset="100%" stop-color="rgba(255,255,255,.05)"/>
+        </radialGradient>
       </defs>
+      
+      <!-- 背景グラデーション -->
+      <rect x="0" y="0" width="320" height="220" fill="url(#ascentGlow)" opacity=".3"/>
+      
+      <!-- ベースパス -->
       <path id="miniPathBase"
         d="M42 190
            C 72 176, 88 172, 106 160
@@ -632,7 +686,9 @@
            C 224 56, 236 84, 258 58
            C 274 38, 230 32, 196 40
            C 172 46, 168 34, 160 24"
-        fill="none" stroke="rgba(255,255,255,.14)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        fill="none" stroke="rgba(255,255,255,.18)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      
+      <!-- プログレスパス（強化グロー） -->
       <path id="miniPathProg"
         d="M42 190
            C 72 176, 88 172, 106 160
@@ -642,13 +698,33 @@
            C 224 56, 236 84, 258 58
            C 274 38, 230 32, 196 40
            C 172 46, 168 34, 160 24"
-        fill="none" stroke="url(#miniStroke)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#miniGlow)"/>
-      <g id="miniMarker" filter="url(#miniGlow)">
-        <circle id="miniHalo" cx="42" cy="190" r="10" fill="rgba(255,255,255,.10)"/>
-        <circle id="miniDot" cx="42" cy="190" r="5.5" fill="rgba(255,255,255,.92)" stroke="rgba(255,255,255,.22)"/>
+        fill="none" stroke="url(#miniStroke)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" filter="url(#miniGlowStrong)"/>
+      
+      <!-- 建造物（ミニ版） -->
+      <g id="miniBuildings" opacity=".90"></g>
+      
+      <!-- マーカー（強化版） -->
+      <g id="miniMarker" filter="url(#miniGlowStrong)">
+        <!-- パルスリング -->
+        <circle id="miniPulse" cx="42" cy="190" r="16" fill="url(#miniPulseGrad)" opacity="0">
+          <animate attributeName="r" from="8" to="22" dur="1.2s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.6" to="0" dur="1.2s" repeatCount="indefinite"/>
+        </circle>
+        
+        <!-- ハロー -->
+        <circle id="miniHalo" cx="42" cy="190" r="11" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.20)" stroke-width="1"/>
+        
+        <!-- コアドット -->
+        <circle id="miniDot" cx="42" cy="190" r="6" fill="rgba(255,255,255,.98)" stroke="rgba(255,255,255,.30)" stroke-width="1.2"/>
+      </g>
+      
+      <!-- GOALマーカー -->
+      <g opacity=".90">
+        <circle cx="160" cy="18" r="7" fill="rgba(255,255,255,.25)" stroke="rgba(255,255,255,.28)"/>
+        <text x="160" y="14" text-anchor="middle" font-size="9" fill="rgba(234,240,255,.88)" style="letter-spacing:.10em; font-weight:600;">GOAL</text>
       </g>
     </svg>
-    <div class="miniMapHint">タップで詳細</div>
+    <div class="miniMapHint">✨ タップで詳細表示</div>
   </div>
 
   <div class="wrap" id="wrap">
@@ -1152,6 +1228,8 @@
       miniPathProg:$("miniPathProg"),
       miniHalo:$("miniHalo"),
       miniDot:$("miniDot"),
+      miniPulse:$("miniPulse"),
+      miniBuildings:$("miniBuildings"),
 
       ascentCaption:$("ascentCaption"),
       ascentPathProg:$("ascentPathProg"),
@@ -1513,6 +1591,7 @@
 
       renderAscentRunes();
       renderAscentBuildings();
+      renderMiniBuildings();
       seedAscentParticles(22);
       cancelAnimationFrame(ascent.raf);
       ascent.raf = requestAnimationFrame(ascentAnimate);
@@ -1592,6 +1671,47 @@
         g.appendChild(gem);
 
         dom.ascentBuildings.appendChild(g);
+      });
+    }
+
+    function renderMiniBuildings(){
+      dom.miniBuildings.innerHTML = "";
+      const milestones = [20,40,60,80,100];
+      milestones.forEach(m=>{
+        const t = m/100;
+        const pt = dom.miniPathProg.getPointAtLength(mini.pathLen*t);
+
+        const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+        g.setAttribute("data-mb", String(m));
+
+        const idx = Math.min(4, Math.floor((m-1)/20));
+        const colors = [
+          "color-mix(in oklab, var(--accent1) 60%, white 10%)",
+          "color-mix(in oklab, var(--accent3) 60%, white 10%)",
+          "color-mix(in oklab, var(--accent2) 60%, white 10%)",
+          "color-mix(in oklab, var(--accent1) 65%, var(--accent3) 20%)",
+          "color-mix(in oklab, var(--accent2) 70%, white 15%)"
+        ];
+        const color = colors[idx];
+
+        // ミニ建造物（小さめ・シンプル）
+        const building = document.createElementNS("http://www.w3.org/2000/svg","path");
+        building.setAttribute("d", `M ${pt.x} ${pt.y-6} L ${pt.x+4} ${pt.y+4} L ${pt.x} ${pt.y+2} L ${pt.x-4} ${pt.y+4} Z`);
+        building.setAttribute("fill", "rgba(255,255,255,.08)");
+        building.setAttribute("stroke", color);
+        building.setAttribute("stroke-width","1.2");
+        g.appendChild(building);
+
+        const gem = document.createElementNS("http://www.w3.org/2000/svg","circle");
+        gem.setAttribute("cx", pt.x);
+        gem.setAttribute("cy", pt.y-6);
+        gem.setAttribute("r", 2.2);
+        gem.setAttribute("fill", color);
+        gem.setAttribute("stroke", "rgba(255,255,255,.30)");
+        gem.setAttribute("stroke-width", "0.8");
+        g.appendChild(gem);
+
+        dom.miniBuildings.appendChild(g);
       });
     }
 
@@ -1685,6 +1805,16 @@
       dom.miniHalo.setAttribute("cy", pt.y);
       dom.miniDot.setAttribute("cx", pt.x);
       dom.miniDot.setAttribute("cy", pt.y);
+      dom.miniPulse.setAttribute("cx", pt.x);
+      dom.miniPulse.setAttribute("cy", pt.y);
+
+      // 建造物の点灯状態を更新
+      dom.miniBuildings.querySelectorAll("g[data-mb]").forEach(g=>{
+        const m = Number(g.getAttribute("data-mb"));
+        const on = (doneCount >= m);
+        g.style.opacity = on ? "1" : ".28";
+        g.style.filter = on ? "url(#miniGlowStrong)" : "none";
+      });
     }
 
     function flashChapter(){
