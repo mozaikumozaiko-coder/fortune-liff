@@ -1068,6 +1068,29 @@
     </div>
   </div>
 
+  <!-- タイプ詳細モーダル -->
+  <div class="modalBack" id="typeDetailModal" style="display:none;" aria-hidden="true">
+    <div class="modal" style="max-width:680px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+        <h2 class="h1" style="margin:0; font-size:18px;" id="detailTypeTitle">タイプ詳細</h2>
+        <button class="btn ghost" id="btnCloseTypeDetail" style="padding:6px 12px; font-size:12px;">✕ 閉じる</button>
+      </div>
+      
+      <div style="padding:18px; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); margin-bottom:16px;">
+        <div style="text-align:center; font-size:17px; font-weight:700; letter-spacing:.08em; margin-bottom:10px;" id="detailTypeCode">INTJ</div>
+        <div style="text-align:center; font-size:14px; opacity:.90; line-height:1.6; margin-bottom:8px;" id="detailTypeIntro"></div>
+      </div>
+
+      <div id="detailTypeContent" style="font-size:13.5px; line-height:1.85; opacity:.92;">
+        <!-- JavaScriptで動的生成 -->
+      </div>
+
+      <div class="btnRow" style="justify-content:flex-end; margin-top:20px;">
+        <button class="btn primary" id="btnCloseTypeDetail2">閉じる</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     /***********************
      * ここだけ編集（MakeのWebhook）
@@ -1096,12 +1119,12 @@
       "ENFP":"虹彩オラクル（可能性点火者）",
       "ISTJ":"鉄律マーシャル（秩序監督者）",
       "ISFJ":"守灯スチュワード（献身支援者）",
-      "ESTJ":"白鋼マーシャル（現場統制者）",
-      "ESFJ":"祝祭ホスト（調和演出者）",
-      "ISTP":"影刃スミス（実務解体者）",
-      "ISFP":"花晶アーティザン（美感匠）",
-      "ESTP":"疾風ストライカー（機会攻略者）",
-      "ESFP":"陽光パフォーマー（感情起動者）",
+      "ESTJ":"鋼核エグゼキューター（現場統率者）",
+      "ESFJ":"祥風ホスト（調和運営者）",
+      "ISTP":"影鋼クラフター（実装修羅）",
+      "ISFP":"花霞アーティザン（感性職人）",
+      "ESTP":"疾風ストライカー（瞬発突破者）",
+      "ESFP":"陽炎エンターテイナー（場の点火者）",
       "BAL":"均衡アルケミスト（統合適応者）"
     };
 
@@ -1123,6 +1146,26 @@
       "ESTP":"チャンスを嗅ぎ分け、速さで掴み取り、流れを変える「機会突破」タイプです。",
       "ESFP":"感情とエネルギーで人を動かし、空気を一気に起動させる「熱量拡散」タイプです。",
       "BAL":"相反する要素を調合し、状況に合わせて最適解へ寄せていく「統合と適応」タイプです。"
+    };
+
+    const TYPE_DETAILS = {
+      "INTJ":{intro:"混乱を整理し「勝てる形」に組み直せる人です。感情より因果で判断し、再現性のある成果を積み上げます。運に頼らず、勝利を設計していくタイプです。",essence:"混沌→秩序の設計者",strengths:"戦略／構造化／最適化／リスク設計／仕組み化",cautions:"完璧主義で遅れる／正論が強く見える／孤立で燃え尽きやすい",key:"80点で出す→改善で100点。任せる仕組み（手順書1枚）で脳を複製",jobs:"新規事業・PdM／業務改善／AI自動化設計／テックリード／B2B設計",compatibility:"恋愛加速＝ENTP／結婚安定＝INFJ/ISTJ／仕事最強＝ENTJ/ESTJ",action30:"①判断ログ（目的/前提/撤退条件）②β公開を2回③任せるタスクを1つ決めて手順化"},
+      "INTP":{intro:"「わかったつもり」を許さず、物事を原理まで分解して理解します。静かでも思考は鋭く、嘘のない結論に辿り着ける人です。",essence:"真理をモデル化する探究者",strengths:"分析／抽象化／論点整理／技術理解／反証思考",cautions:"決断が遅れる／生活の細部が後回し／考えすぎ停止",key:"締切＋実験（2週間ルール）で前に進む。生活は自動化・担当固定",jobs:"研究開発／データ分析／エンジニアリング／アルゴ設計／監査・検証",compatibility:"知的共同体＝INTJ／温度補完＝ENFJ/INFJ／刺激＝ENTP",action30:"①週1の締切を置く②成果物を最小単位で公開③生活ルーチンを1つ固定"},
+      "ENTJ":{intro:"決めた目標に向けて現実を動かす人です。迷いを断ち、資源を集め、最短距離で結果を取りにいきます。",essence:"推進と統率の指揮官",strengths:"即断／交渉／統率／優先度付け／成果責任",cautions:"圧が強く見える／疲労で雑になる／感情面の取りこぼし",key:"「目的」と「感謝」を言語化すると支持が増える。権限委譲で火力が持続する",jobs:"事業責任者／営業統括／PM／組織改革／危機対応",compatibility:"恋愛は対等尊敬／結婚は家庭KPI／仕事はINTJが戦略補完",action30:"①週次レビューで摩擦を先に潰す②任せる領域を1つ決める③「期待」を言葉にする"},
+      "ENTP":{intro:"常識を疑い、可能性を連鎖させて新しい道を作る人です。自由が呼吸で、退屈が最大の敵。",essence:"発想と変革の触媒",strengths:"発散／企画／議論で創造／交渉／問題発見",cautions:"飽きる／雑になりやすい／空中戦で終わる",key:"48時間発散→収束会議→最小実装。束縛ではなく「枠と遊び場」を作る",jobs:"新規企画／起業／広告PR／プロデュース／営業",compatibility:"恋愛加速＝INTJ／結婚は自由予算枠／仕事はESTJ運用が最強",action30:"①完了定義を先に置く②最小成果物を毎週出す③相棒（収束役）を決める"},
+      "INFJ":{intro:"人の奥にある願いと矛盾を読み取り、意味のある未来へ導ける人です。静かでも芯が強く、信じるものに粘れます。",essence:"意味と未来の翻訳者",strengths:"洞察／共感／理念化／文章化／育成",cautions:"抱え込み／理想疲れ／消耗を隠す",key:"境界線＋回復日を先に確保。「意味→現実」の順で話すと強い",jobs:"教育／コーチング／編集広報／UXリサーチ／組織開発",compatibility:"結婚安定＝INTJ/ISFJ／恋愛は言葉の安全／仕事はENTJ推進と好相性",action30:"①週1回復日②抱える案件を1つ手放す③「望む未来」を文章化"},
+      "INFP":{intro:"「本当」を大切にし、嘘のない生き方を求める人です。繊細さは弱さではなく、深い共感の才能です。",essence:"価値観の守り手",strengths:"共感／創作／誠実／世界観／人の痛み理解",cautions:"自己否定／傷つきやすさ／現実処理の先延ばし",key:"小さな達成で自信回復。NOと言う境界線を持つ",jobs:"編集・ライター／デザイン／教育／福祉支援／コミュ運営",compatibility:"安心＝ISFJ/INFJ／現実補完＝ESTJ／刺激＝ENFP",action30:"①毎週1つ「完了」②作品/発信を小さく公開③断る基準を一文で決める"},
+      "ENFJ":{intro:"人の可能性に火をつけて伸ばす人です。空気を整え、相手が前に進める言葉と場を作れます。",essence:"人を伸ばす統率者",strengths:"共感／育成／調整／発信／チーム形成",cautions:"自己犠牲／断れない／全員を救おうとする",key:"対象を絞る。役割分担で負荷を下げる",jobs:"管理職／教育／人事／CS統括／広報",compatibility:"戦略補完＝INTJ／刺激＝ENTP／安心＝ISFJ",action30:"①負荷棚卸し②「任せる」宣言を1回③成果と感謝を言語化して循環を作る"},
+      "ENFP":{intro:"希望を見つけ、人を巻き込み、未来の空気を変えられる人です。明るさは才能で、共鳴がエンジンになります。",essence:"可能性の点火役",strengths:"共感／発信／巻き込み／企画／コミュ形成",cautions:"散漫／感情の波／継続が難しい",key:"テーマを3本柱に固定。習慣で安定させる",jobs:"SNS広報／コミュ運営／企画／営業／採用",compatibility:"安定＝ISTJ/ISFJ／設計補完＝INTJ／刺激＝ENTP",action30:"①毎日10分の発信②柱3つ決定③落ちた時の回復手順を作る"},
+      "ISTJ":{intro:"「約束を守る」「品質を守る」を積み上げて信頼を作る人です。派手さより堅牢さ。長期戦で最強です。",essence:"秩序と継続の守護者",strengths:"責任感／運用／品質／標準化／継続力",cautions:"変化に慎重／硬く見える／疲労を溜めがち",key:"変化は段階導入。小さく試して安全を確保",jobs:"運用責任／品質管理／PMO／監査／総務経理",compatibility:"結婚安定＝ISFJ/INTJ／刺激＝ENFP／仕事はINTJ設計と最強",action30:"①改善提案を週1②手順を1つ標準化③休息を予定として確保"},
+      "ISFJ":{intro:"相手の負担を先回りして減らし、安心を守れる人です。静かな優しさは、長期で最も強い信頼になります。",essence:"安心と継続の支援者",strengths:"気配り／運用／ケア／継続／安定化",cautions:"断れない／自己後回し／疲れても言えない",key:"境界線＋感謝の可視化。「手伝う」ではなく「仕組みで守る」",jobs:"CS／教務／医療福祉／事務運用／秘書",compatibility:"安心＝ISTJ／戦略補完＝INTJ／守り＝ENTJ",action30:"①週1で自分優先②断る基準を一文③頼まれ事を手順化して減らす"},
+      "ESTJ":{intro:"現場を回し、決めて、動かし、結果に変える人です。正しさと責任で組織を前に進められます。",essence:"実行と統率の運用者",strengths:"推進／管理／判断／改善／責任遂行",cautions:"圧が出る／融通が利かないと言われる／説明不足",key:"「目的→合意→実行」。目的を言葉にすると味方が増える",jobs:"管理職／拠点運営／PM／運用責任／営業統括",compatibility:"戦略補完＝INTJ／支援＝ISFJ／発想＝ENTP",action30:"①会議を短縮②属人業務を1つ潰す③感謝と期待をセットで伝える"},
+      "ESFJ":{intro:"人が協力しやすい空気を作り、関係を滑らかに保てる人です。目立つ成果より、続く成果を作る才能があります。",essence:"調和と運営の要",strengths:"配慮／調整／支援／連携／現場安定",cautions:"評価に弱い／抱え込みやすい／NOが苦手",key:"自分の軸を持つ。役割分担で負荷を下げる",jobs:"CS／人事／広報／教育運営／店舗運営",compatibility:"安定＝ISTJ／明るさ＝ENFP／設計補完＝INTJ",action30:"①断る言い方を用意②自分の評価軸を3つ③頼まれ事を共有して分担"},
+      "ISTP":{intro:"現場の問題を一瞬で見抜き、最短で直せる人です。理屈より実用。自由な裁量があるほど能力が跳ねます。",essence:"実装と修復の職人",strengths:"即応／技術／原因特定／改善／道具化",cautions:"説明不足／感情共有が少ない／孤立しがち",key:"言語化と共有（手順書・メモ）で価値が倍化する",jobs:"エンジニア／SRE／障害対応／現場改善／セキュリティ",compatibility:"設計＝INTJ／運用＝ESTJ／潤滑＝ENFJ/ENFP",action30:"①成果を週1共有②手順を1つ書く③「やりやすい条件」を先に伝える"},
+      "ISFP":{intro:"美しさや心地よさを感じ取り、丁寧に形にできる人です。競争より、自分が信じる世界観で伸びます。",essence:"美しさと心地よさの表現者",strengths:"表現／丁寧さ／共感／美意識／手触り",cautions:"衝突回避／我慢→爆発／自己主張の弱さ",key:"小さく言う（早めに共有）。作品を外に出すほど運が開く",jobs:"デザイン／写真映像／接客／クリエイティブ／UI",compatibility:"支援＝ENFJ／安心＝ISFJ／刺激＝ENTP",action30:"①作品公開を1回②要望を早めに言う③無理な依頼を断る文を用意"},
+      "ESTP":{intro:"勝機を掴むのが速い人です。迷うより動き、現場で勝ち筋を取りにいけます。",essence:"行動と突破の実戦者",strengths:"即決／胆力／交渉／現場対応／スピード",cautions:"雑になりやすい／先読み不足／勢いで燃やす",key:"撤退条件と振り返りで「再現性」に変える",jobs:"営業／起業／交渉役／現場責任／イベント運営",compatibility:"戦略＝INTJ／調整＝ESFJ／実装＝ISTP",action30:"①週1振り返り②勝ちパターンをメモ③撤退条件を先に決めて動く"},
+      "ESFP":{intro:"場を明るくし、人を前向きに動かせる人です。楽しさと温度で、周囲の空気を変えられます。",essence:"共鳴と表現の点火者",strengths:"社交／表現／応援力／場作り／発信",cautions:"気分の波／計画が弱い／軽く見られやすい",key:"習慣と環境。芯を一言で持つ",jobs:"接客／広報／SNS／イベント／教育",compatibility:"安定＝ISTJ／支援＝ENFJ／刺激＝ENTP",action30:"①習慣を1つ固定②芯の一言を作る③発信を週2回"},
+      "BAL":{intro:"極端に寄らず、全体を見て最適点を探せる人です。対立や分断を「統合して前に進める」現代的な強さがあります。",essence:"統合と適応の調停者",strengths:"俯瞰／調整／学習／橋渡し／運用改善",cautions:"決め手不足／優先度迷子／全員にいい顔で消耗",key:"軸を言語化し、決め方をルール化する（判断基準3つ）",jobs:"PM/PMO／業務改善／CS統括／組織調整／教育運営",compatibility:"推進＝ENTJ/ESTJ／戦略＝INTJ／発想＝ENTP／安心＝ISFJ",action30:"①判断基準を3つ固定②意思決定の締切を置く③役割と責任範囲を明文化"}
     };
 
     const TAROT_MAJOR = {
@@ -2093,8 +2136,44 @@
           <div style="font-size: 12px; line-height: 1.6; opacity: .85;">${typeDesc}</div>
         `;
         
+        card.addEventListener('click', () => {
+          showTypeDetail(typeCode);
+        });
+        
         allTypesGrid.appendChild(card);
       });
+    }
+
+    function showTypeDetail(typeCode){
+      const modal = document.getElementById("typeDetailModal");
+      const title = TYPE_TITLES[typeCode] || "";
+      const detail = TYPE_DETAILS[typeCode] || {};
+      const tarot = TAROT_MAJOR[typeCode] || "";
+      
+      document.getElementById("detailTypeCode").textContent = typeCode;
+      document.getElementById("detailTypeTitle").textContent = title;
+      document.getElementById("detailTypeIntro").textContent = detail.intro || "";
+      
+      let content = "";
+      if(detail.essence) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">本質：</strong>${detail.essence}</div>`;
+      if(detail.strengths) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">強み：</strong>${detail.strengths}</div>`;
+      if(detail.cautions) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent3);">注意点：</strong>${detail.cautions}</div>`;
+      if(detail.key) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">開運キー：</strong>${detail.key}</div>`;
+      if(detail.jobs) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">向く仕事：</strong>${detail.jobs}</div>`;
+      if(detail.compatibility) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent3);">相性：</strong>${detail.compatibility}</div>`;
+      if(detail.action30) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">30日アクション：</strong>${detail.action30}</div>`;
+      if(tarot) content += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">タロット：</strong>${tarot}</div>`;
+      
+      document.getElementById("detailTypeContent").innerHTML = content;
+      
+      modal.style.display = "flex";
+      modal.setAttribute("aria-hidden", "false");
+    }
+
+    function closeTypeDetail(){
+      const modal = document.getElementById("typeDetailModal");
+      modal.style.display = "none";
+      modal.setAttribute("aria-hidden", "true");
     }
 
     function setBodyMode(){
@@ -2196,6 +2275,13 @@
     
     dom.btnCloseMap.addEventListener("click", closeMapModal);
     dom.mapModal.addEventListener("click", (e)=>{ if (e.target===dom.mapModal) closeMapModal(); });
+
+    // タイプ詳細モーダル
+    document.getElementById("btnCloseTypeDetail").addEventListener("click", closeTypeDetail);
+    document.getElementById("btnCloseTypeDetail2").addEventListener("click", closeTypeDetail);
+    document.getElementById("typeDetailModal").addEventListener("click", (e)=>{ 
+      if (e.target===document.getElementById("typeDetailModal")) closeTypeDetail(); 
+    });
 
     dom.worryText.addEventListener("input", ()=>{
       state.worryText = dom.worryText.value.slice(0,2000);
