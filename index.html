@@ -914,10 +914,28 @@
     </section>
 
     <section class="card" id="viewResult" hidden>
-      <h2 class="h1">結果</h2>
+      <h2 class="h1">診断結果</h2>
+      
+      <!-- あなたのタイプ表示エリア -->
+      <div id="yourTypeDisplay" style="margin-top:16px; padding:20px; border-radius:18px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04);">
+        <div style="text-align:center; font-size:13px; opacity:.80; margin-bottom:8px;">あなたのタイプ</div>
+        <div style="text-align:center; font-size:20px; font-weight:700; letter-spacing:.08em; margin-bottom:12px;" id="yourTypeCode">INTJ</div>
+        <div style="text-align:center; font-size:16px; font-weight:600; margin-bottom:8px; line-height:1.4;" id="yourTypeTitle">黒曜アーキテクト（戦略設計者）</div>
+        <div style="text-align:center; font-size:14px; line-height:1.75; opacity:.90;" id="yourTypeDesc">全体像を読み切り、勝ち筋を設計して再現する「戦略の構造化」タイプです。</div>
+        <div style="text-align:center; margin-top:12px; font-size:12px; opacity:.75;" id="yourTypeScores">スコア: E=-12, S=-15, T=22, J=18</div>
+      </div>
+
       <div class="sep"></div>
 
-      <div class="toast" id="resultToast" style="display:none;"></div>
+      <!-- 全17タイプ一覧 -->
+      <div style="margin-top:20px;">
+        <h3 style="font-size:15px; margin:0 0 14px; opacity:.92;">全17タイプ一覧</h3>
+        <div id="allTypesGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:12px;">
+          <!-- JavaScriptで動的生成 -->
+        </div>
+      </div>
+
+      <div class="sep"></div>
 
       <div class="btnRow">
         <button class="btn primary" id="btnFinalSubmit">最終送信（final_submit）</button>
@@ -1068,23 +1086,43 @@
     ];
 
     const TYPE_TITLES = {
-      "INTJ":"FortuneAI：黒曜アーキテクト（戦略設計者）",
-      "INTP":"FortuneAI：蒼天アナリスト（原理解剖者）",
-      "ENTJ":"FortuneAI：紅蓮コマンダー（成果指揮者）",
-      "ENTP":"FortuneAI：雷光インベンター（変革発明者）",
-      "INFJ":"FortuneAI：星導シーア（未来洞察者）",
-      "INFP":"FortuneAI：月影バード（理想詩人）",
-      "ENFJ":"FortuneAI：旭日メンター（覚醒導師）",
-      "ENFP":"FortuneAI：虹彩オラクル（可能性点火者）",
-      "ISTJ":"FortuneAI：鉄律マーシャル（秩序監督者）",
-      "ISFJ":"FortuneAI：守灯スチュワード（献身支援者）",
-      "ESTJ":"FortuneAI：白鋼マーシャル（現場統制者）",
+      "INTJ":"黒曜アーキテクト（戦略設計者）",
+      "INTP":"蒼天アナリスト（原理解剖者）",
+      "ENTJ":"紅蓮コマンダー（成果指揮者）",
+      "ENTP":"雷光インベンター（変革発明者）",
+      "INFJ":"星導シーア（未来洞察者）",
+      "INFP":"月影バード（理想詩人）",
+      "ENFJ":"旭日メンター（覚醒導師）",
+      "ENFP":"虹彩オラクル（可能性点火者）",
+      "ISTJ":"鉄律マーシャル（秩序監督者）",
+      "ISFJ":"守灯スチュワード（献身支援者）",
+      "ESTJ":"白鋼マーシャル（現場統制者）",
       "ESFJ":"祝祭ホスト（調和演出者）",
       "ISTP":"影刃スミス（実務解体者）",
       "ISFP":"花晶アーティザン（美感匠）",
       "ESTP":"疾風ストライカー（機会攻略者）",
       "ESFP":"陽光パフォーマー（感情起動者）",
       "BAL":"均衡アルケミスト（統合適応者）"
+    };
+
+    const TYPE_DESCRIPTIONS = {
+      "INTJ":"全体像を読み切り、勝ち筋を設計して再現する「戦略の構造化」タイプです。",
+      "INTP":"物事の本質を分解し、普遍のルールへ落とし込む「真理の解析」タイプです。",
+      "ENTJ":"目標を掲げ、決断し、周囲を動かして成果へ到達する「推進と統率」タイプです。",
+      "ENTP":"前提を壊し、新しい世界線をひらく「ひらめきと変革」タイプです。",
+      "INFJ":"人の内面と未来の流れを読み、静かに最適な道へ導く「洞察と導き」タイプです。",
+      "INFP":"理想と価値観を守り、意味と美しさで世界を変える「感受性と純度」タイプです。",
+      "ENFJ":"人の可能性を引き出し、成長の火を灯す「育成と覚醒」タイプです。",
+      "ENFP":"新しい選択肢を見つけ、人の未来を明るく拡張する「可能性の点火」タイプです。",
+      "ISTJ":"規律と責任感で秩序を守り、堅牢に物事を前へ進める「安定運用」タイプです。",
+      "ISFJ":"人を支え、安心の土台を整え、静かに守り続ける「献身と保全」タイプです。",
+      "ESTJ":"現場を掌握し、実務を統制し、確実に結果へつなげる「実行管理」タイプです。",
+      "ESFJ":"場を整え、人をつなぎ、空気を明るく調律する「調和と盛り上げ」タイプです。",
+      "ISTP":"複雑な課題を分解し、最短で形にする「実務最適化」タイプです。",
+      "ISFP":"美意識と感性で価値を磨き、繊細に表現する「美と完成度」タイプです。",
+      "ESTP":"チャンスを嗅ぎ分け、速さで掴み取り、流れを変える「機会突破」タイプです。",
+      "ESFP":"感情とエネルギーで人を動かし、空気を一気に起動させる「熱量拡散」タイプです。",
+      "BAL":"相反する要素を調合し、状況に合わせて最適解へ寄せていく「統合と適応」タイプです。"
     };
 
     const TAROT_MAJOR = {
@@ -2000,25 +2038,63 @@
     }
 
     function renderResult(){
-      dom.resultToast.style.display="none";
       dom.jsonPreviewWrap.style.display="none";
 
       let payload;
       try{ payload = buildPayload(); state.lastPayload = payload; save(); }
       catch(e){
-        dom.resultToast.className="toast bad";
-        dom.resultToast.textContent="結果表示前のチェックに失敗しました： " + (e?.message || e);
-        dom.resultToast.style.display="block";
+        alert("結果表示前のチェックに失敗しました： " + (e?.message || e));
         return;
       }
 
       const code = payload["17type"];
       const title = TYPE_TITLES[code] || "（未定義）";
-      const tarot = TAROT_MAJOR[code] || "—";
+      const desc = TYPE_DESCRIPTIONS[code] || "";
+      const scores = payload.scores;
 
-      dom.resultToast.className="toast ok";
-      dom.resultToast.textContent = `【診断結果】\n17type: ${code}\n\n${title}\n（象徴）タロット：${tarot}\n\nスコア: E=${payload.scores.E}, S=${payload.scores.S}, T=${payload.scores.T}, J=${payload.scores.J}\n\nこのまま最終送信できます。`;
-      dom.resultToast.style.display="block";
+      // あなたのタイプ表示
+      document.getElementById("yourTypeCode").textContent = code;
+      document.getElementById("yourTypeTitle").textContent = title;
+      document.getElementById("yourTypeDesc").textContent = desc;
+      document.getElementById("yourTypeScores").textContent = `スコア: E=${scores.E}, S=${scores.S}, T=${scores.T}, J=${scores.J}`;
+
+      // 全17タイプ一覧を生成
+      const allTypesGrid = document.getElementById("allTypesGrid");
+      allTypesGrid.innerHTML = "";
+      
+      const allTypes = ["INTJ","INTP","ENTJ","ENTP","INFJ","INFP","ENFJ","ENFP","ISTJ","ISFJ","ESTJ","ESFJ","ISTP","ISFP","ESTP","ESFP","BAL"];
+      
+      allTypes.forEach(typeCode => {
+        const isYourType = (typeCode === code);
+        const typeTitle = TYPE_TITLES[typeCode] || "";
+        const typeDesc = TYPE_DESCRIPTIONS[typeCode] || "";
+        
+        const card = document.createElement("div");
+        card.style.cssText = `
+          padding: 14px;
+          border-radius: 14px;
+          border: 1px solid ${isYourType ? 'rgba(124,77,255,.40)' : 'rgba(255,255,255,.12)'};
+          background: ${isYourType ? 'rgba(124,77,255,.08)' : 'rgba(255,255,255,.03)'};
+          cursor: pointer;
+          transition: transform .15s ease, border-color .2s ease;
+        `;
+        card.addEventListener('mouseenter', () => {
+          card.style.borderColor = 'rgba(255,255,255,.25)';
+          card.style.transform = 'translateY(-2px)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.borderColor = isYourType ? 'rgba(124,77,255,.40)' : 'rgba(255,255,255,.12)';
+          card.style.transform = 'translateY(0)';
+        });
+        
+        card.innerHTML = `
+          <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px; ${isYourType ? 'color: var(--accent1);' : ''}">${typeCode}${isYourType ? ' ★' : ''}</div>
+          <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px; line-height: 1.3;">${typeTitle}</div>
+          <div style="font-size: 12px; line-height: 1.6; opacity: .85;">${typeDesc}</div>
+        `;
+        
+        allTypesGrid.appendChild(card);
+      });
     }
 
     function setBodyMode(){
