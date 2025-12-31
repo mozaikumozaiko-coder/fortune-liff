@@ -1778,12 +1778,14 @@
         dom.resultToast.className="toast bad";
         dom.resultToast.textContent="送信前チェックに失敗しました： " + (e?.message || e);
         dom.resultToast.style.display="block";
+        console.error("buildPayload error:", e);
         return;
       }
       state.lastPayload = payload;
       save();
 
       const jsonText = safeJson(payload);
+      console.log("Payload to send:", payload);
 
       if (!WEBHOOK_URL){
         dom.jsonPreviewWrap.style.display="block";
@@ -1794,6 +1796,7 @@
         return;
       }
 
+      console.log("Sending to webhook:", WEBHOOK_URL);
       dom.resultToast.className="toast";
       dom.resultToast.textContent="送信中…";
       dom.resultToast.style.display="block";
@@ -1804,16 +1807,20 @@
           headers:{ "Content-Type":"application/json" },
           body: jsonText
         });
+        console.log("Response status:", res.status);
         if (!res.ok){
           const body = await res.text().catch(()=> "");
+          console.error("Response error:", body);
           dom.resultToast.className="toast bad";
           dom.resultToast.textContent=`送信失敗：HTTP ${res.status}\n${body ? body.slice(0,400) : ""}`;
           return;
         }
         const body = await res.text().catch(()=> "");
+        console.log("Response success:", body);
         dom.resultToast.className="toast ok";
         dom.resultToast.textContent=`送信成功：HTTP ${res.status}\n${body ? body.slice(0,400) : ""}`;
       }catch(e){
+        console.error("Fetch error:", e);
         dom.resultToast.className="toast bad";
         dom.resultToast.textContent="送信エラー： " + (e?.message || e);
       }
