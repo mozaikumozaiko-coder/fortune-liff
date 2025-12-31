@@ -1654,6 +1654,12 @@
       const scores = computeScores();
       const typeResult = computeType(scores);
       
+      // 悩みごとが空の場合は「（未入力）」を設定
+      let worryTextValue = (state.worryText || "").trim();
+      if (!worryTextValue) {
+        worryTextValue = "（未入力）";
+      }
+      
       const payload = {
         action:"final_submit",
         userId: (state.userId || "").trim(),
@@ -1664,7 +1670,7 @@
           birthday: state.profile.birthday
         },
         answers: state.answers.map(v => Number(v)),
-        worryText: state.worryText || "",
+        worryText: worryTextValue,
         "17type": typeResult.typeCode,
         scores: {
           E: scores.E,
