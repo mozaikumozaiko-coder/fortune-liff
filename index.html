@@ -1456,7 +1456,8 @@
       done:new Array(100).fill(false),
       worryText:"",
       lastPayload:null,
-      lastChapterShown:0
+      lastChapterShown:0,
+      makeResponse:null  // Makeからのレスポンスを保存
     };
 
     document.addEventListener("gesturestart", (e)=>e.preventDefault(), { passive:false });
@@ -1479,7 +1480,8 @@
         answers:state.answers,
         done:state.done,
         worryText:state.worryText,
-        lastChapterShown:state.lastChapterShown
+        lastChapterShown:state.lastChapterShown,
+        makeResponse:state.makeResponse  // Makeからのレスポンスも保存
       }));
     }
 
@@ -1512,6 +1514,7 @@
 
         state.worryText = String(data.worryText || "");
         state.lastChapterShown = Number(data.lastChapterShown || 0);
+        state.makeResponse = data.makeResponse || null;  // Makeレスポンスを復元
         return true;
       }catch{
         return false;
@@ -1529,6 +1532,7 @@
       state.worryText="";
       state.lastPayload=null;
       state.lastChapterShown=0;
+      state.makeResponse=null;  // Makeレスポンスもクリア
       renderAll();
     }
 
@@ -1781,6 +1785,71 @@
       if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0,2000);
       console.log("✅ ペイロード作成成功:", payload);
       return payload;
+    }
+
+    // Make.comに送信して結果を取得する関数
+    async function submitToMakeAndGetResult(){
+      console.log("🌐 submitToMakeAndGetResult開始");
+      
+      let payload;
+      try {
+        payload = buildPayload();
+      } catch(e) {
+        console.error("buildPayload error:", e);
+        return { success: false, error: "データ検証エラー: " + (e?.message || e) };
+      }
+      
+      state.lastPayload = payload;
+      save();
+      
+      const jsonText = safeJson(payload);
+      console.log("📤 送信するJSONデータ:", jsonText);
+      console.log("📋 データサイズ:", jsonText.length, "文字");
+      
+      if (!WEBHOOK_URL) {
+        return { success: false, error: "WEBHOOK_URLが設定されていません" };
+      }
+      
+      console.log("🌐 fetch開始... URL:", WEBHOOK_URL);
+      
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: jsonText
+        });
+        
+        console.log("✅ fetch完了 - Response status:", res.status);
+        
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => "");
+          console.error("Response error:", errorText);
+          return { 
+            success: false, 
+            error: `HTTP ${res.status}: ${errorText || "サーバーエラー"}` 
+          };
+        }
+        
+        // Makeからのレスポンスを取得（JSONとして）
+        const responseData = await res.json().catch(async () => {
+          // JSONでない場合はテキストとして取得
+          const text = await res.text().catch(() => "");
+          console.log("⚠️ レスポンスがJSONではありません:", text);
+          // テキストの場合はローカルで計算したデータを使用
+          return payload;
+        });
+        
+        console.log("✅ Makeからのレスポンス:", responseData);
+        
+        return { success: true, data: responseData };
+        
+      } catch(e) {
+        console.error("Fetch error:", e);
+        return { 
+          success: false, 
+          error: "ネットワークエラー: " + (e?.message || e) 
+        };
+      }
     }
 
     function safeJson(obj){ return JSON.stringify(obj, null, 2); }
@@ -2208,14 +2277,24 @@
     function renderResult(){
       dom.jsonPreviewWrap.style.display="none";
 
-      let payload;
-      try{ payload = buildPayload(); state.lastPayload = payload; save(); }
-      catch(e){
-        alert("結果表示前のチェックに失敗しました： " + (e?.message || e));
-        return;
+      // Makeからのレスポンスを使用（なければローカルで計算）
+      let payload = state.makeResponse;
+      if (!payload) {
+        console.log("⚠️ Makeからのレスポンスがありません。ローカルデータを使用します。");
+        try{ 
+          payload = buildPayload(); 
+          state.lastPayload = payload; 
+          save(); 
+        }
+        catch(e){
+          alert("結果表示前のチェックに失敗しました： " + (e?.message || e));
+          return;
+        }
+      } else {
+        console.log("✅ Makeからのレスポンスを使用:", payload);
       }
 
-      const code = payload["17type"];
+      const code = payload["17type"] || payload.typeCode;
       const title = TYPE_TITLES[code] || "（未定義）";
       const desc = TYPE_DESCRIPTIONS[code] || "";
       const detail = TYPE_DETAILS[code] || {};
@@ -2538,7 +2617,36 @@
       save();
     });
 
-    dom.btnShowResult.addEventListener("click", ()=> setView("result"));
+    dom.btnShowResult.addEventListener("click", async ()=> {
+      console.log("🚀 結果を見るボタンがクリックされました");
+      
+      // ローディング表示
+      dom.btnShowResult.disabled = true;
+      dom.btnShowResult.textContent = "送信中...";
+      
+      try {
+        // Make.comに送信
+        const result = await submitToMakeAndGetResult();
+        
+        if (result.success) {
+          // Makeからのレスポンスを保存
+          state.makeResponse = result.data;
+          save();
+          
+          // 結果画面を表示
+          setView("result");
+        } else {
+          alert("診断結果の取得に失敗しました：\n" + result.error);
+        }
+      } catch(e) {
+        console.error("送信エラー:", e);
+        alert("診断結果の取得に失敗しました：\n" + (e?.message || e));
+      } finally {
+        // ボタンを元に戻す
+        dom.btnShowResult.disabled = false;
+        dom.btnShowResult.textContent = "結果を見る";
+      }
+    });
     dom.btnFinalSubmit.addEventListener("click", ()=>{
       console.log("🚀 最終送信ボタンがクリックされました");
       finalSubmit();
