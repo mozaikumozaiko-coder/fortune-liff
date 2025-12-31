@@ -1612,47 +1612,106 @@
       save();
     }
 
-    function answerToValue(ans){ return (Number(ans) - 4); }
-
-    function applyTagToAxis(tag, val, scores){
-      const m = String(tag).match(/\[([ESTJ])([+-])\]/);
-      if (!m) return;
-      const axis = m[1];
-      const sign = m[2];
-      const v = (sign === "+") ? val : -val;
-      if (axis==="E") scores.E += v;
-      if (axis==="S") scores.S += v;
-      if (axis==="T") scores.T += v;
-      if (axis==="J") scores.J += v;
-    }
-
-    function computeScores(){
-      const scores = {E:0,S:0,T:0,J:0};
-      for (let i=0;i<100;i++){
-        const val = answerToValue(state.answers[i]);
-        applyTagToAxis(QUESTIONS[i].tag, val, scores);
+    // ===== Make.com互換の診断ロジック =====
+    
+    function normalizeAnswers(v) {
+      // 1) 文字列(JSON)ならパース
+      if (typeof v === "string") {
+        try { return normalizeAnswers(JSON.parse(v)); } catch (_) {}
       }
-      scores.E = clamp(scores.E, -AXIS_MAX, AXIS_MAX);
-      scores.S = clamp(scores.S, -AXIS_MAX, AXIS_MAX);
-      scores.T = clamp(scores.T, -AXIS_MAX, AXIS_MAX);
-      scores.J = clamp(scores.J, -AXIS_MAX, AXIS_MAX);
-      return scores;
+
+      // 2) 既に配列
+      if (Array.isArray(v)) {
+        return v.map(n => Number(n));
+      }
+
+      // 3) MakeのCollection（{"1":3,"2":3,...}）を配列へ
+      if (v && typeof v === "object") {
+        const keys = Object.keys(v)
+          .filter(k => /^\d+$/.test(k))
+          .sort((a,b) => Number(a) - Number(b));
+        if (keys.length) return keys.map(k => Number(v[k]));
+      }
+
+      return null;
     }
 
-    function computeType(scores){
-      const absE = Math.abs(scores.E), absS=Math.abs(scores.S), absT=Math.abs(scores.T), absJ=Math.abs(scores.J);
-      const isBAL = (absE < 8 && absS < 8 && absT < 8 && absJ < 8);
-      if (isBAL) return { typeCode:"BAL", isBAL:true };
-      const EorI = (scores.E >= 0) ? "E" : "I";
-      const SorN = (scores.S >= 0) ? "S" : "N";
-      const TorF = (scores.T >= 0) ? "T" : "F";
-      const JorP = (scores.J >= 0) ? "J" : "P";
-      return { typeCode: (EorI+SorN+TorF+JorP), isBAL:false };
+    function toPoints(a){ return Number(a) - 5; }
+    
+    function axisAdd(tag, pts){
+      const axis = tag[0];
+      const sign = tag[1];
+      const add = (sign === "+") ? pts : -pts;
+      return [axis, add];
+    }
+    
+    function pctPos(score){ return ((score + 100) / 200) * 100; }
+
+    function computeScoresAndType(){
+      // answersを正規化
+      const answers = normalizeAnswers(state.answers);
+      
+      if (!answers || answers.length !== 100) {
+        throw new Error("answers must be an array of 100 integers (got " + (answers ? answers.length : "null") + ")");
+      }
+
+      // tagsを取得
+      let tags = QUESTIONS.map(q => q.tag.replace(/[\[\]]/g, "")); // [E+] → E+
+      
+      if (!Array.isArray(tags) || tags.length !== 100) {
+        throw new Error("tags must be an array of 100 strings like E+/E-/S+/S-/T+/T-/J+/J-");
+      }
+
+      // 採点
+      let scoreE=0, scoreS=0, scoreT=0, scoreJ=0;
+      for (let i=0;i<100;i++){
+        const pts = toPoints(answers[i]);
+        const [ax, add] = axisAdd(String(tags[i]), pts);
+        if (ax==="E") scoreE += add;
+        else if (ax==="S") scoreS += add;
+        else if (ax==="T") scoreT += add;
+        else if (ax==="J") scoreJ += add;
+        else throw new Error("invalid tag axis: " + tags[i]);
+      }
+
+      const isBAL = (
+        Math.abs(scoreE) < 10 &&
+        Math.abs(scoreS) < 10 &&
+        Math.abs(scoreT) < 10 &&
+        Math.abs(scoreJ) < 10
+      );
+
+      let typeCode = "BAL";
+      if (!isBAL) {
+        const EorI = (scoreE >= 0) ? "E" : "I";
+        const SorN = (scoreS >= 0) ? "S" : "N";
+        const TorF = (scoreT >= 0) ? "T" : "F";
+        const JorP = (scoreJ >= 0) ? "J" : "P";
+        typeCode = `${EorI}${SorN}${TorF}${JorP}`;
+      }
+
+      const pE=pctPos(scoreE), pI=100-pE;
+      const pS=pctPos(scoreS), pN=100-pS;
+      const pT=pctPos(scoreT), pF=100-pT;
+      const pJ=pctPos(scoreJ), pP=100-pJ;
+
+      const axisEI = (Math.abs(scoreE)/100)*100;
+      const axisSN = (Math.abs(scoreS)/100)*100;
+      const axisTF = (Math.abs(scoreT)/100)*100;
+      const axisJP = (Math.abs(scoreJ)/100)*100;
+      const overall = (axisEI+axisSN+axisTF+axisJP)/4;
+
+      return {
+        typeCode, 
+        isBAL,
+        scores: {E:scoreE, S:scoreS, T:scoreT, J:scoreJ},
+        percents: {E:pE, I:pI, S:pS, N:pN, T:pT, F:pF, J:pJ, P:pP},
+        confidence: {axisEI, axisSN, axisTF, axisJP, overall}
+      };
     }
 
     function buildPayload(){
-      const scores = computeScores();
-      const typeResult = computeType(scores);
+      const result = computeScoresAndType();
       
       // 悩みごとが空の場合は「（未入力）」を設定
       let worryTextValue = (state.worryText || "").trim();
@@ -1670,14 +1729,14 @@
           birthday: state.profile.birthday
         },
         answers: state.answers.map(v => Number(v)),
+        tags: QUESTIONS.map(q => q.tag.replace(/[\[\]]/g, "")), // [E+] → E+
         worryText: worryTextValue,
-        "17type": typeResult.typeCode,
-        scores: {
-          E: scores.E,
-          S: scores.S,
-          T: scores.T,
-          J: scores.J
-        }
+        "17type": result.typeCode,
+        typeCode: result.typeCode,
+        isBAL: result.isBAL,
+        scores: result.scores,
+        percents: result.percents,
+        confidence: result.confidence
       };
       if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) throw new Error("profile incomplete");
       if (!Array.isArray(payload.answers) || payload.answers.length !== 100) throw new Error("answers invalid");
