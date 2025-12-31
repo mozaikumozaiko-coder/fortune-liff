@@ -917,12 +917,18 @@
       <h2 class="h1">診断結果</h2>
       
       <!-- あなたのタイプ表示エリア -->
-      <div id="yourTypeDisplay" style="margin-top:16px; padding:20px; border-radius:18px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.04);">
-        <div style="text-align:center; font-size:13px; opacity:.80; margin-bottom:8px;">あなたのタイプ</div>
-        <div style="text-align:center; font-size:20px; font-weight:700; letter-spacing:.08em; margin-bottom:12px;" id="yourTypeCode">INTJ</div>
-        <div style="text-align:center; font-size:16px; font-weight:600; margin-bottom:8px; line-height:1.4;" id="yourTypeTitle">黒曜アーキテクト（戦略設計者）</div>
-        <div style="text-align:center; font-size:14px; line-height:1.75; opacity:.90;" id="yourTypeDesc">全体像を読み切り、勝ち筋を設計して再現する「戦略の構造化」タイプです。</div>
-        <div style="text-align:center; margin-top:12px; font-size:12px; opacity:.75;" id="yourTypeScores">スコア: E=-12, S=-15, T=22, J=18</div>
+      <div id="yourTypeDisplay" style="margin-top:16px; padding:24px; border-radius:18px; border:1px solid rgba(124,77,255,.30); background:linear-gradient(135deg, rgba(124,77,255,.08) 0%, rgba(67,211,255,.06) 100%);">
+        <div style="text-align:center; font-size:13px; opacity:.80; margin-bottom:12px;">あなたのタイプ</div>
+        <div style="text-align:center; font-size:22px; font-weight:700; letter-spacing:.08em; margin-bottom:14px; color:var(--accent1);" id="yourTypeCode">INTJ</div>
+        <div style="text-align:center; font-size:17px; font-weight:600; margin-bottom:12px; line-height:1.4;" id="yourTypeTitle">黒曜アーキテクト（戦略設計者）</div>
+        <div style="text-align:center; font-size:14.5px; line-height:1.75; opacity:.90; margin-bottom:16px;" id="yourTypeIntro">混乱を整理し「勝てる形」に組み直せる人です。感情より因果で判断し、再現性のある成果を積み上げます。運に頼らず、勝利を設計していくタイプです。</div>
+        
+        <!-- 詳細情報 -->
+        <div id="yourTypeDetails" style="text-align:left; font-size:13.5px; line-height:1.85; opacity:.92; margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,.10);">
+          <!-- JavaScriptで動的生成 -->
+        </div>
+        
+        <div style="text-align:center; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); font-size:12px; opacity:.75;" id="yourTypeScores">スコア: E=-12, S=-15, T=22, J=18</div>
       </div>
 
       <div class="sep"></div>
@@ -2093,13 +2099,28 @@
       const code = payload["17type"];
       const title = TYPE_TITLES[code] || "（未定義）";
       const desc = TYPE_DESCRIPTIONS[code] || "";
+      const detail = TYPE_DETAILS[code] || {};
+      const tarot = TAROT_MAJOR[code] || "";
       const scores = payload.scores;
 
       // あなたのタイプ表示
       document.getElementById("yourTypeCode").textContent = code;
       document.getElementById("yourTypeTitle").textContent = title;
-      document.getElementById("yourTypeDesc").textContent = desc;
+      document.getElementById("yourTypeIntro").textContent = detail.intro || desc;
       document.getElementById("yourTypeScores").textContent = `スコア: E=${scores.E}, S=${scores.S}, T=${scores.T}, J=${scores.J}`;
+      
+      // あなたのタイプの詳細情報を表示
+      let yourDetailsContent = "";
+      if(detail.essence) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">本質：</strong>${detail.essence}</div>`;
+      if(detail.strengths) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">強み：</strong>${detail.strengths}</div>`;
+      if(detail.cautions) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent3);">注意点：</strong>${detail.cautions}</div>`;
+      if(detail.key) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">開運キー：</strong>${detail.key}</div>`;
+      if(detail.jobs) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">向く仕事：</strong>${detail.jobs}</div>`;
+      if(detail.compatibility) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent3);">相性：</strong>${detail.compatibility}</div>`;
+      if(detail.action30) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent1);">30日アクション：</strong>${detail.action30}</div>`;
+      if(tarot) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">タロット：</strong>${tarot}</div>`;
+      
+      document.getElementById("yourTypeDetails").innerHTML = yourDetailsContent;
 
       // 全17タイプ一覧を生成
       const allTypesGrid = document.getElementById("allTypesGrid");
