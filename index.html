@@ -656,6 +656,35 @@
     [hidden]{display:none !important;}
     .footer{text-align:center; margin-top:18px; font-size:12px; opacity:.78;}
 
+    /* Toast通知スタイル */
+    .toast{
+      display:block;
+      margin-top:16px;
+      padding:14px 18px;
+      border-radius:12px;
+      font-size:13.5px;
+      line-height:1.6;
+      border:1px solid rgba(255,255,255,.15);
+      background:rgba(0,0,0,.30);
+      backdrop-filter:blur(8px);
+      transition: all .3s ease;
+    }
+    .toast.ok{
+      border-color:rgba(67,211,255,.40);
+      background:rgba(67,211,255,.12);
+      color:rgba(67,211,255,1);
+    }
+    .toast.bad{
+      border-color:rgba(255,77,124,.40);
+      background:rgba(255,77,124,.12);
+      color:rgba(255,200,200,1);
+    }
+    .toast.warn{
+      border-color:rgba(255,193,77,.40);
+      background:rgba(255,193,77,.12);
+      color:rgba(255,220,150,1);
+    }
+
     /* 低い画面（SE等）でさらに詰めて「縦スクロールゼロ」を維持 */
     @media (max-height: 740px){
       body.isQuestions .qCard{ padding: 12px; gap: 8px; }
@@ -955,6 +984,9 @@
         <button class="btn ghost" id="btnDownloadJson">JSONをダウンロード</button>
         <button class="btn danger" id="btnResetFromResult">最初からやり直す（保存を消去）</button>
       </div>
+
+      <!-- 送信結果トースト -->
+      <div id="resultToast" class="toast" style="display:none; margin-top:16px; padding:14px 18px; border-radius:12px; font-size:13.5px; line-height:1.6; border:1px solid rgba(255,255,255,.15); background:rgba(0,0,0,.30); backdrop-filter:blur(8px);"></div>
 
       <div id="jsonPreviewWrap" style="display:none;">
         <div class="sep"></div>
