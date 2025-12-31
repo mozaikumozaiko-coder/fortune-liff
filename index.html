@@ -923,12 +923,18 @@
         <div style="text-align:center; font-size:17px; font-weight:600; margin-bottom:12px; line-height:1.4;" id="yourTypeTitle">黒曜アーキテクト（戦略設計者）</div>
         <div style="text-align:center; font-size:14.5px; line-height:1.75; opacity:.90; margin-bottom:16px;" id="yourTypeIntro">混乱を整理し「勝てる形」に組み直せる人です。感情より因果で判断し、再現性のある成果を積み上げます。運に頼らず、勝利を設計していくタイプです。</div>
         
+        <!-- 5角形レーダーチャート -->
+        <div style="margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,.10);">
+          <div style="text-align:center; font-size:13px; opacity:.80; margin-bottom:16px;">あなたの特性チャート</div>
+          <svg id="radarChart" viewBox="0 0 280 280" width="280" height="280" style="display:block; margin:0 auto;">
+            <!-- JavaScriptで動的生成 -->
+          </svg>
+        </div>
+
         <!-- 詳細情報 -->
         <div id="yourTypeDetails" style="text-align:left; font-size:13.5px; line-height:1.85; opacity:.92; margin-top:20px; padding-top:20px; border-top:1px solid rgba(255,255,255,.10);">
           <!-- JavaScriptで動的生成 -->
         </div>
-        
-        <div style="text-align:center; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); font-size:12px; opacity:.75;" id="yourTypeScores">スコア: E=-12, S=-15, T=22, J=18</div>
       </div>
 
       <div class="sep"></div>
@@ -2121,6 +2127,9 @@
       if(tarot) yourDetailsContent += `<div style="margin-bottom:14px;"><strong style="color:var(--accent2);">タロット：</strong>${tarot}</div>`;
       
       document.getElementById("yourTypeDetails").innerHTML = yourDetailsContent;
+      
+      // 5角形レーダーチャートを描画
+      drawRadarChart(scores);
 
       // 全17タイプ一覧を生成
       const allTypesGrid = document.getElementById("allTypesGrid");
@@ -2195,6 +2204,125 @@
       const modal = document.getElementById("typeDetailModal");
       modal.style.display = "none";
       modal.setAttribute("aria-hidden", "true");
+    }
+
+    function drawRadarChart(scores){
+      // スコアから5つの指標を計算（0-100のスケール）
+      // E: -75 ~ 75 を 0 ~ 100 に変換
+      const extroversion = ((scores.E + 75) / 150) * 100;
+      const intuition = ((scores.S * -1 + 75) / 150) * 100; // Sの逆がN（直感）
+      const thinking = ((scores.T + 75) / 150) * 100;
+      const judging = ((scores.J + 75) / 150) * 100;
+      
+      // 5つの軸を定義
+      const axes = [
+        { label: "外向性", value: extroversion, color: "#7c4dff" },
+        { label: "直感力", value: intuition, color: "#43d3ff" },
+        { label: "論理性", value: thinking, color: "#cfa76e" },
+        { label: "計画性", value: judging, color: "#ff6bd6" },
+        { label: "共感力", value: 100 - thinking, color: "#41d18a" }
+      ];
+      
+      const svg = document.getElementById("radarChart");
+      const centerX = 140;
+      const centerY = 140;
+      const maxRadius = 100;
+      const levels = 5;
+      
+      let svgContent = `
+        <defs>
+          <radialGradient id="chartGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="rgba(124,77,255,.15)"/>
+            <stop offset="100%" stop-color="rgba(124,77,255,0)"/>
+          </radialGradient>
+          <filter id="chartShadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+            <feOffset dx="0" dy="2" result="offsetblur"/>
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.3"/>
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        
+        <!-- 背景のグロー -->
+        <circle cx="${centerX}" cy="${centerY}" r="${maxRadius}" fill="url(#chartGlow)" opacity="0.5"/>
+      `;
+      
+      // 同心円を描画（5段階）
+      for(let i = 1; i <= levels; i++){
+        const r = (maxRadius / levels) * i;
+        svgContent += `<circle cx="${centerX}" cy="${centerY}" r="${r}" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="1"/>`;
+      }
+      
+      // 軸を描画
+      const angleStep = (Math.PI * 2) / axes.length;
+      let dataPoints = [];
+      
+      axes.forEach((axis, i) => {
+        const angle = angleStep * i - Math.PI / 2; // -90度から開始（上から）
+        const x = centerX + Math.cos(angle) * maxRadius;
+        const y = centerY + Math.sin(angle) * maxRadius;
+        
+        // 軸の線
+        svgContent += `<line x1="${centerX}" y1="${centerY}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.12)" stroke-width="1"/>`;
+        
+        // データポイントを計算
+        const value = axis.value;
+        const dataRadius = (value / 100) * maxRadius;
+        const dataX = centerX + Math.cos(angle) * dataRadius;
+        const dataY = centerY + Math.sin(angle) * dataRadius;
+        dataPoints.push({ x: dataX, y: dataY });
+        
+        // ラベル位置（軸の外側）
+        const labelRadius = maxRadius + 25;
+        const labelX = centerX + Math.cos(angle) * labelRadius;
+        const labelY = centerY + Math.sin(angle) * labelRadius;
+        
+        svgContent += `
+          <text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" 
+                font-size="11" font-weight="600" fill="rgba(255,255,255,.85)" letter-spacing=".05em">
+            ${axis.label}
+          </text>
+        `;
+        
+        // 値を表示
+        const valueRadius = maxRadius + 12;
+        const valueX = centerX + Math.cos(angle) * valueRadius;
+        const valueY = centerY + Math.sin(angle) * valueRadius;
+        
+        svgContent += `
+          <text x="${valueX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" 
+                font-size="9" fill="${axis.color}" opacity="0.9">
+            ${Math.round(value)}
+          </text>
+        `;
+      });
+      
+      // データポリゴンを描画（塗りつぶし）
+      const polygonPoints = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+      svgContent += `
+        <polygon points="${polygonPoints}" 
+                 fill="rgba(124,77,255,.20)" 
+                 stroke="rgba(124,77,255,.60)" 
+                 stroke-width="2" 
+                 filter="url(#chartShadow)"/>
+      `;
+      
+      // データポイントに円を描画
+      dataPoints.forEach((p, i) => {
+        svgContent += `
+          <circle cx="${p.x}" cy="${p.y}" r="4" 
+                  fill="${axes[i].color}" 
+                  stroke="rgba(255,255,255,.3)" 
+                  stroke-width="1.5"/>
+        `;
+      });
+      
+      svg.innerHTML = svgContent;
     }
 
     function setBodyMode(){
