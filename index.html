@@ -1711,6 +1711,9 @@
     }
 
     function buildPayload(){
+      console.log("📦 buildPayload関数が実行されました");
+      console.log("📊 state.answers length:", state.answers?.length);
+      console.log("👤 state.profile:", state.profile);
       const result = computeScoresAndType();
       
       // 悩みごとが空の場合は「（未入力）」を設定
@@ -1744,6 +1747,7 @@
         if (!Number.isInteger(a) || a<1 || a>7) throw new Error("answers must be 1..7 integers");
       }
       if (payload.worryText.length > 2000) payload.worryText = payload.worryText.slice(0,2000);
+      console.log("✅ ペイロード作成成功:", payload);
       return payload;
     }
 
@@ -1771,6 +1775,8 @@
     }
 
     async function finalSubmit(){
+      console.log("🎯 finalSubmit関数が実行されました");
+      console.log("📡 WEBHOOK_URL:", WEBHOOK_URL);
       dom.resultToast.style.display="none";
       let payload;
       try{ payload = buildPayload(); }
@@ -1797,17 +1803,20 @@
       }
 
       console.log("Sending to webhook:", WEBHOOK_URL);
+      console.log("📤 送信するJSONデータ:", jsonText);
+      console.log("📋 データサイズ:", jsonText.length, "文字");
       dom.resultToast.className="toast";
       dom.resultToast.textContent="送信中…";
       dom.resultToast.style.display="block";
 
       try{
+        console.log("🌐 fetch開始...");
         const res = await fetch(WEBHOOK_URL, {
           method:"POST",
           headers:{ "Content-Type":"application/json" },
           body: jsonText
         });
-        console.log("Response status:", res.status);
+        console.log("✅ fetch完了 - Response status:", res.status);
         if (!res.ok){
           const body = await res.text().catch(()=> "");
           console.error("Response error:", body);
@@ -2498,7 +2507,10 @@
     });
 
     dom.btnShowResult.addEventListener("click", ()=> setView("result"));
-    dom.btnFinalSubmit.addEventListener("click", finalSubmit);
+    dom.btnFinalSubmit.addEventListener("click", ()=>{
+      console.log("🚀 最終送信ボタンがクリックされました");
+      finalSubmit();
+    });
 
     dom.btnCopyJson.addEventListener("click", async ()=>{
       let payload = state.lastPayload;
