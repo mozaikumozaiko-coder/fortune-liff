@@ -2293,18 +2293,6 @@
             ${axis.label}
           </text>
         `;
-        
-        // 値を表示
-        const valueRadius = maxRadius + 12;
-        const valueX = centerX + Math.cos(angle) * valueRadius;
-        const valueY = centerY + Math.sin(angle) * valueRadius;
-        
-        svgContent += `
-          <text x="${valueX}" y="${valueY}" text-anchor="middle" dominant-baseline="middle" 
-                font-size="9" fill="${axis.color}" opacity="0.9">
-            ${Math.round(value)}
-          </text>
-        `;
       });
       
       // データポリゴンを描画（塗りつぶし）
