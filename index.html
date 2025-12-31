@@ -1277,28 +1277,6 @@
   </div>
 
   <!-- タイプ詳細モーダル -->
-  <div class="modalBack" id="typeDetailModal" style="display:none;" aria-hidden="true">
-    <div class="modal" style="max-width:680px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
-        <h2 class="h1" style="margin:0; font-size:18px;" id="detailTypeTitle">タイプ詳細</h2>
-        <button class="btn ghost" id="btnCloseTypeDetail" style="padding:6px 12px; font-size:12px;">✕ 閉じる</button>
-      </div>
-      
-      <div style="padding:18px; border-radius:16px; border:1px solid rgba(255,255,255,.12); background:rgba(255,255,255,.04); margin-bottom:16px;">
-        <div style="text-align:center; font-size:17px; font-weight:700; letter-spacing:.08em; margin-bottom:10px;" id="detailTypeCode">INTJ</div>
-        <div style="text-align:center; font-size:14px; opacity:.90; line-height:1.6; margin-bottom:8px;" id="detailTypeIntro"></div>
-      </div>
-
-      <div id="detailTypeContent" style="font-size:13.5px; line-height:1.85; opacity:.92;">
-        <!-- JavaScriptで動的生成 -->
-      </div>
-
-      <div class="btnRow" style="justify-content:flex-end; margin-top:20px;">
-        <button class="btn primary" id="btnCloseTypeDetail2">閉じる</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     /***********************
      * ここだけ編集（MakeのWebhook）
@@ -2629,13 +2607,6 @@
     
     dom.btnCloseMap.addEventListener("click", closeMapModal);
     dom.mapModal.addEventListener("click", (e)=>{ if (e.target===dom.mapModal) closeMapModal(); });
-
-    // タイプ詳細モーダル
-    document.getElementById("btnCloseTypeDetail").addEventListener("click", closeTypeDetail);
-    document.getElementById("btnCloseTypeDetail2").addEventListener("click", closeTypeDetail);
-    document.getElementById("typeDetailModal").addEventListener("click", (e)=>{ 
-      if (e.target===document.getElementById("typeDetailModal")) closeTypeDetail(); 
-    });
 
     dom.worryText.addEventListener("input", ()=>{
       state.worryText = dom.worryText.value.slice(0,2000);
