@@ -2713,38 +2713,58 @@
 
     dom.btnShowResult.addEventListener("click", async ()=> {
       console.log("🚀 結果を見るボタンがクリックされました");
+      console.log("📊 現在のstate:", {
+        view: state.view,
+        answersLength: state.answers.length,
+        profileName: state.profile.name
+      });
       
       // まず結果画面を表示（プレースホルダー表示）
+      console.log("🎯 setView('result')を実行");
       setView("result");
+      console.log("✅ 画面遷移完了");
       
       // ローディング表示
       dom.btnShowResult.disabled = true;
+      dom.btnShowResult.textContent = "送信中...";
       
       try {
         // Make.comに送信
+        console.log("🌐 submitToMakeAndGetResult()を呼び出します");
         const result = await submitToMakeAndGetResult();
+        console.log("✅ submitToMakeAndGetResult()が完了:", result);
         
         if (result.success) {
+          console.log("✅ Makeからのレスポンス受信成功");
           // Makeからのレスポンスを保存
           state.makeResponse = result.data;
           save();
           
           // 結果画面を再描画
+          console.log("🎨 renderResult()を呼び出します（Makeレスポンス使用）");
           renderResult();
         } else {
+          console.error("❌ Makeレスポンスエラー:", result.error);
           alert("診断結果の取得に失敗しました：\n" + result.error);
           // エラーでも結果は表示（ローカル計算）
+          console.log("🎨 renderResult()を呼び出します（ローカル計算使用）");
           renderResult();
         }
       } catch(e) {
-        console.error("送信エラー:", e);
+        console.error("❌ 送信エラー:", e);
+        console.error("❌ エラー詳細:", {
+          message: e?.message,
+          stack: e?.stack
+        });
         alert("診断結果の取得に失敗しました：\n" + (e?.message || e));
         // エラーでも結果は表示（ローカル計算）
+        console.log("🎨 renderResult()を呼び出します（エラー後、ローカル計算使用）");
         renderResult();
       } finally {
         // ボタンを元に戻す
         dom.btnShowResult.disabled = false;
         dom.btnShowResult.textContent = "結果を見る";
+        console.log("🏁 ボタン処理完了");
       }
     });
 
