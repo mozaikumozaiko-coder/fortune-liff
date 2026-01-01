@@ -2624,6 +2624,9 @@
         
         const canvas = document.createElement("canvas");
         canvas.className = "chartCanvas";
+        // Canvas内部解像度を設定（重要！）
+        canvas.width = 200;
+        canvas.height = 200;
         
         item.innerHTML = `
           <div class="chartTitle">${chart.title || '不明'}</div>
@@ -2673,10 +2676,20 @@
     }
 
     function drawPieChart(canvas, value, label){
+      console.log(`🎨 drawPieChart開始: label=${label}, value=${value}`);
+      console.log(`  Canvas size: ${canvas.width}x${canvas.height}`);
+      
       const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        console.error("❌ Canvas context取得失敗");
+        return;
+      }
+      
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
       const radius = Math.min(centerX, centerY) - 10;
+      
+      console.log(`  中心: (${centerX}, ${centerY}), 半径: ${radius}`);
       
       // 背景円
       ctx.beginPath();
@@ -2690,6 +2703,8 @@
       // 値の円（0-100%）
       const percentage = Math.min(Math.max(value, 0), 100) / 100;
       const endAngle = -Math.PI / 2 + (2 * Math.PI * percentage);
+      
+      console.log(`  パーセンテージ: ${percentage * 100}%, 終了角度: ${endAngle}`);
       
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
@@ -2708,6 +2723,8 @@
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(Math.round(value), centerX, centerY);
+      
+      console.log(`✅ drawPieChart完了: ${label}`);
     }
 
     function setBodyMode(){

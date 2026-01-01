@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>送信テスト</title>
+  <meta charset="utf-8">
+</head>
+<body>
+  <h1>Make.com送信テスト</h1>
+  <button id="testBtn">テスト送信</button>
+  <pre id="log"></pre>
+  
+  <script>
+    const WEBHOOK_URL = "https://hook.eu2.make.com/7ac62r32ffup0cl0d1kr9h3dpbf8dz3h";
+    
+    function log(msg) {
+      console.log(msg);
+      document.getElementById('log').textContent += msg + '\n';
+    }
+    
+    document.getElementById('testBtn').addEventListener('click', async () => {
+      log('🚀 送信開始');
+      
+      const payload = {
+        action: "final_submit",
+        userId: "test123",
+        profile: { name: "テストユーザー", gender: "male", birthday: "1990-01-01" },
+        answers: new Array(100).fill(4),
+        tags: new Array(100).fill("E+"),
+        worryText: "テスト送信",
+        "17type": "INTJ",
+        typeCode: "INTJ"
+      };
+      
+      log('📦 Payload作成完了');
+      log('📤 fetch開始...');
+      
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        
+        log(`✅ fetch完了 - Status: ${res.status}`);
+        
+        const text = await res.text();
+        log(`📥 レスポンス: ${text}`);
+        
+        const data = JSON.parse(text);
+        log(`✅ JSON解析成功`);
+        
+      } catch(e) {
+        log(`❌ エラー: ${e.message}`);
+        log(`❌ スタック: ${e.stack}`);
+      }
+    });
+  </script>
+</body>
+</html>
