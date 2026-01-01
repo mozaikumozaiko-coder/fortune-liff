@@ -2003,7 +2003,21 @@
         
         console.log("✅ Makeからのレスポンス:", responseData);
         
-        return { success: true, data: responseData };
+        // Makeからのレスポンスにローカル計算のデータをマージ
+        // Makeが返していないフィールドをローカルデータで補完
+        const mergedData = {
+          ...payload,  // ローカルデータをベースに
+          ...responseData,  // Makeのレスポンスで上書き
+          // 必須フィールドを確実に設定
+          "17type": responseData["17type"] || payload["17type"],
+          typeCode: responseData.typeCode || payload.typeCode,
+        };
+        
+        console.log("🔗 マージ後のデータ:", mergedData);
+        console.log("🔍 マージ後の17type:", mergedData["17type"]);
+        console.log("🔍 マージ後のtypeCode:", mergedData.typeCode);
+        
+        return { success: true, data: mergedData };
         
       } catch(e) {
         console.error("Fetch error:", e);
@@ -2397,14 +2411,33 @@
         }
       }
 
+      console.log("📦 使用するpayload:", payload);
+      console.log("🔍 payload['17type']:", payload["17type"]);
+      console.log("🔍 payload.typeCode:", payload.typeCode);
+
       const code = payload["17type"] || payload.typeCode;
+      console.log("🎯 決定されたtypeCode:", code);
+      
       const title = TYPE_TITLES[code] || "（未定義）";
+      console.log("📝 タイトル:", title);
+      
       const detail = TYPE_DETAILS[code] || {};
+      console.log("📖 詳細情報:", detail);
 
       // あなたのタイプ表示
-      document.getElementById("yourTypeCode").textContent = code;
-      document.getElementById("yourTypeTitle").textContent = title;
-      document.getElementById("yourTypeIntro").textContent = detail.intro || "";
+      const yourTypeCodeEl = document.getElementById("yourTypeCode");
+      const yourTypeTitleEl = document.getElementById("yourTypeTitle");
+      const yourTypeIntroEl = document.getElementById("yourTypeIntro");
+      
+      console.log("🎨 DOM要素:", {
+        yourTypeCodeEl: !!yourTypeCodeEl,
+        yourTypeTitleEl: !!yourTypeTitleEl,
+        yourTypeIntroEl: !!yourTypeIntroEl
+      });
+      
+      if (yourTypeCodeEl) yourTypeCodeEl.textContent = code || "不明";
+      if (yourTypeTitleEl) yourTypeTitleEl.textContent = title;
+      if (yourTypeIntroEl) yourTypeIntroEl.textContent = detail.intro || "";
 
       // Makeからのレスポンスがある場合のみ詳細セクションを表示
       const hasMakeResponse = !!state.makeResponse;
