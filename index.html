@@ -2376,10 +2376,16 @@
     }
 
     function renderResult(){
-      // Makeからのレスポンスを使用（なければローカルで計算）
-      let payload = state.makeResponse;
-      if (!payload) {
-        console.log("⚠️ Makeからのレスポンスがありません。ローカルデータを使用します。");
+      // まずローカル計算の結果を表示、その後Makeからのレスポンスで上書き
+      let payload;
+      
+      // Makeからのレスポンスがあればそれを優先
+      if (state.makeResponse) {
+        console.log("✅ Makeからのレスポンスを使用:", state.makeResponse);
+        payload = state.makeResponse;
+      } else {
+        // なければローカルで計算
+        console.log("⚠️ ローカルデータで表示します");
         try{ 
           payload = buildPayload(); 
           state.lastPayload = payload; 
@@ -2389,8 +2395,6 @@
           alert("結果表示前のチェックに失敗しました： " + (e?.message || e));
           return;
         }
-      } else {
-        console.log("✅ Makeからのレスポンスを使用:", payload);
       }
 
       const code = payload["17type"] || payload.typeCode;
@@ -2402,16 +2406,28 @@
       document.getElementById("yourTypeTitle").textContent = title;
       document.getElementById("yourTypeIntro").textContent = detail.intro || "";
 
+      // Makeからのレスポンスがある場合のみ詳細セクションを表示
+      const hasMakeResponse = !!state.makeResponse;
+
       // 1. 人格プロファイル
-      document.getElementById("section1Content").textContent = payload.section1?.content || "データを取得中...";
+      if (hasMakeResponse && payload.section1?.content) {
+        document.getElementById("section1Content").textContent = payload.section1.content;
+      } else {
+        document.getElementById("section1Content").textContent = "Make.comからデータを取得中...";
+      }
 
       // 2. 職能ルート解析
-      document.getElementById("section2Content").textContent = payload.section2?.content || "データを取得中...";
+      if (hasMakeResponse && payload.section2?.content) {
+        document.getElementById("section2Content").textContent = payload.section2.content;
+      } else {
+        document.getElementById("section2Content").textContent = "Make.comからデータを取得中...";
+      }
+      
       renderCharts("charts2", payload.section2?.charts || [
-        {title:"精度至上主義", value:0, desc:"データを取得中..."},
-        {title:"到達目標の高設定", value:0, desc:"データを取得中..."},
-        {title:"行動エネルギー", value:0, desc:"データを取得中..."},
-        {title:"主導権志向", value:0, desc:"データを取得中..."}
+        {title:"精度至上主義", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"到達目標の高設定", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"行動エネルギー", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"主導権志向", value:0, desc:"Make.comからデータを取得中..."}
       ]);
       renderItems("items2a", payload.section2?.items2a || generatePlaceholderItems(6));
       renderItems("items2b", payload.section2?.items2b || generatePlaceholderItems(6));
@@ -2419,12 +2435,17 @@
       renderItems("items2d", payload.section2?.items2d || generatePlaceholderItems(6));
 
       // 3. 自己進化プラン
-      document.getElementById("section3Content").textContent = payload.section3?.content || "データを取得中...";
+      if (hasMakeResponse && payload.section3?.content) {
+        document.getElementById("section3Content").textContent = payload.section3.content;
+      } else {
+        document.getElementById("section3Content").textContent = "Make.comからデータを取得中...";
+      }
+      
       renderCharts("charts3", payload.section3?.charts || [
-        {title:"再起動力", value:0, desc:"データを取得中..."},
-        {title:"自己確信", value:0, desc:"データを取得中..."},
-        {title:"粘り強さ", value:0, desc:"データを取得中..."},
-        {title:"主導感", value:0, desc:"データを取得中..."}
+        {title:"再起動力", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"自己確信", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"粘り強さ", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"主導感", value:0, desc:"Make.comからデータを取得中..."}
       ]);
       renderItems("items3a", payload.section3?.items3a || generatePlaceholderItems(6));
       renderItems("items3b", payload.section3?.items3b || generatePlaceholderItems(6));
@@ -2432,12 +2453,17 @@
       renderItems("items3d", payload.section3?.items3d || generatePlaceholderItems(6));
 
       // 4. 対人ダイナミクス解析
-      document.getElementById("section4Content").textContent = payload.section4?.content || "データを取得中...";
+      if (hasMakeResponse && payload.section4?.content) {
+        document.getElementById("section4Content").textContent = payload.section4.content;
+      } else {
+        document.getElementById("section4Content").textContent = "Make.comからデータを取得中...";
+      }
+      
       renderCharts("charts4", payload.section4?.charts || [
-        {title:"自己同一性", value:0, desc:"データを取得中..."},
-        {title:"献身性", value:0, desc:"データを取得中..."},
-        {title:"他者優先性", value:0, desc:"データを取得中..."},
-        {title:"情動理解力", value:0, desc:"データを取得中..."}
+        {title:"自己同一性", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"献身性", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"他者優先性", value:0, desc:"Make.comからデータを取得中..."},
+        {title:"情動理解力", value:0, desc:"Make.comからデータを取得中..."}
       ]);
       renderItems("items4a", payload.section4?.items4a || generatePlaceholderItems(6));
       renderItems("items4b", payload.section4?.items4b || generatePlaceholderItems(6));
@@ -2493,7 +2519,7 @@
     function generatePlaceholderItems(count){
       const items = [];
       for(let i=0; i<count; i++){
-        items.push({title:"データを取得中...", desc:"Make.comから詳細データを受信しています。"});
+        items.push({title:"データを取得中...", desc:"Make.comから詳細な分析結果を受信しています。しばらくお待ちください。"});
       }
       return items;
     }
@@ -2688,9 +2714,11 @@
     dom.btnShowResult.addEventListener("click", async ()=> {
       console.log("🚀 結果を見るボタンがクリックされました");
       
+      // まず結果画面を表示（プレースホルダー表示）
+      setView("result");
+      
       // ローディング表示
       dom.btnShowResult.disabled = true;
-      dom.btnShowResult.textContent = "送信中...";
       
       try {
         // Make.comに送信
@@ -2701,14 +2729,18 @@
           state.makeResponse = result.data;
           save();
           
-          // 結果画面を表示
-          setView("result");
+          // 結果画面を再描画
+          renderResult();
         } else {
           alert("診断結果の取得に失敗しました：\n" + result.error);
+          // エラーでも結果は表示（ローカル計算）
+          renderResult();
         }
       } catch(e) {
         console.error("送信エラー:", e);
         alert("診断結果の取得に失敗しました：\n" + (e?.message || e));
+        // エラーでも結果は表示（ローカル計算）
+        renderResult();
       } finally {
         // ボタンを元に戻す
         dom.btnShowResult.disabled = false;
