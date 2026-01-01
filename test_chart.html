@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>円グラフテスト</title>
+  <meta charset="utf-8">
+  <style>
+    body { background: #1a1a2e; color: white; padding: 20px; font-family: sans-serif; }
+    .chartCanvas { 
+      width: 160px; 
+      height: 160px; 
+      margin: 20px;
+      border: 2px solid white;
+    }
+  </style>
+</head>
+<body>
+  <h1>円グラフ描画テスト</h1>
+  <div id="log"></div>
+  <div id="container"></div>
+  
+  <script>
+    function log(msg) {
+      console.log(msg);
+      document.getElementById('log').innerHTML += msg + '<br>';
+    }
+    
+    function drawPieChart(canvas, value, label){
+      log(`🎨 drawPieChart開始: label=${label}, value=${value}`);
+      log(`  Canvas size: ${canvas.width}x${canvas.height}`);
+      
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        log("❌ Canvas context取得失敗");
+        return;
+      }
+      
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = Math.min(centerX, centerY) - 10;
+      
+      log(`  中心: (${centerX}, ${centerY}), 半径: ${radius}`);
+      
+      // 背景円
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+      ctx.fillStyle = "rgba(255,255,255,.05)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.15)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      
+      // 値の円（0-100%）
+      const percentage = Math.min(Math.max(value, 0), 100) / 100;
+      const endAngle = -Math.PI / 2 + (2 * Math.PI * percentage);
+      
+      log(`  パーセンテージ: ${percentage * 100}%, 終了角度: ${endAngle}`);
+      
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, -Math.PI / 2, endAngle);
+      ctx.closePath();
+      
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, "rgba(124,77,255,.70)");
+      gradient.addColorStop(1, "rgba(67,211,255,.70)");
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      
+      // 値テキスト
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 28px sans-serif";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(Math.round(value), centerX, centerY);
+      
+      log(`✅ drawPieChart完了: ${label}`);
+    }
+    
+    // テスト実行
+    log('📊 テスト開始');
+    
+    const container = document.getElementById('container');
+    
+    const charts = [
+      {title: "理論分析", value: 51, desc: "テスト1"},
+      {title: "柔軟適応", value: 75, desc: "テスト2"},
+      {title: "直観洞察", value: 30, desc: "テスト3"}
+    ];
+    
+    charts.forEach((chart, index) => {
+      log(`<br>📈 Chart ${index + 1}: ${chart.title}`);
+      
+      const canvas = document.createElement("canvas");
+      canvas.className = "chartCanvas";
+      canvas.width = 200;
+      canvas.height = 200;
+      
+      container.appendChild(canvas);
+      
+      drawPieChart(canvas, chart.value, chart.title);
+    });
+    
+    log('<br>✅ すべての円グラフの描画完了');
+  </script>
+</body>
+</html>

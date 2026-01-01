@@ -2610,6 +2610,15 @@
         console.error(`❌ コンテナが見つかりません: ${containerId}`);
         return;
       }
+      
+      console.log(`📦 コンテナ情報:`, {
+        id: containerId,
+        display: window.getComputedStyle(container).display,
+        visibility: window.getComputedStyle(container).visibility,
+        width: container.offsetWidth,
+        height: container.offsetHeight
+      });
+      
       container.innerHTML = "";
       
       if (!Array.isArray(charts)) {
@@ -2622,21 +2631,33 @@
         const item = document.createElement("div");
         item.className = "chartItem";
         
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "chartTitle";
+        titleDiv.textContent = chart.title || '不明';
+        item.appendChild(titleDiv);
+        
         const canvas = document.createElement("canvas");
         canvas.className = "chartCanvas";
         // Canvas内部解像度を設定（重要！）
         canvas.width = 200;
         canvas.height = 200;
-        
-        item.innerHTML = `
-          <div class="chartTitle">${chart.title || '不明'}</div>
-        `;
         item.appendChild(canvas);
-        item.innerHTML += `
-          <div class="chartDesc">${chart.desc || ""}</div>
-        `;
+        
+        const descDiv = document.createElement("div");
+        descDiv.className = "chartDesc";
+        descDiv.textContent = chart.desc || "";
+        item.appendChild(descDiv);
         
         container.appendChild(item);
+        
+        // DOMに追加された後のCanvas情報を確認
+        console.log(`  📐 Canvas追加後の情報:`, {
+          width: canvas.width,
+          height: canvas.height,
+          offsetWidth: canvas.offsetWidth,
+          offsetHeight: canvas.offsetHeight,
+          display: window.getComputedStyle(canvas).display
+        });
         
         // 円グラフを描画
         const value = chart.value || 0;
@@ -2645,6 +2666,7 @@
       });
       
       console.log(`✅ renderCharts完了: ${containerId}, ${charts.length}個のグラフ`);
+      console.log(`📦 最終的なコンテナの子要素数:`, container.children.length);
     }
 
     function renderItems(containerId, items){
