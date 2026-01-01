@@ -2389,6 +2389,51 @@
       updateWorryCount();
     }
 
+    // GPTの出力を正規化する関数
+    function normalizeGPTResponse(data) {
+      console.log("🔄 GPT出力を正規化開始:", data);
+      
+      // すでに正規化されている場合はそのまま返す
+      if (data.section2?.items2a) {
+        console.log("✅ すでに正規化済み");
+        return data;
+      }
+      
+      const normalized = JSON.parse(JSON.stringify(data)); // ディープコピー
+      
+      // section2の正規化
+      if (normalized.section2?.items && Array.isArray(normalized.section2.items)) {
+        const items = normalized.section2.items;
+        console.log("📊 section2.items を分割:", items.length, "項目");
+        normalized.section2.items2a = items.slice(0, 6);
+        normalized.section2.items2b = items.slice(6, 12);
+        normalized.section2.items2c = items.slice(12, 18);
+        normalized.section2.items2d = items.slice(18, 24);
+      }
+      
+      // section3の正規化
+      if (normalized.section3?.items && Array.isArray(normalized.section3.items)) {
+        const items = normalized.section3.items;
+        console.log("📊 section3.items を分割:", items.length, "項目");
+        normalized.section3.items3a = items.slice(0, 6);
+        normalized.section3.items3b = items.slice(6, 12);
+        normalized.section3.items3c = items.slice(12, 18);
+        normalized.section3.items3d = items.slice(18, 24);
+      }
+      
+      // section4の正規化
+      if (normalized.section4?.items && Array.isArray(normalized.section4.items)) {
+        const items = normalized.section4.items;
+        console.log("📊 section4.items を分割:", items.length, "項目");
+        normalized.section4.items4a = items.slice(0, 6);
+        normalized.section4.items4b = items.slice(6, 12);
+        normalized.section4.items4c = items.slice(12, 18);
+      }
+      
+      console.log("✅ 正規化完了:", normalized);
+      return normalized;
+    }
+
     function renderResult(){
       // まずローカル計算の結果を表示、その後Makeからのレスポンスで上書き
       let payload;
@@ -2396,7 +2441,8 @@
       // Makeからのレスポンスがあればそれを優先
       if (state.makeResponse) {
         console.log("✅ Makeからのレスポンスを使用:", state.makeResponse);
-        payload = state.makeResponse;
+        // GPT出力を正規化
+        payload = normalizeGPTResponse(state.makeResponse);
       } else {
         // なければローカルで計算
         console.log("⚠️ ローカルデータで表示します");
@@ -2558,11 +2604,21 @@
     }
 
     function renderCharts(containerId, charts){
+      console.log(`📊 renderCharts呼び出し: ${containerId}`, charts);
       const container = document.getElementById(containerId);
-      if(!container) return;
+      if(!container) {
+        console.error(`❌ コンテナが見つかりません: ${containerId}`);
+        return;
+      }
       container.innerHTML = "";
       
-      charts.forEach(chart => {
+      if (!Array.isArray(charts)) {
+        console.error("❌ charts が配列ではありません:", charts);
+        return;
+      }
+      
+      charts.forEach((chart, index) => {
+        console.log(`  📈 Chart ${index + 1}:`, chart);
         const item = document.createElement("div");
         item.className = "chartItem";
         
@@ -2570,7 +2626,7 @@
         canvas.className = "chartCanvas";
         
         item.innerHTML = `
-          <div class="chartTitle">${chart.title}</div>
+          <div class="chartTitle">${chart.title || '不明'}</div>
         `;
         item.appendChild(canvas);
         item.innerHTML += `
@@ -2580,24 +2636,40 @@
         container.appendChild(item);
         
         // 円グラフを描画
-        drawPieChart(canvas, chart.value || 0, chart.title);
+        const value = chart.value || 0;
+        console.log(`  🎨 円グラフ描画: ${chart.title}, value=${value}`);
+        drawPieChart(canvas, value, chart.title);
       });
+      
+      console.log(`✅ renderCharts完了: ${containerId}, ${charts.length}個のグラフ`);
     }
 
     function renderItems(containerId, items){
+      console.log(`📝 renderItems呼び出し: ${containerId}`, items);
       const container = document.getElementById(containerId);
-      if(!container) return;
+      if(!container) {
+        console.error(`❌ コンテナが見つかりません: ${containerId}`);
+        return;
+      }
       container.innerHTML = "";
       
-      items.forEach(item => {
+      if (!Array.isArray(items)) {
+        console.error("❌ items が配列ではありません:", items);
+        return;
+      }
+      
+      items.forEach((item, index) => {
+        console.log(`  📄 Item ${index + 1}:`, item);
         const card = document.createElement("div");
         card.className = "itemCard";
         card.innerHTML = `
-          <div class="itemTitle">${item.title}</div>
-          <div class="itemDesc">${item.desc}</div>
+          <div class="itemTitle">${item.title || '不明'}</div>
+          <div class="itemDesc">${item.desc || ''}</div>
         `;
         container.appendChild(card);
       });
+      
+      console.log(`✅ renderItems完了: ${containerId}, ${items.length}個のアイテム`);
     }
 
     function drawPieChart(canvas, value, label){
