@@ -1552,6 +1552,45 @@
       "BAL":"相反する要素を調合し、状況に合わせて最適解へ寄せていく「統合と適応」タイプです。"
     };
 
+    // タイプごとの画像マッピング（性別対応）- グローバル定数
+    const TYPE_IMAGES = {
+      "ISFJ": {
+        male: "isfj-male.jpg",
+        female: "isfj-female.jpg",
+        other: ["isfj-male.jpg", "isfj-female.jpg"]
+      },
+      "ESTJ": {
+        male: "estj-male.jpg",
+        female: "estj-female.jpg",
+        other: ["estj-male.jpg", "estj-female.jpg"]
+      },
+      "ESFJ": {
+        male: "esfj-male.jpg",
+        female: "esfj-female.jpg",
+        other: ["esfj-male.jpg", "esfj-female.jpg"]
+      },
+      "ISTP": {
+        male: "istp-male.jpg",
+        female: "istp-female.jpg",
+        other: ["istp-male.jpg", "istp-female.jpg"]
+      },
+      "ISFP": {
+        male: "isfp-male.jpg",
+        female: "isfp-female.jpg",
+        other: ["isfp-male.jpg", "isfp-female.jpg"]
+      },
+      "ESTP": {
+        male: "estp-male.jpg",
+        female: "estp-female.jpg",
+        other: ["estp-male.jpg", "estp-female.jpg"]
+      },
+      "ESFP": {
+        male: "esfp-male.jpg",
+        female: "esfp-female.jpg",
+        other: ["esfp-male.jpg", "esfp-female.jpg"]
+      }
+    };
+
     const TYPE_DETAILS = {
       "INTJ":{intro:"あなたは、混乱の中から「勝ち筋」だけを抜き出し、静かに構造へ変換できる人です。感情に流されるよりも、原因と結果、リスクとリターンを見て判断し、再現性のある成果を積み上げます。周囲が勢いで動くほど、あなたは一段上から全体を俯瞰し、矛盾や無駄を見抜くでしょう。\\n一方で、正しさを優先し過ぎると「理解されない孤独」に入りやすく、完璧主義が行動速度を落とすこともあります。あなたの強さは、結論の鋭さだけでなく、プロセスを設計し直す力にあります。最短で結果を出す鍵は、80点で出して改善する回転数を確保すること。あなたは運ではなく、設計で未来を動かせるタイプです。",essence:"混沌→秩序の設計者。複雑な現実を構造として再構成する力",strengths:"戦略（目的から逆算し最短ルート設計）／構造化（論点分解と峻別）／最適化（少コスト・リスクで成果達成）／リスク設計（失敗パターン先読みと条件分岐）／仕組み化（手順書・ルールで再現性確保）",cautions:"完璧主義で遅れる（80点で出せず改善サイクル停滞）／正論が強く見える（論理優先で相手が否定と感じる）／孤立で燃え尽きやすい（任せるより自分で、で負荷集中）",key:"80点で出す→改善で100点。最初から100点を狙わず市場に当てて反応で磨く。任せる時は手順書1枚（目的／手順／例外／完了条件）で脳を複製",jobs:"新規事業開発／PdM／業務改善BPR／AI自動化設計／テックリード・アーキテクト／戦略コンサル／データ戦略・KPI設計／セキュリティ設計／PMO／B2Bソリューション設計",compatibility:"恋愛加速＝ENTP（発散と収束が両立）／結婚安定＝INFJ/ISTJ（意味と運用を担う）／仕事最強＝ENTJ/ESTJ（推進力で設計を実行化）",action30:"①判断ログ（目的/前提/撤退条件を1行で残す）②β公開を2回（完成を待たず改善点回収）③任せるタスクを1つ手順化（手順書1枚で委譲）"},
       "INTP":{intro:"あなたは、目の前の出来事を「現象」ではなく「原理」として捉える人です。なぜそうなるのか、どの条件で再現するのかを探ることに喜びがあり、世の中の当たり前を分解して真の構造を見つけます。人が見落とす抜け道や本質的な改善点に気づきやすく、問題が複雑であるほどあなたの思考は冴えていきます。\\nただし、考えるほど選択肢が増え、決断が遅れることもあるでしょう。完璧な答えを探すより、仮説を置いて検証する方があなたの才能は速く輝きます。あなたにとって最強の武器は、知識量ではなく「問いの質」。正しい問いを立てた瞬間に、世界が一気に整理されるタイプです。",essence:"真理をモデル化する探究者。現象を抽象化し構造として理解",strengths:"分析（因果を見抜く）／抽象化（個別事象の共通構造を抽出）／論点整理（争点に戻し無駄削減）／技術理解（仕組み理解で応用力）／反証思考（仮説を疑い精度向上）",cautions:"決断が遅れる（納得条件高く情報収集延長）／生活の細部が後回し（日常の乱れで思考質低下）／考えすぎ停止（最適解探しで実験遅延）",key:"締切＋実験（2週間ルール）。2週間1サイクルで仮説→最小実験→結果→更新を回す。生活は自動化・固定化し思考資源を本題へ",jobs:"研究開発R&D／データ分析・データサイエンス／エンジニアリング（基盤・バックエンド）／アルゴリズム設計／QA・テスト設計／監査・検証／技術調査・リサーチ／ナレッジ設計／PoC担当／技術コンサル（深掘り型）",compatibility:"知的共同体＝INTJ（思考速度と深度が合う）／温度補完＝ENFJ/INFJ（感情面ケア・対人調整）／刺激＝ENTP（発散でモデル化加速）",action30:"①週1締切設定（提出物小さくて良い）②最小成果物公開し現実反応でモデル更新③生活ルーチン1つ固定（睡眠・食事・作業開始儀式）"},
@@ -2686,53 +2725,16 @@
       const typeImage = document.getElementById("typeImage");
       const gender = state.profile.gender || "other";
       
-      // タイプごとの画像マッピング（性別対応）
-      const typeImages = {
-        "ISFJ": {
-          male: "isfj-male.jpg",
-          female: "isfj-female.jpg",
-          other: ["isfj-male.jpg", "isfj-female.jpg"] // ランダム選択用
-        },
-        "ESTJ": {
-          male: "estj-male.jpg",
-          female: "estj-female.jpg",
-          other: ["estj-male.jpg", "estj-female.jpg"] // ランダム選択用
-        },
-        "ESFJ": {
-          male: "esfj-male.jpg",
-          female: "esfj-female.jpg",
-          other: ["esfj-male.jpg", "esfj-female.jpg"] // ランダム選択用
-        },
-        "ISTP": {
-          male: "istp-male.jpg",
-          female: "istp-female.jpg",
-          other: ["istp-male.jpg", "istp-female.jpg"] // ランダム選択用
-        },
-        "ISFP": {
-          male: "isfp-male.jpg",
-          female: "isfp-female.jpg",
-          other: ["isfp-male.jpg", "isfp-female.jpg"] // ランダム選択用
-        },
-        "ESTP": {
-          male: "estp-male.jpg",
-          female: "estp-female.jpg",
-          other: ["estp-male.jpg", "estp-female.jpg"] // ランダム選択用
-        },
-        "ESFP": {
-          male: "esfp-male.jpg",
-          female: "esfp-female.jpg",
-          other: ["esfp-male.jpg", "esfp-female.jpg"] // ランダム選択用
-        }
-      };
+      // タイプ画像の設定（グローバルTYPE_IMAGESを使用）
       
-      if (typeImages[code]) {
+      if (TYPE_IMAGES[code]) {
         let imagePath = "";
-        if (gender === "other" && Array.isArray(typeImages[code].other)) {
+        if (gender === "other" && Array.isArray(TYPE_IMAGES[code].other)) {
           // その他の場合はランダムに選択
-          const randomIndex = Math.floor(Math.random() * typeImages[code].other.length);
-          imagePath = typeImages[code].other[randomIndex];
+          const randomIndex = Math.floor(Math.random() * TYPE_IMAGES[code].other.length);
+          imagePath = TYPE_IMAGES[code].other[randomIndex];
         } else {
-          imagePath = typeImages[code][gender] || typeImages[code].other[0];
+          imagePath = TYPE_IMAGES[code][gender] || TYPE_IMAGES[code].other[0];
         }
         
         if (imagePath) {
@@ -2856,7 +2858,7 @@
         });
         
         // 画像があるかチェック
-        const hasImage = typeImages[typeCode];
+        const hasImage = TYPE_IMAGES[typeCode];
         let imageHTML = "";
         if (hasImage) {
           // 男性画像を代表画像として使用（male画像がない場合はfemaleを使用）
