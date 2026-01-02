@@ -1214,6 +1214,12 @@
       <!-- あなたのタイプ -->
       <div style="margin-top:20px; padding:28px; border-radius:20px; border:2px solid rgba(124,77,255,.35); background:linear-gradient(135deg, rgba(124,77,255,.10) 0%, rgba(67,211,255,.08) 100%); backdrop-filter: blur(10px);">
         <div style="text-align:center; font-size:15px; opacity:.85; margin-bottom:12px; letter-spacing:0.5px;">あなたのタイプ</div>
+        
+        <!-- タイプ画像 -->
+        <div id="typeImageContainer" style="text-align:center; margin-bottom:20px; display:none;">
+          <img id="typeImage" src="" alt="タイプ画像" style="max-width:100%; max-height:400px; border-radius:12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+        </div>
+        
         <div style="text-align:center; font-size:32px; font-weight:700; letter-spacing:.12em; margin-bottom:12px; color:var(--accent1); text-shadow: 0 0 15px rgba(124,77,255,0.6);" id="yourTypeCode">BAL</div>
         <div style="text-align:center; font-size:20px; font-weight:700; margin-bottom:18px; line-height:1.4; color:var(--accent2); text-shadow: 0 0 10px rgba(67,211,255,0.5);" id="yourTypeTitle">均衡アルケミスト（統合適応者）</div>
         <div style="text-align:left; font-size:15.5px; line-height:2; opacity:.94; white-space:pre-line; padding:8px 4px;" id="yourTypeIntro">Loading...</div>
@@ -2674,6 +2680,62 @@
       if (yourTypeCodeEl) yourTypeCodeEl.textContent = code || "不明";
       if (yourTypeTitleEl) yourTypeTitleEl.textContent = title;
       if (yourTypeIntroEl) yourTypeIntroEl.textContent = detail.intro || "";
+      
+      // タイプ画像の設定
+      const typeImageContainer = document.getElementById("typeImageContainer");
+      const typeImage = document.getElementById("typeImage");
+      const gender = state.profile.gender || "other";
+      
+      // タイプごとの画像マッピング（性別対応）
+      const typeImages = {
+        "ISFJ": {
+          male: "isfj-male.jpg",
+          female: "isfj-female.jpg",
+          other: ["isfj-male.jpg", "isfj-female.jpg"] // ランダム選択用
+        },
+        "ESTJ": {
+          male: "estj-male.jpg",
+          female: "estj-female.jpg",
+          other: ["estj-male.jpg", "estj-female.jpg"] // ランダム選択用
+        },
+        "ESFJ": {
+          male: "esfj-male.jpg",
+          female: "esfj-female.jpg",
+          other: ["esfj-male.jpg", "esfj-female.jpg"] // ランダム選択用
+        },
+        "ISTP": {
+          male: "istp-male.jpg",
+          female: "istp-female.jpg",
+          other: ["istp-male.jpg", "istp-female.jpg"] // ランダム選択用
+        },
+        "ISFP": {
+          male: "isfp-male.jpg",
+          female: "isfp-female.jpg",
+          other: ["isfp-male.jpg", "isfp-female.jpg"] // ランダム選択用
+        }
+      };
+      
+      if (typeImages[code]) {
+        let imagePath = "";
+        if (gender === "other" && Array.isArray(typeImages[code].other)) {
+          // その他の場合はランダムに選択
+          const randomIndex = Math.floor(Math.random() * typeImages[code].other.length);
+          imagePath = typeImages[code].other[randomIndex];
+        } else {
+          imagePath = typeImages[code][gender] || typeImages[code].other[0];
+        }
+        
+        if (imagePath) {
+          typeImage.src = imagePath;
+          typeImage.alt = `${code} ${title}`;
+          typeImageContainer.style.display = "block";
+          console.log(`🖼️ タイプ画像を設定: ${imagePath}`);
+        }
+      } else {
+        // 画像がないタイプの場合は非表示
+        typeImageContainer.style.display = "none";
+        console.log(`ℹ️ ${code}の画像は設定されていません`);
+      }
 
       // Makeからのレスポンスがある場合のみ詳細セクションを表示
       const hasMakeResponse = !!state.makeResponse;
