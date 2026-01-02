@@ -3357,6 +3357,29 @@
       // 選択されたタイプを直接設定
       state.mbtiType = selectedType;
       
+      // makeResponseにテスト用のpayloadを設定
+      state.makeResponse = {
+        "17type": selectedType,
+        typeCode: selectedType,
+        section1: {
+          content: `これは${selectedType}のテスト表示です。実際の診断結果ではありません。`
+        },
+        section2: {
+          content: "テストモード - データは生成されていません",
+          charts: []
+        },
+        section3: {
+          content: "テストモード - データは生成されていません",
+          charts: []
+        },
+        section4: {
+          content: "テストモード - データは生成されていません"
+        },
+        section5: {
+          content: "テストモード - データは生成されていません"
+        }
+      };
+      
       // 全質問を回答済みとしてマーク
       for (let i = 0; i < QUESTIONS.length; i++) {
         if (!state.answers[i]) {
@@ -3366,7 +3389,7 @@
       
       // モーダルを閉じて結果画面へ
       dom.testTypeModal.setAttribute("aria-hidden", "true");
-      saveState();
+      save();
       setView("result");
     });
     
