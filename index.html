@@ -1111,6 +1111,9 @@
           <button class="btn primary" id="btnStart" style="font-size:15px; padding:14px 24px; min-width:160px;">
             診断を開始する
           </button>
+          <button class="btn" id="btnTestAllTypes" style="background: rgba(124,77,255,.15); border-color: rgba(124,77,255,.35);">
+            🧪 全タイプ表示テスト
+          </button>
           <button class="btn danger" id="btnResetAll">最初からやり直す（保存を消去）</button>
         </div>
       </div>
@@ -1384,6 +1387,47 @@
     <div class="bottomNavInner">
       <button class="btn ghost" id="btnPrevQ">前へ</button>
       <button class="btn primary" id="btnNextQ">次へ</button>
+    </div>
+  </div>
+
+  <!-- テスト用タイプ選択モーダル -->
+  <div class="modalBack" id="testTypeModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" style="max-width: 600px;">
+      <div class="modalGlow" aria-hidden="true"></div>
+      <h3 class="modalTitle">🧪 全タイプ表示テスト</h3>
+      <div class="modalBody">
+        <p style="margin-bottom: 16px; opacity: 0.8;">テストしたいタイプを選択してください。結果画面に直接移動します。</p>
+        <select class="field" id="testTypeSelect" style="margin-bottom: 16px;">
+          <option value="">タイプを選択...</option>
+          <option value="INTJ">INTJ - 黒曜アーキテクト（戦略設計者）</option>
+          <option value="INTP">INTP - 蒼天アナリスト（原理解剖者）</option>
+          <option value="ENTJ">ENTJ - 紅蓮コマンダー（成果指揮者）</option>
+          <option value="ENTP">ENTP - 雷光インベンター（変革発明者）</option>
+          <option value="INFJ">INFJ - 星導シーア（未来洞察者）</option>
+          <option value="INFP">INFP - 月影バード（理想詩人）</option>
+          <option value="ENFJ">ENFJ - 旭日メンター（覚醒導師）</option>
+          <option value="ENFP">ENFP - 虹彩オラクル（可能性点火者）</option>
+          <option value="ISTJ">ISTJ - 鉄律マーシャル（秩序監督者）</option>
+          <option value="ISFJ">ISFJ - 守灯スチュワード（献身支援者）</option>
+          <option value="ESTJ">ESTJ - 鋼核エグゼキューター（現場統率者）</option>
+          <option value="ESFJ">ESFJ - 祥風ホスト（調和運営者）</option>
+          <option value="ISTP">ISTP - 影鋼クラフター（実装修羅）</option>
+          <option value="ISFP">ISFP - 花霞アーティザン（感性職人）</option>
+          <option value="ESTP">ESTP - 疾風ストライカー（機会攻略者）</option>
+          <option value="ESFP">ESFP - 陽光パフォーマー（感情起動者）</option>
+          <option value="BAL">BAL - 均衡アルケミスト（統合適応者）</option>
+        </select>
+        <select class="field" id="testGenderSelect" style="margin-bottom: 16px;">
+          <option value="male">male（男性）</option>
+          <option value="female">female（女性）</option>
+          <option value="other">other（その他）</option>
+        </select>
+      </div>
+
+      <div class="btnRow" style="justify-content: flex-end;">
+        <button class="btn ghost" id="btnCancelTest">キャンセル</button>
+        <button class="btn primary" id="btnConfirmTest">結果を表示</button>
+      </div>
     </div>
   </div>
 
@@ -1819,7 +1863,14 @@
       viewResult:$("viewResult"),
 
       btnStart:$("btnStart"),
+      btnTestAllTypes:$("btnTestAllTypes"),
       btnResetAll:$("btnResetAll"),
+
+      testTypeModal:$("testTypeModal"),
+      testTypeSelect:$("testTypeSelect"),
+      testGenderSelect:$("testGenderSelect"),
+      btnCancelTest:$("btnCancelTest"),
+      btnConfirmTest:$("btnConfirmTest"),
 
       btnBackToHero:$("btnBackToHero"),
       btnToQuestions:$("btnToQuestions"),
@@ -3270,6 +3321,55 @@
 
     dom.btnStart.addEventListener("click", ()=> setView("profile"));
     dom.btnResetAll.addEventListener("click", clearAll);
+    
+    // テストモーダルの開閉
+    dom.btnTestAllTypes.addEventListener("click", ()=> {
+      dom.testTypeModal.setAttribute("aria-hidden", "false");
+    });
+    
+    dom.btnCancelTest.addEventListener("click", ()=> {
+      dom.testTypeModal.setAttribute("aria-hidden", "true");
+    });
+    
+    dom.btnConfirmTest.addEventListener("click", ()=> {
+      const selectedType = dom.testTypeSelect.value;
+      const selectedGender = dom.testGenderSelect.value;
+      
+      if (!selectedType) {
+        alert("タイプを選択してください");
+        return;
+      }
+      
+      // テストデータを設定
+      state.profile.name = "テストユーザー";
+      state.profile.gender = selectedGender;
+      state.profile.birthday = "2000-01-01";
+      state.profile.userId = "test_user";
+      
+      // スコアをデフォルト値で設定（実際の計算はスキップ）
+      state.scores = {
+        E: 0, I: 0,
+        S: 0, N: 0,
+        T: 0, F: 0,
+        J: 0, P: 0
+      };
+      
+      // 選択されたタイプを直接設定
+      state.mbtiType = selectedType;
+      
+      // 全質問を回答済みとしてマーク
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        if (!state.answers[i]) {
+          state.answers[i] = 4; // デフォルト値
+        }
+      }
+      
+      // モーダルを閉じて結果画面へ
+      dom.testTypeModal.setAttribute("aria-hidden", "true");
+      saveState();
+      setView("result");
+    });
+    
     dom.btnBackToHero.addEventListener("click", ()=> setView("hero"));
 
     dom.btnToQuestions.addEventListener("click", ()=>{
