@@ -2855,7 +2855,21 @@
           card.style.transform = 'translateY(0)';
         });
         
+        // 画像があるかチェック
+        const hasImage = typeImages[typeCode];
+        let imageHTML = "";
+        if (hasImage) {
+          // 男性画像を代表画像として使用（male画像がない場合はfemaleを使用）
+          const imagePath = hasImage.male || hasImage.female || hasImage.other[0];
+          imageHTML = `
+            <div style="width: 100%; aspect-ratio: 1; overflow: hidden; border-radius: 10px; margin-bottom: 10px; background: rgba(0,0,0,.3);">
+              <img src="${imagePath}" alt="${typeCode}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+          `;
+        }
+        
         card.innerHTML = `
+          ${imageHTML}
           <div style="font-size: 14px; font-weight: 700; margin-bottom: 6px; ${isYourType ? 'color: var(--accent1);' : ''}">${typeCode}${isYourType ? ' ★' : ''}</div>
           <div style="font-size: 13px; font-weight: 600; margin-bottom: 6px; line-height: 1.3;">${typeTitle}</div>
           <div style="font-size: 11.5px; line-height: 1.6; opacity: .75;">${typeDesc}</div>
