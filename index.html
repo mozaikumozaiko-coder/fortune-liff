@@ -3323,15 +3323,25 @@
     dom.btnResetAll.addEventListener("click", clearAll);
     
     // テストモーダルの開閉
-    dom.btnTestAllTypes.addEventListener("click", ()=> {
-      dom.testTypeModal.setAttribute("aria-hidden", "false");
-    });
+    if (dom.btnTestAllTypes) {
+      dom.btnTestAllTypes.addEventListener("click", ()=> {
+        console.log("Test button clicked");
+        dom.testTypeModal.setAttribute("aria-hidden", "false");
+        dom.testTypeModal.style.display = "flex";
+      });
+    } else {
+      console.error("btnTestAllTypes not found");
+    }
     
-    dom.btnCancelTest.addEventListener("click", ()=> {
-      dom.testTypeModal.setAttribute("aria-hidden", "true");
-    });
+    if (dom.btnCancelTest) {
+      dom.btnCancelTest.addEventListener("click", ()=> {
+        dom.testTypeModal.setAttribute("aria-hidden", "true");
+        dom.testTypeModal.style.display = "none";
+      });
+    }
     
-    dom.btnConfirmTest.addEventListener("click", ()=> {
+    if (dom.btnConfirmTest) {
+      dom.btnConfirmTest.addEventListener("click", ()=> {
       const selectedType = dom.testTypeSelect.value;
       const selectedGender = dom.testGenderSelect.value;
       
@@ -3389,9 +3399,11 @@
       
       // モーダルを閉じて結果画面へ
       dom.testTypeModal.setAttribute("aria-hidden", "true");
+      dom.testTypeModal.style.display = "none";
       save();
       setView("result");
     });
+    }
     
     dom.btnBackToHero.addEventListener("click", ()=> setView("hero"));
 
