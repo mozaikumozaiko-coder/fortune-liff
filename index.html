@@ -2030,7 +2030,8 @@
         done:state.done,
         worryText:state.worryText,
         lastChapterShown:state.lastChapterShown,
-        makeResponse:state.makeResponse  // Makeからのレスポンスも保存
+        makeResponse:state.makeResponse,  // Makeからのレスポンスも保存
+        selectedTarot:state.selectedTarot  // タロットカードも保存
       }));
     }
 
@@ -2064,6 +2065,7 @@
         state.worryText = String(data.worryText || "");
         state.lastChapterShown = Number(data.lastChapterShown || 0);
         state.makeResponse = data.makeResponse || null;  // Makeレスポンスを復元
+        state.selectedTarot = data.selectedTarot || null;  // タロットカードを復元
         return true;
       }catch{
         return false;
