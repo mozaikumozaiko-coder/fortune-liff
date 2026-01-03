@@ -1214,6 +1214,19 @@
     <section class="card" id="viewResult" hidden>
       <h2 class="h1">診断結果</h2>
       
+      <!-- タロットカード -->
+      <div id="tarotCardSection" style="margin-top:20px; padding:28px; border-radius:20px; border:2px solid rgba(207,167,110,.35); background:linear-gradient(135deg, rgba(207,167,110,.10) 0%, rgba(124,77,255,.08) 100%); backdrop-filter: blur(10px);">
+        <div style="text-align:center; font-size:15px; opacity:.85; margin-bottom:12px; letter-spacing:0.5px;">あなたに贈るタロットカード</div>
+        
+        <!-- タロット画像 -->
+        <div id="tarotImageContainer" style="text-align:center; margin-bottom:20px;">
+          <img id="tarotImage" src="" alt="タロットカード" style="max-width:100%; max-height:400px; border-radius:12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);" />
+        </div>
+        
+        <div style="text-align:center; font-size:24px; font-weight:700; margin-bottom:12px; color:#cfa76e; text-shadow: 0 0 15px rgba(207,167,110,0.6);" id="tarotName">カード名</div>
+        <div style="text-align:left; font-size:15.5px; line-height:2; opacity:.94; padding:8px 4px;" id="tarotMeaning">カードの意味</div>
+      </div>
+      
       <!-- あなたのタイプ -->
       <div style="margin-top:20px; padding:28px; border-radius:20px; border:2px solid rgba(124,77,255,.35); background:linear-gradient(135deg, rgba(124,77,255,.10) 0%, rgba(67,211,255,.08) 100%); backdrop-filter: blur(10px);">
         <div style="text-align:center; font-size:15px; opacity:.85; margin-bottom:12px; letter-spacing:0.5px;">あなたのタイプ</div>
@@ -1554,6 +1567,31 @@
       { name:"CHAPTER 3 / 5", a1:"#cfa76e", a2:"#43d3ff", a3:"#7c4dff", bg0:"#120c0a", bg1:"#0b1231" },
       { name:"CHAPTER 4 / 5", a1:"#ff6bd6", a2:"#43d3ff", a3:"#cfa76e", bg0:"#0d0616", bg1:"#08163a" },
       { name:"CHAPTER 5 / 5", a1:"#41d18a", a2:"#cfa76e", a3:"#7c4dff", bg0:"#060f0d", bg1:"#081a2b" },
+    ];
+
+    const TAROT_CARDS = [
+      { id: 0, name: "起動者（イニシエーター）", meaning: "未知へ踏み出す。直感で扉が開く。軽やかな挑戦が運を呼ぶ。", image: "tarot-00.jpg" },
+      { id: 1, name: "黒曜アーキテクト（設計者）", meaning: "構造化・戦略・再現性。勝ち筋を設計し、現実を組み替える力。", image: "tarot-01.jpg" },
+      { id: 2, name: "月影オラクル（秘匿の予言者）", meaning: "静かな洞察。答えは"表"ではなく"行間"にある。情報の取捨選択。", image: "tarot-02.jpg" },
+      { id: 3, name: "星雲エンプレス（生成の女帝）", meaning: "豊かさ・育成・拡張。アイデアを育て、魅力と成果を増幅する。", image: "tarot-03.jpg" },
+      { id: 4, name: "鉄律コマンダー（統率者）", meaning: "秩序・決断・責任。ルールと境界線を引くほど、運は安定する。", image: "tarot-04.jpg" },
+      { id: 5, name: "シグナル・ハイエロファント（導師）", meaning: "学び・継承・信念。正しい型を身につけると、伸びが加速する。", image: "tarot-05.jpg" },
+      { id: 6, name: "共鳴リンク（シンクロの選択）", meaning: "価値観の一致と選択。誰と組むか／何を選ぶかが未来を決める。", image: "tarot-06.jpg" },
+      { id: 7, name: "流星チャリオット（推進者）", meaning: "突破・勝利・集中。ブレずに一点突破すれば、状況は動く。", image: "tarot-07.jpg" },
+      { id: 8, name: "均衡アルケミスト（統合適応者）", meaning: "調整・最適化・統合。相反する要素を混ぜ、最良の配合に整える。", image: "tarot-08.jpg" },
+      { id: 9, name: "深宙ハーミット（探究者）", meaning: "内省・研究・真理。外のノイズを切るほど、核心が見える。", image: "tarot-09.jpg" },
+      { id: 10, name: "ルーレット・オブ・コード（運命輪）", meaning: "転機・タイミング・更新。流れが変わる。波に乗る準備があるか。", image: "tarot-10.jpg" },
+      { id: 11, name: "セラフ・ジャスティス（天秤の裁定）", meaning: "公平・因果・精算。誠実な選択が評価され、歪みは正される。", image: "tarot-11.jpg" },
+      { id: 12, name: "リバース・プロトコル（吊るされた視点）", meaning: "停止・視点転換・待ち。動かない時は"見方"を変えると突破口が出る。", image: "tarot-12.jpg" },
+      { id: 13, name: "データ・リーパー（変容の刈り取り）", meaning: "終わりと再起動。不要な習慣を切り、別の自分に生まれ変わる。", image: "tarot-13.jpg" },
+      { id: 14, name: "オーロラ・テンパランス（調律者）", meaning: "節度・回復・調和。急がず整えるほど、結果は長く続く。", image: "tarot-14.jpg" },
+      { id: 15, name: "ノイズ・バインダー（鎖の誘惑）", meaning: "依存・過剰・執着。快楽や不安に支配されると判断が鈍る。鎖を外す。", image: "tarot-15.jpg" },
+      { id: 16, name: "ゼロデイ・タワー（崩壊の警告）", meaning: "急変・暴露・リセット。誤魔化しが崩れる。痛みは再構築の合図。", image: "tarot-16.jpg" },
+      { id: 17, name: "スターリンク（希望の航路）", meaning: "希望・癒し・理想。遠くの灯台が見える。長期視点で回復する。", image: "tarot-17.jpg" },
+      { id: 18, name: "ミラージュ・ムーン（幻影の海）", meaning: "不安・錯覚・曖昧さ。確証のない情報に注意。夜明けまで"確認"を。", image: "tarot-18.jpg" },
+      { id: 19, name: "ソーラ・サン（成功の光）", meaning: "成就・祝福・明快さ。堂々と表に出すほど運が巡る。自信が鍵。", image: "tarot-19.jpg" },
+      { id: 20, name: "リコール・ジャッジ（覚醒の再判定）", meaning: "復活・召命・再スタート。過去の経験が"使命"として統合される。", image: "tarot-20.jpg" },
+      { id: 21, name: "コスミック・ワールド（完成領域）", meaning: "完成・統合・到達。バラバラだった要素が繋がり、次のステージへ。", image: "tarot-21.jpg" }
     ];
 
     const TYPE_TITLES = {
@@ -1911,6 +1949,11 @@
       resultToast:$("resultToast"),
       jsonPreview:$("jsonPreview"),
 
+      tarotCardSection:$("tarotCardSection"),
+      tarotImage:$("tarotImage"),
+      tarotName:$("tarotName"),
+      tarotMeaning:$("tarotMeaning"),
+
       waterFill:$("waterFill"),
       meterText:$("meterText"),
       topSubtitle:$("topSubtitle"),
@@ -2031,6 +2074,7 @@
       state.lastPayload=null;
       state.lastChapterShown=0;
       state.makeResponse=null;  // Makeレスポンスもクリア
+      state.selectedTarot=null;  // タロットカードもクリア
       renderAll();
     }
 
@@ -2256,6 +2300,13 @@
         worryTextValue = "（未入力）";
       }
       
+      // タロットカードをランダムに選択（初回のみ）
+      if (!state.selectedTarot) {
+        const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
+        state.selectedTarot = TAROT_CARDS[randomIndex];
+        console.log(`🎴 タロットカード初期選択: ${state.selectedTarot.name}`);
+      }
+      
       const payload = {
         action:"final_submit",
         userId: (state.userId || "").trim(),
@@ -2273,7 +2324,12 @@
         isBAL: result.isBAL,
         scores: result.scores,
         percents: result.percents,
-        confidence: result.confidence
+        confidence: result.confidence,
+        tarot: {
+          id: state.selectedTarot.id,
+          name: state.selectedTarot.name,
+          meaning: state.selectedTarot.meaning
+        }
       };
       if (!payload.profile.name || !payload.profile.gender || !payload.profile.birthday) throw new Error("profile incomplete");
       if (!Array.isArray(payload.answers) || payload.answers.length !== 100) throw new Error("answers invalid");
@@ -2849,6 +2905,18 @@
         typeImageContainer.style.display = "none";
         console.log(`ℹ️ ${code}の画像は設定されていません`);
       }
+
+      // タロットカードのランダム選択と表示
+      if (!state.selectedTarot) {
+        const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
+        state.selectedTarot = TAROT_CARDS[randomIndex];
+        save();
+        console.log(`🎴 タロットカード選択: ${state.selectedTarot.name}`);
+      }
+      
+      if (dom.tarotImage) dom.tarotImage.src = state.selectedTarot.image;
+      if (dom.tarotName) dom.tarotName.textContent = state.selectedTarot.name;
+      if (dom.tarotMeaning) dom.tarotMeaning.textContent = state.selectedTarot.meaning;
 
       // Makeからのレスポンスがある場合のみ詳細セクションを表示
       const hasMakeResponse = !!state.makeResponse;
