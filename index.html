@@ -1224,7 +1224,13 @@
         </div>
         
         <div style="text-align:center; font-size:24px; font-weight:700; margin-bottom:12px; color:#cfa76e; text-shadow: 0 0 15px rgba(207,167,110,0.6);" id="tarotName">カード名</div>
-        <div style="text-align:left; font-size:15.5px; line-height:2; opacity:.94; padding:8px 4px;" id="tarotMeaning">カードの意味</div>
+        <div style="text-align:center; font-size:15.5px; line-height:2; opacity:.94; padding:8px 4px; margin-bottom:16px;" id="tarotMeaning">カードの意味</div>
+        
+        <!-- Makeからのタロット説明文 -->
+        <div id="tarotGptExplanation" style="display:none; margin-top:20px; padding:20px; border-radius:12px; background:rgba(207,167,110,.08); border-left:4px solid #cfa76e;">
+          <div style="text-align:center; font-size:14px; opacity:.7; margin-bottom:12px; letter-spacing:0.5px;">🔮 タロットからのメッセージ</div>
+          <div id="tarotGptExplanationText" style="text-align:left; font-size:15px; line-height:1.9; opacity:.92; white-space:pre-line;"></div>
+        </div>
       </div>
       
       <!-- あなたのタイプ -->
@@ -1953,6 +1959,8 @@
       tarotImage:$("tarotImage"),
       tarotName:$("tarotName"),
       tarotMeaning:$("tarotMeaning"),
+      tarotGptExplanation:$("tarotGptExplanation"),
+      tarotGptExplanationText:$("tarotGptExplanationText"),
 
       waterFill:$("waterFill"),
       meterText:$("meterText"),
@@ -2906,20 +2914,33 @@
         console.log(`ℹ️ ${code}の画像は設定されていません`);
       }
 
-      // タロットカードのランダム選択と表示
-      if (!state.selectedTarot) {
+      // Makeからのレスポンスがある場合のフラグ
+      const hasMakeResponse = !!state.makeResponse;
+
+      // タロットカードの表示（ページリロード時も同じカードを表示）
+      if (state.selectedTarot) {
+        // 既に選択されているカードを表示
+        console.log(`🎴 保存されたタロットカード表示: ${state.selectedTarot.name}`);
+      } else {
+        // 初回のみランダム選択
         const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
         state.selectedTarot = TAROT_CARDS[randomIndex];
         save();
-        console.log(`🎴 タロットカード選択: ${state.selectedTarot.name}`);
+        console.log(`🎴 タロットカード初回選択: ${state.selectedTarot.name}`);
       }
       
       if (dom.tarotImage) dom.tarotImage.src = state.selectedTarot.image;
       if (dom.tarotName) dom.tarotName.textContent = state.selectedTarot.name;
       if (dom.tarotMeaning) dom.tarotMeaning.textContent = state.selectedTarot.meaning;
-
-      // Makeからのレスポンスがある場合のみ詳細セクションを表示
-      const hasMakeResponse = !!state.makeResponse;
+      
+      // Makeからのタロット説明文を表示
+      if (hasMakeResponse && payload.tarotExplanation) {
+        if (dom.tarotGptExplanation) dom.tarotGptExplanation.style.display = "block";
+        if (dom.tarotGptExplanationText) dom.tarotGptExplanationText.textContent = payload.tarotExplanation;
+        console.log("🔮 Makeからのタロット説明文を表示");
+      } else {
+        if (dom.tarotGptExplanation) dom.tarotGptExplanation.style.display = "none";
+      }
 
       // 1. 人格プロファイル
       if (hasMakeResponse && payload.section1?.content) {
